@@ -1,6 +1,7 @@
 # A private claim with a real RISC Zero proof (RISC0_DEV_MODE unset everywhere) on a standalone LEZ v0.4.0-rc3
 # sequencer that verifies proofs, run on a GitHub-hosted runner and recorded (tools/real_proof/README.md).
-# Started by hand, or by pushing to the proof-runs branch: the proof alone takes most of an hour on 4 cores and about 10 GiB of memory.
+# Started by hand, or by pushing to the proof-runs branch. Each proof takes about 20 minutes on 4 cores and about 10 GiB of
+# memory (evidence/real-proof/); the token part adds three more proofs.
 # Actions are pinned by commit SHA (tag in the comment).
 name: real-proof
 
@@ -11,6 +12,10 @@ on:
         description: Swap file added before the run, in GiB (0 for none); a margin over the runner's 16 GiB
         required: false
         default: "8"
+      token:
+        description: After the native claim, also a token claim to a private holding (three more proofs); 1 or 0
+        required: false
+        default: "1"
   push:
     branches: [proof-runs]
 
@@ -107,7 +112,9 @@ jobs:
         run: |
           scripts/deploy_local.sh pub --build release
           cat deploy/ids-local-pub.toml
-      - name: Private claim with a real proof, public claim, cancel (tools/real_proof/run.sh)
+      - name: Private claim with a real proof, public claim, cancel; then a token claim to a private holding (tools/real_proof/run.sh)
+        env:
+          CV_REAL_PROOF_TOKEN: ${{ inputs.token || '1' }}
         run: tools/real_proof/run.sh "$RUNNER_TEMP/real-proof"
       - name: Sequencer log
         if: always()
@@ -136,8 +143,10 @@ jobs:
             {
               echo '## Private claim with a real proof'
               echo '```json'
-              jq '{repo_commit, machine, transactions, control_dev_mode_receipt: {refused: .control_dev_mode_receipt.refused},
-                   private_claim: (.private_claim | del(.sampled)), public_claim, cancel: {hash: .cancel.hash, block: .cancel.block}}' "$s"
+              jq '{repo_commit, machine, transactions,
+                   control_dev_mode_receipt: (.control_dev_mode_receipt | {refused, tx_hash, reason}),
+                   private_claim: (.private_claim | del(.sampled)), public_claim, cancel: {hash: .cancel.hash, block: .cancel.block},
+                   token_private_claim: (.token_private_claim // null | if . then del(.sampled) else . end)}' "$s"
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           else

@@ -18,7 +18,10 @@ claims run in dev mode (`RISC0_DEV_MODE=1`, no real proof) and are labelled so; 
    - opens a fresh creator and beneficiary (public), funded from LEZ's local genesis test account;
    - creates a native linear schedule (cliff after 30 s, end after 3 h) and waits for the cliff;
    - **control**: sends the private claim once with a dev-mode receipt (`RISC0_DEV_MODE=1` for that one command). The
-     sequencer must refuse it; if it were accepted, the sequencer would not be checking proofs and the run stops there;
+     sequencer must refuse it; if it were accepted, the sequencer would not be checking proofs and the run stops there.
+     A client only sees that the transaction is never included, so the run also finds the sequencer's own log line for
+     that transaction hash and requires it to name the proof as the reason (`control_dev_mode_receipt.reason` in
+     `summary.json`, the line in `control-sequencer-log.txt`);
    - **the private claim**: `cliff-veil --json claim <schedule> --as <beneficiary> --private --yes` with dev mode unset.
      The SDK builds a `ClaimAsOf` to a one-time blinded address of a fresh private account of the wallet; the wallet
      proves it locally with `r0vm` and sends it. Wall time and peak memory are taken with `/usr/bin/time -v`, and every
@@ -26,11 +29,22 @@ claims run in dev mode (`RISC0_DEV_MODE=1`, no real proof) and are labelled so; 
    - fetches `getTransaction` and `getBlock` for that transaction as any client sees them, and runs
      `tools/scan_rpc/scan_rpc.py` on them: the canonical private account must appear 0 times;
    - a public claim of what vested meanwhile, then a cancel by the creator (the unvested part goes back);
-   - writes `summary.json`.
+   - writes `summary.json`;
+   - **token claim to a private holding** (on by default; `CV_REAL_PROOF_TOKEN=0`, or the workflow input `token: 0`,
+     skips it). It runs only after the native record is written, so its failure cannot hide the native result; the run
+     then still exits non-zero. `e2e/examples/real_proof_token.rs` takes the steps of the end-to-end test
+     `f2_token_claim_private_to_an_owned_private_holding` with real proofs: a fixed-supply token and a schedule of it
+     (public); a private fee payer funded from the beneficiary's public balance (proved), since a token claim brings
+     no native balance to pay its fee with; the destination private account initialises its own holding of the token,
+     fee paid by that payer (proved); the SDK's private claim to the holding, fee paid by the payer (proved; the SDK
+     names `vesting` and the token program to the prover, `Tx::prover_programs`). The claim's RPC answers are scanned
+     for the destination and the fee payer, which must both appear 0 times. The result is `token_private_claim` in
+     `summary.json`, with each step's hash, block and seconds from send to inclusion (proof included).
 
 ## Run it
 
-On GitHub: Actions, `real-proof`, "Run workflow" (input `swap_gb`, default 8: a swap file added as a margin), or
+On GitHub: Actions, `real-proof`, "Run workflow" (inputs `swap_gb`, default 8: a swap file added as a margin; `token`,
+default 1), or a push to the `proof-runs` branch, or
 
 ```sh
 gh workflow run real-proof.yml -R AaroneGeorge/cliff-veil
@@ -56,7 +70,8 @@ tools/real_proof/run.sh /tmp/real-proof
 | `memory.tsv` | the 5 s memory samples during the proved claim |
 | `private-claim-transaction.json`, `private-claim-block.json` | the RPC answers for the proved claim; the transaction bytes carry the proof |
 | `scan.txt` | the privacy scan of those answers |
-| `control-dev-receipt.json` | the refused dev-mode attempt |
+| `control-dev-receipt.json`, `control-sequencer-log.txt` | the refused dev-mode attempt, and the sequencer's log line giving the reason |
+| `token-summary.json`, `token-steps.json`, `token.time`, `memory-token.tsv`, `token-claim-transaction.json`, `token-claim-block.json`, `token-scan.txt` | the token part, as for the native claim |
 | `sequencer.log`, `ids-local-pub.toml` | the sequencer's log and the deployed ids |
 
 Local paths in the record are replaced by `<build>` and `~`. A run kept in this repository is under
@@ -75,5 +90,7 @@ Local paths in the record are replaced by `<build>` and `~`. A run kept in this 
   Anyone can run the workflow again on the same commit and compare.
 - The wall time covers the whole CLI command: local checks, the dry run, the proof, sending, and waiting for inclusion
   (one 15 s block or so). The memory samples show how much of it the prover ran.
-- Only the claim to a private account is proved. Public transactions (deploys, create, public claim, cancel) carry no
+- The token part's memory and time cover its whole program (three proofs one after the other); each step's own
+  seconds are in `token_private_claim.steps`.
+- Only privacy-preserving transactions are proved. Public transactions (deploys, create, public claim, cancel) carry no
   proof on LEZ: the sequencer executes them itself.
