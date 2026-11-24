@@ -1,0 +1,6 @@
+{"step":"fund-creator","hash":"18572085a67c199d3b368e90f1ff96386faa0e6ce59bf759d4ea1fb4561b19ac","block":86}
+{"step":"fund-beneficiary","hash":"afa146e49fc102a04ae625b7c3f566aeee3ef29ffb454aafe4cf71e86b9cb60b","block":88}
+{"step":"create","hash":"d8d6ade1faf4fdb5afb7e394a6e1823f01cb00c80db5db44c371e6d329b051e2","block":90}
+{"step":"private-claim","hash":"66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43","block":193}
+{"step":"public-claim","hash":"ee6ac7676b9fd5637028b171f497c6ce23df426fbe761e779ec5180f0351c332","block":194}
+{"step":"cancel","hash":"7246a352074d07ab00ce3451da0b7f11958b66427eb74503923b2bf8cdd3f8b2","block":195}

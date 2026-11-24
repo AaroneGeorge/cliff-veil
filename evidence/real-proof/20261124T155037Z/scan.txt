@@ -1,0 +1,8 @@
+  rpc getBlock: 336012 chars of JSON, 1 base64 blob(s) of 251981 bytes; error=False
+    EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7: base58 0, hex 0, raw bytes in decoded base64 0
+    7ja3oycQ17GnQrHXcYCUJhDCyjbTV5yzVwD7QYxuZ7NE: base58 0, hex 0, raw bytes in decoded base64 4
+  rpc getTransaction: 335070 chars of JSON, 1 base64 blob(s) of 251270 bytes; error=False
+    EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7: base58 0, hex 0, raw bytes in decoded base64 0
+    7ja3oycQ17GnQrHXcYCUJhDCyjbTV5yzVwD7QYxuZ7NE: base58 0, hex 0, raw bytes in decoded base64 4
+  RPC_TOTAL EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7 0
+  RPC_TOTAL 7ja3oycQ17GnQrHXcYCUJhDCyjbTV5yzVwD7QYxuZ7NE 8

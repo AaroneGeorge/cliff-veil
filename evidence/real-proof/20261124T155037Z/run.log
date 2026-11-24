@@ -1,0 +1,547 @@
+
+== 2026-11-24T15:50:31Z  preconditions: proofs are real and the sequencer verifies them
+local-pub running (setsid): rpc http://127.0.0.1:3051, health {"status":"ok"}
+sequencer pid 23208: RISC0_DEV_MODE entries in its environment: 0
+prover: risc0-r0vm 3.0.5
+
+== 2026-11-24T15:50:31Z  machine
+cpus 4 (AMD EPYC 9V45 96-Core Processor), memory 15983 MiB, swap 11263 MiB
+runner image ubuntu24 20261116.376.1
+
+== 2026-11-24T15:50:31Z  CLI build
+cliff-veil 0.1.0
+
+== 2026-11-24T15:50:37Z  accounts: fresh public creator and beneficiary, funded from the local genesis test account cv-payer
+creator Public/45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY
+beneficiary Public/HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3
+Transaction hash is 18572085a67c199d3b368e90f1ff96386faa0e6ce59bf759d4ea1fb4561b19ac
+Transaction is included in block 86
+Transaction hash is afa146e49fc102a04ae625b7c3f566aeee3ef29ffb454aafe4cf71e86b9cb60b
+Transaction is included in block 88
+
+== 2026-11-24T15:51:37Z  create: native linear schedule, total 10000000000, cliff after 30 s, end after 3 h (part of it still locked at the cancel)
+$ cliff-veil --json create --from rp-20261124T155037-creator --beneficiary rp-20261124T155037-beneficiary --total 10000000000 --start now --cliff +30s --end +3h --label rp-20261124T155037
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 90,
+      "declared_fee": "2849256",
+      "hash": "d8d6ade1faf4fdb5afb7e394a6e1823f01cb00c80db5db44c371e6d329b051e2"
+    }
+  ],
+  "transactions": [
+    {
+      "creation_fee": "0",
+      "estimate": {
+        "cycles": 94246,
+        "headroom_blocks": 12,
+        "headroom_reserve": "2849256",
+        "network_fee": "761256",
+        "payer": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+        "private": false,
+        "reserve": "949752"
+      },
+      "operation": "create",
+      "schedule_id": "48ba9ebafe4404bdfdbd42d9d3fafb7bb531f743a2e254e831b15c78b4c23740",
+      "schedules": [
+        "1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba"
+      ],
+      "total": "10000000000",
+      "treasury": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY"
+    }
+  ]
+}
+$ cliff-veil address --creator rp-20261124T155037-creator --label rp-20261124T155037
+schedule 1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba
+$ cliff-veil show 1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba
+schedule            1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba
+standing            active
+creator             45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY
+beneficiary         HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3
+asset               native
+kind                linear: start 2026-11-24T15:51:34.787Z, cliff 2026-11-24T15:52:04.787Z, end 2026-11-24T18:51:34.787Z
+total               10000000000
+vested              0
+claimed             0
+claimable now       0
+locked              10000000000
+next unlock         2026-11-24T15:52:04.787Z
+escrow              10000000000
+cancelable          yes
+transferable        no
+cancel authority    45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY
+milestone authority 45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY
+refund to           45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY
+clock               2026-11-24T15:51:49.787Z (1795535509787 ms)
+
+== 2026-11-24T15:51:50Z  waiting for the cliff
+$ cliff-veil --json claimable 1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba
+claimable now: 0
+$ cliff-veil --json claimable 1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba
+claimable now: 27777777
+
+== 2026-11-24T15:52:05Z  control: the same private claim with a dev-mode receipt (RISC0_DEV_MODE=1) must be refused by this sequencer
+WARNING: proving in dev mode. This will not generate valid, secure proofs.
+WARNING: Proving in dev mode does not generate a valid receipt. Receipts generated from this process are invalid and should never be used in production.
+{"error":{"action":null,"code":null,"message":"transaction b6eaf8ef86b58ab3449825e14d86b5e637c5ae5b928d4aae4b20db39e7e735d8 was not included within 300s","name":"Backend"},"ok":false,"transactions":[{"amount":"27777777","at":"2026-11-24T15:52:04.787Z","at_ms":1795535524787,"beneficiary":"HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3","claimed_after":"27777777","destination":{"account":"7kicUsJNsqCACLK2hyfbbKxPxvG4M3KKXaPx4XSnkNSV","fresh":true,"kind":"private","one_time_address":"ATsz8Z4TK2Yoz1Vqw5ikj9PjAVbVvcZEnRXyHhJvXXWw","saved_in_wallet":true},"dev_mode":true,"estimate":{"cycles":57264,"headroom_blocks":12,"headroom_reserve":"16586184","network_fee":"5528728","payer":"7kicUsJNsqCACLK2hyfbbKxPxvG4M3KKXaPx4XSnkNSV","private":true,"reserve":"5528728"},"fee_payer":"7kicUsJNsqCACLK2hyfbbKxPxvG4M3KKXaPx4XSnkNSV","fee_payer_choice":"destination","fee_payer_holds":"27777777","fee_payer_reason":"the destination, out of the claim: no other private account of this wallet holds the reserve for 12 blocks of base-fee rise (16586184)","headroom_blocks":12,"headroom_covered":false,"headroom_reserve":"16586184","operation":"claim","privacy_disclosure":"Privacy of this claim (claim to a private account)\n  Visible on-chain, to everyone:\n    - the claim amount\n    - the beneficiary address\n    - the vesting schedule address\n    - the time of the claim\n  Not recorded in public on-chain state:\n    - the destination private account\n    - later movements of the claimed tokens\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them.","reserve":"5528728","schedule":"1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba","still_to_come":"9972222223"}]}
+[exit 1]
+
+== 2026-11-24T15:57:06Z  private claim (ClaimAsOf) to a fresh private account of this wallet, RISC0_DEV_MODE unset: the proof is real
+$ cliff-veil --json claim 1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba --as rp-20261124T155037-beneficiary --private --yes   (under /usr/bin/time -v)
+Latest block is 193
+Syncing to block 193. Blocks to sync: 192
+Synced to block 193 in 543.221623ms
+{
+  "ok": true,
+  "private_balance_after": {
+    "account": "EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7",
+    "native": "300026771"
+  },
+  "sent": [
+    {
+      "block": 193,
+      "declared_fee": "5528784",
+      "hash": "66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "305555555",
+      "at": "2026-11-24T15:57:04.787Z",
+      "at_ms": 1795535824787,
+      "beneficiary": "HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3",
+      "claimed_after": "305555555",
+      "destination": {
+        "account": "EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7",
+        "fresh": true,
+        "kind": "private",
+        "one_time_address": "7ja3oycQ17GnQrHXcYCUJhDCyjbTV5yzVwD7QYxuZ7NE",
+        "saved_in_wallet": true
+      },
+      "dev_mode": false,
+      "estimate": {
+        "cycles": 57271,
+        "headroom_blocks": 12,
+        "headroom_reserve": "16586352",
+        "network_fee": "5528784",
+        "payer": "EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7",
+        "private": true,
+        "reserve": "5528784"
+      },
+      "fee_payer": "EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7",
+      "fee_payer_choice": "destination",
+      "fee_payer_holds": "305555555",
+      "fee_payer_reason": "the destination, out of the claim: no other private account of this wallet holds the reserve for 12 blocks of base-fee rise (16586352)",
+      "headroom_blocks": 12,
+      "headroom_covered": false,
+      "headroom_reserve": "16586352",
+      "operation": "claim",
+      "privacy_disclosure": "Privacy of this claim (claim to a private account)\n  Visible on-chain, to everyone:\n    - the claim amount\n    - the beneficiary address\n    - the vesting schedule address\n    - the time of the claim\n  Not recorded in public on-chain state:\n    - the destination private account\n    - later movements of the claimed tokens\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them.",
+      "reserve": "5528784",
+      "schedule": "1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba",
+      "still_to_come": "9694444445"
+    }
+  ]
+}
+[exit 0]
+	Command being timed: "<build>/build/target/debug/cliff-veil --ids <build>/cliff-veil/deploy/ids-local-pub.toml --json claim 1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba --as rp-20261124T155037-beneficiary --private --yes"
+	User time (seconds): 4541.95
+	System time (seconds): 15.95
+	Percent of CPU this job got: 370%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 20:29.49
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 9612576
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 87849
+	Minor (reclaiming a frame) page faults: 9086587
+	Voluntary context switches: 96708
+	Involuntary context switches: 689817
+	Swaps: 0
+	File system inputs: 2358080
+	File system outputs: 49808
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+private claim: tx 66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43 in block 193; canonical private account EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7; one-time address 7ja3oycQ17GnQrHXcYCUJhDCyjbTV5yzVwD7QYxuZ7NE
+
+== 2026-11-24T16:17:35Z  RPC answers for the proved claim, and the privacy scan
+  rpc getBlock: 336012 chars of JSON, 1 base64 blob(s) of 251981 bytes; error=False
+    EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7: base58 0, hex 0, raw bytes in decoded base64 0
+    7ja3oycQ17GnQrHXcYCUJhDCyjbTV5yzVwD7QYxuZ7NE: base58 0, hex 0, raw bytes in decoded base64 4
+  rpc getTransaction: 335070 chars of JSON, 1 base64 blob(s) of 251270 bytes; error=False
+    EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7: base58 0, hex 0, raw bytes in decoded base64 0
+    7ja3oycQ17GnQrHXcYCUJhDCyjbTV5yzVwD7QYxuZ7NE: base58 0, hex 0, raw bytes in decoded base64 4
+  RPC_TOTAL EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7 0
+  RPC_TOTAL 7ja3oycQ17GnQrHXcYCUJhDCyjbTV5yzVwD7QYxuZ7NE 8
+transaction size: 251270 bytes
+$ cliff-veil show 1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba
+schedule            1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba
+standing            active
+creator             45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY
+beneficiary         HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3
+asset               native
+kind                linear: start 2026-11-24T15:51:34.787Z, cliff 2026-11-24T15:52:04.787Z, end 2026-11-24T18:51:34.787Z
+total               10000000000
+vested              1444449074
+claimed             305555555
+claimable now       1138893519
+locked              8555550926
+next unlock         2026-11-24T16:17:34.793Z
+escrow              9694444445
+cancelable          yes
+transferable        no
+cancel authority    45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY
+milestone authority 45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY
+refund to           45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY
+clock               2026-11-24T16:17:34.792Z (1795537054792 ms)
+
+== 2026-11-24T16:17:35Z  public claim of what vested meanwhile
+$ cliff-veil --json claim 1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba --as rp-20261124T155037-beneficiary
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 194,
+      "declared_fee": "3010368",
+      "hash": "ee6ac7676b9fd5637028b171f497c6ce23df426fbe761e779ec5180f0351c332"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "1138893519",
+      "at": "2026-11-24T16:17:34.792Z",
+      "at_ms": 1795537054792,
+      "beneficiary": "HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3",
+      "claimed_after": "1444449074",
+      "destination": {
+        "account": "HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3",
+        "kind": "public"
+      },
+      "estimate": {
+        "cycles": 99770,
+        "headroom_blocks": 12,
+        "headroom_reserve": "3010368",
+        "network_fee": "803912",
+        "payer": "HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3",
+        "private": false,
+        "reserve": "1003456"
+      },
+      "fee_payer": "HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3",
+      "fee_payer_choice": "signer",
+      "fee_payer_holds": "100000000",
+      "fee_payer_reason": "the beneficiary, which signs the public claim",
+      "headroom_blocks": 12,
+      "headroom_covered": false,
+      "headroom_reserve": "3010368",
+      "operation": "claim",
+      "reserve": "1003456",
+      "schedule": "1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba",
+      "still_to_come": "8555550926"
+    }
+  ]
+}
+
+== 2026-11-24T16:17:50Z  cancel: the unvested part goes back to the creator
+$ cliff-veil --json cancel 1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba --as rp-20261124T155037-creator
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 195,
+      "declared_fee": "2920824",
+      "hash": "7246a352074d07ab00ce3451da0b7f11958b66427eb74503923b2bf8cdd3f8b2"
+    }
+  ],
+  "transactions": [
+    {
+      "at": "2026-11-24T16:17:49.792Z",
+      "at_ms": 1795537069792,
+      "estimate": {
+        "cycles": 96811,
+        "headroom_blocks": 12,
+        "headroom_reserve": "2920824",
+        "network_fee": "779984",
+        "payer": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+        "private": false,
+        "reserve": "973608"
+      },
+      "operation": "cancel",
+      "refund_to": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+      "refunded": "8541662038",
+      "still_claimable": "13888888",
+      "vested_at_cancel": "1458337962"
+    }
+  ]
+}
+
+== 2026-11-24T16:18:05Z  final state
+$ cliff-veil --json show 1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba
+{
+  "ok": true,
+  "schedule": {
+    "account": "1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba",
+    "asset": "native",
+    "beneficiary": "HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3",
+    "cancel_authority": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+    "cancelable": true,
+    "cancelled": {
+      "at": "2026-11-24T16:17:49.792Z",
+      "at_ms": 1795537069792,
+      "refunded": "8541662038",
+      "vested_at_cancel": "1458337962"
+    },
+    "claimable_now": "13888888",
+    "claimed": "1444449074",
+    "clock": "2026-11-24T16:18:04.792Z",
+    "clock_ms": 1795537084792,
+    "creator": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+    "escrow": "13888888",
+    "kind": "linear: start 2026-11-24T15:51:34.787Z, cliff 2026-11-24T15:52:04.787Z, end 2026-11-24T18:51:34.787Z",
+    "kind_detail": {
+      "linear": {
+        "cliff": 1795535524787,
+        "end": 1795546294787,
+        "start": 1795535494787
+      }
+    },
+    "last_time_ms": 1795537069792,
+    "locked": "0",
+    "milestone_authority": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+    "next_unlock": "none (nothing more vests)",
+    "next_unlock_kind": "never",
+    "next_unlock_ms": null,
+    "refund_to": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+    "schedule_id": "48ba9ebafe4404bdfdbd42d9d3fafb7bb531f743a2e254e831b15c78b4c23740",
+    "standing": "cancelled",
+    "token_definition": null,
+    "total": "10000000000",
+    "transferable": false,
+    "vested": "1458337962"
+  }
+}
+Label: rp-20261124T155037-creator
+Balance 18540120798, nonce 2
+Label: rp-20261124T155037-beneficiary
+Balance 1238089607, nonce 2
+
+== 2026-11-24T16:18:05Z  done: summary.json
+{
+  "what": "private claim (ClaimAsOf) with a real RISC Zero proof on a standalone LEZ sequencer that verifies proofs",
+  "repo_commit": "5b1101d1dd66225df17af089a4a69a82a547ea82",
+  "lez": "v0.4.0-rc3",
+  "lez_commit": "bafd07be0701398f9bc435f73ab05e9a7936c301",
+  "run_url": "https://github.com/AaroneGeorge/cliff-veil/actions/runs/45422127636",
+  "run": "rp-20261124T155037",
+  "machine": {
+    "cpus": 4,
+    "cpu": "AMD EPYC 9V45 96-Core Processor",
+    "mem_total_mib": 15983,
+    "swap_total_mib": 11263,
+    "image": "ubuntu24 20261116.376.1",
+    "prover": "risc0-r0vm 3.0.5"
+  },
+  "sequencer": {
+    "rpc": "http://127.0.0.1:3051",
+    "risc0_dev_mode_in_its_environment": false,
+    "pid": "23208",
+    "ephemeral": "started for this run on the same machine and discarded with it"
+  },
+  "programs_toml": "[programs]\ntoken = \"4CAHAe8CL1Rrbm1qdPP1J5G8swLf1nxHQ6VadJsn1UBJ\"   # sha256 7b0178907ac0cfc61542d7d5585481dbbbfa88f594df37cdb3ebb2b88c9db1b5, 292988 bytes, release build, 20261124T153638Z\nvesting_fees = \"AjFYVwa2RKFapF64AFw1TBaMpHtf3FmiZVtNz2rNSH2W\"   # sha256 797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69, 301608 bytes, release build, 20261124T153638Z\nata = \"2cvBD5k6H57ZidViWYpSBwm3NNDJh8b7cuXWRb9gZkgL\"   # sha256 97188dfddd46b7b0f75308c54c3b518f887cb4ce32b5758cc8d8b1196e23ec73, 266772 bytes, release build, 20261124T153638Z\nvesting = \"J7ZZfE5wHRPLHFLUVJZRR49ShEuHvqavvkmeC9CmrMFn\"   # sha256 e528cc32bae87bf72ba6f4c7cd21a2be032c19dabbcf926098b4795bb17c755a, 356208 bytes, release build, 20261124T153638Z\n\n[accounts]\nfees_config = \"8Bu1XJvg2j2k9v9NCM4bAFeFqKAZP6d24HxFMHoUCgtL\"   # vesting_fees config (PDA), Init by the deployer\n\n# RISC Zero image ids of the deployed binaries (scripts/check_image_ids.sh <release dir> <this file>).\n[image_ids]\ntoken = \"aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c\"\nvesting_fees = \"7e5b5539f82c19d8e4dd502852d5a35673fac4ccefba438bc101099f341cc147\"\nata = \"339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110\"\nvesting = \"9af85ba00c2a2b8194d5e467d5104ec5379881e37d54f4cba4acad2c0c8c7d67\"\n\n[build]\n",
+  "accounts": {
+    "creator": "Public/45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+    "beneficiary": "Public/HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3",
+    "schedule": "1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba"
+  },
+  "transactions": [
+    {
+      "step": "fund-creator",
+      "hash": "18572085a67c199d3b368e90f1ff96386faa0e6ce59bf759d4ea1fb4561b19ac",
+      "block": 86
+    },
+    {
+      "step": "fund-beneficiary",
+      "hash": "afa146e49fc102a04ae625b7c3f566aeee3ef29ffb454aafe4cf71e86b9cb60b",
+      "block": 88
+    },
+    {
+      "step": "create",
+      "hash": "d8d6ade1faf4fdb5afb7e394a6e1823f01cb00c80db5db44c371e6d329b051e2",
+      "block": 90
+    },
+    {
+      "step": "private-claim",
+      "hash": "66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43",
+      "block": 193
+    },
+    {
+      "step": "public-claim",
+      "hash": "ee6ac7676b9fd5637028b171f497c6ce23df426fbe761e779ec5180f0351c332",
+      "block": 194
+    },
+    {
+      "step": "cancel",
+      "hash": "7246a352074d07ab00ce3451da0b7f11958b66427eb74503923b2bf8cdd3f8b2",
+      "block": 195
+    }
+  ],
+  "control_dev_mode_receipt": {
+    "refused": true,
+    "cli_exit": 1,
+    "answer": {
+      "error": {
+        "action": null,
+        "code": null,
+        "message": "transaction b6eaf8ef86b58ab3449825e14d86b5e637c5ae5b928d4aae4b20db39e7e735d8 was not included within 300s",
+        "name": "Backend"
+      },
+      "ok": false,
+      "transactions": [
+        {
+          "amount": "27777777",
+          "at": "2026-11-24T15:52:04.787Z",
+          "at_ms": 1795535524787,
+          "beneficiary": "HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3",
+          "claimed_after": "27777777",
+          "destination": {
+            "account": "7kicUsJNsqCACLK2hyfbbKxPxvG4M3KKXaPx4XSnkNSV",
+            "fresh": true,
+            "kind": "private",
+            "one_time_address": "ATsz8Z4TK2Yoz1Vqw5ikj9PjAVbVvcZEnRXyHhJvXXWw",
+            "saved_in_wallet": true
+          },
+          "dev_mode": true,
+          "estimate": {
+            "cycles": 57264,
+            "headroom_blocks": 12,
+            "headroom_reserve": "16586184",
+            "network_fee": "5528728",
+            "payer": "7kicUsJNsqCACLK2hyfbbKxPxvG4M3KKXaPx4XSnkNSV",
+            "private": true,
+            "reserve": "5528728"
+          },
+          "fee_payer": "7kicUsJNsqCACLK2hyfbbKxPxvG4M3KKXaPx4XSnkNSV",
+          "fee_payer_choice": "destination",
+          "fee_payer_holds": "27777777",
+          "fee_payer_reason": "the destination, out of the claim: no other private account of this wallet holds the reserve for 12 blocks of base-fee rise (16586184)",
+          "headroom_blocks": 12,
+          "headroom_covered": false,
+          "headroom_reserve": "16586184",
+          "operation": "claim",
+          "privacy_disclosure": "Privacy of this claim (claim to a private account)\n  Visible on-chain, to everyone:\n    - the claim amount\n    - the beneficiary address\n    - the vesting schedule address\n    - the time of the claim\n  Not recorded in public on-chain state:\n    - the destination private account\n    - later movements of the claimed tokens\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them.",
+          "reserve": "5528728",
+          "schedule": "1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba",
+          "still_to_come": "9972222223"
+        }
+      ]
+    }
+  },
+  "private_claim": {
+    "hash": "66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43",
+    "block": 193,
+    "amount": "305555555",
+    "dev_mode": false,
+    "canonical_private_account": "EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7",
+    "one_time_address": "7ja3oycQ17GnQrHXcYCUJhDCyjbTV5yzVwD7QYxuZ7NE",
+    "private_balance_after": "300026771",
+    "network_fee_estimate": "5528784",
+    "cycles": 57271,
+    "started": "2026-11-24T15:57:06Z",
+    "finished": "2026-11-24T16:17:35Z",
+    "wall_seconds": 1229,
+    "elapsed_gnu_time": "20:29.49",
+    "max_rss_kib_gnu_time": 9612576,
+    "max_rss_gib_gnu_time": 9.17,
+    "sampled": {
+      "r0vm_peak_rss_kib": 9445464,
+      "cli_peak_rss_kib": 37352,
+      "swap_used_peak_kib": 1737444,
+      "mem_available_min_kib": 5874316,
+      "r0vm_seen_seconds": 1200,
+      "interval_seconds": 5
+    },
+    "transaction_bytes": 251270,
+    "rpc_scan": {
+      "canonical_account_total": 0,
+      "one_time_address_total": 8,
+      "pass": true
+    }
+  },
+  "public_claim": {
+    "hash": "ee6ac7676b9fd5637028b171f497c6ce23df426fbe761e779ec5180f0351c332",
+    "block": 194,
+    "amount": "1138893519"
+  },
+  "cancel": {
+    "hash": "7246a352074d07ab00ce3451da0b7f11958b66427eb74503923b2bf8cdd3f8b2",
+    "block": 195,
+    "outcome": {
+      "at": "2026-11-24T16:17:49.792Z",
+      "at_ms": 1795537069792,
+      "estimate": {
+        "cycles": 96811,
+        "headroom_blocks": 12,
+        "headroom_reserve": "2920824",
+        "network_fee": "779984",
+        "payer": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+        "private": false,
+        "reserve": "973608"
+      },
+      "operation": "cancel",
+      "refund_to": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+      "refunded": "8541662038",
+      "still_claimable": "13888888",
+      "vested_at_cancel": "1458337962"
+    }
+  },
+  "final_schedule": {
+    "account": "1hBGRYRfqs8wfRJAo31DrPG1TmYzkzEU42jNmf1n6Ba",
+    "asset": "native",
+    "beneficiary": "HhxucFaigL5AxXSKANanEuyAi7kej3KVH22zU7xm92j3",
+    "cancel_authority": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+    "cancelable": true,
+    "cancelled": {
+      "at": "2026-11-24T16:17:49.792Z",
+      "at_ms": 1795537069792,
+      "refunded": "8541662038",
+      "vested_at_cancel": "1458337962"
+    },
+    "claimable_now": "13888888",
+    "claimed": "1444449074",
+    "clock": "2026-11-24T16:18:04.792Z",
+    "clock_ms": 1795537084792,
+    "creator": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+    "escrow": "13888888",
+    "kind": "linear: start 2026-11-24T15:51:34.787Z, cliff 2026-11-24T15:52:04.787Z, end 2026-11-24T18:51:34.787Z",
+    "kind_detail": {
+      "linear": {
+        "cliff": 1795535524787,
+        "end": 1795546294787,
+        "start": 1795535494787
+      }
+    },
+    "last_time_ms": 1795537069792,
+    "locked": "0",
+    "milestone_authority": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+    "next_unlock": "none (nothing more vests)",
+    "next_unlock_kind": "never",
+    "next_unlock_ms": null,
+    "refund_to": "45YHBxokdfv67tfUzepfATQ4JuPcfbZFh7AQ15nWdggY",
+    "schedule_id": "48ba9ebafe4404bdfdbd42d9d3fafb7bb531f743a2e254e831b15c78b4c23740",
+    "standing": "cancelled",
+    "token_definition": null,
+    "total": "10000000000",
+    "transferable": false,
+    "vested": "1458337962"
+  },
+  "balances_after": {
+    "creator_public": "18540120798",
+    "beneficiary_public": "1238089607",
+    "private_destination": "300026771"
+  }
+}
