@@ -1,0 +1,32 @@
+[package]
+name = "vesting_e2e"
+description = "End-to-end tests of the vesting program against a standalone LEZ sequencer, and the client harness they use"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+vesting_core.workspace = true
+# The SDK, for the tests of its own lifecycle and private-claim calls.
+vesting_sdk.workspace = true
+# The fee switch's wire messages (SetFee), for the admin-only test.
+vesting_fees.workspace = true
+# The token program's messages and state, at the pinned lez-programs commit (as the program uses them).
+token_core = { git = "https://github.com/logos-blockchain/lez-programs", rev = "3f04cc37ec5f90358e606b0fe7d28baa6b1dbd7e" }
+# LEZ v0.4.0-rc3: the wallet builds, prices, simulates and signs public transactions; `lee` and `common` carry the
+# transaction and account types; the RPC client reads accounts and waits for inclusion.
+wallet.workspace = true
+lee.workspace = true
+lee_core.workspace = true
+common.workspace = true
+sequencer_service_rpc = { workspace = true, features = ["client"] }
+clock_core = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3" }
+anyhow.workspace = true
+borsh.workspace = true
+hex.workspace = true
+sha2 = { workspace = true, features = ["std"] }
+tokio = { workspace = true, features = ["sync"] }
+
+[lints]
+workspace = true

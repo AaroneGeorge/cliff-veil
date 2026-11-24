@@ -1,0 +1,15 @@
+[package]
+name = "reqmap"
+description = "Maps each RFP requirement to the tests that show it; writes docs/REQUIREMENTS.md and checks coverage"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde = { workspace = true, features = ["std"] }
+toml = "0.8"
+
+[lints]
+workspace = true

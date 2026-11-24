@@ -1,0 +1,154 @@
+# CI for cliff-veil. Actions are pinned by commit SHA (tag in the comment).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RISC0_DEV_MODE: "1"
+  RISC0_DOCKER_CONTAINER_TAG: r0.1.91.1
+  # LEZ v0.4.0-rc3; must equal the lez line of scripts/pins.txt (checked in the e2e job).
+  LEZ_COMMIT: bafd07be0701398f9bc435f73ab05e9a7936c301
+  # Hosted runners have 4 cores to themselves.
+  CARGO_BUILD_JOBS: "4"
+
+jobs:
+  rust:
+    name: fmt, clippy, wording, tests (dev mode)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: System packages
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends clang libclang-dev pkg-config cmake
+      - name: Toolchain from rust-toolchain.toml
+        run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          # scripts/env.sh puts the target dir next to the checkout.
+          workspaces: ". -> ../build/target"
+      - name: fmt
+        run: make fmt-check
+      - name: clippy
+        if: success() || failure()
+        run: make clippy
+      - name: wording (every tracked file)
+        if: success() || failure()
+        run: make wording
+      - name: tests
+        if: success() || failure()
+        run: make test
+      # The mini-app logic is a standalone crate (the Logos module builder compiles it outside the workspace).
+      - name: mini-app logic (fmt, clippy, tests)
+        if: success() || failure()
+        run: |
+          cargo fmt --manifest-path miniapp/rust-lib/logic/Cargo.toml --check
+          cargo clippy --locked --manifest-path miniapp/rust-lib/logic/Cargo.toml --all-targets -- -D warnings
+          cargo test --locked --manifest-path miniapp/rust-lib/logic/Cargo.toml
+
+  history:
+    name: commit identity, trailers, wording of messages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Every commit of the branch
+        run: scripts/check_history.sh HEAD
+
+  guests:
+    name: guest build (docker r0.1.91.1) + image-id check
+    runs-on: ubuntu-24.04
+    # scripts/guests_release.sh builds every guest from the committed tree in the pinned image with risc0-build
+    # 3.0.5's environment, so no rzup toolchain is needed on the runner. The image ids must equal
+    # program/IMAGE_IDS.expected: a CI-checked proof that the build is reproducible.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Toolchain from rust-toolchain.toml
+        run: rustup show active-toolchain || rustup toolchain install
+      - name: Build all guests in the pinned image
+        env:
+          CV_RELEASE_DIR: ${{ runner.temp }}/guests
+          CV_GUEST_MEMORY_MB: "12000"
+        run: scripts/guests_release.sh
+      - name: Image ids equal program/IMAGE_IDS.expected
+        run: scripts/check_image_ids.sh "${{ runner.temp }}/guests"
+      - name: ELF sizes (deployed-ELF cap 1,966,080 bytes)
+        run: |
+          ls -l "${{ runner.temp }}/guests/elf" | tee guest-sizes.txt
+          awk 'NR>1 && $5 > 1966080 { print "over the deployed-ELF cap: " $9; bad=1 } END { exit bad }' guest-sizes.txt
+
+  e2e:
+    name: end to end on a standalone LEZ sequencer (dev mode)
+    runs-on: ubuntu-24.04
+    # The first run builds sequencer_service --features standalone and the wallet at the pinned LEZ commit (the slow
+    # part); later runs restore both binaries from the cache, keyed by that commit.
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned LEZ commit matches scripts/pins.txt; LEZ binaries go to a cached directory
+        run: |
+          grep -E "^lez +[^ ]+ +[^ ]+ +$LEZ_COMMIT\$" scripts/pins.txt
+          echo "CV_LEZ_BIN=$RUNNER_TEMP/lez-bin" >> "$GITHUB_ENV"
+      - name: Free runner disk
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL && df -h /
+      - name: Restore LEZ binaries
+        id: lezcache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/lez-bin
+          key: lez-standalone-bin-${{ env.LEZ_COMMIT }}
+      - name: Bootstrap (system packages, rzup, LEZ checkout, LEZ binaries when not cached)
+        run: scripts/bootstrap.sh --with-sudo
+      - name: Save LEZ binaries
+        if: steps.lezcache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/lez-bin
+          key: lez-standalone-bin-${{ env.LEZ_COMMIT }}
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: ". -> ../build/target"
+          key: e2e
+      - name: Start the dev sequencer
+        run: scripts/seq.sh dev start
+      - name: The wallet reaches the sequencer
+        run: scripts/seq.sh dev wallet-check
+      - name: Deploy token, vesting_fees (+ Init), ata and vesting, built in the pinned image (writes deploy/ids-local-dev.toml)
+        env:
+          CV_GUEST_MEMORY_MB: "12000"
+        run: |
+          scripts/deploy_local.sh dev --build release
+          cat deploy/ids-local-dev.toml
+      - name: End-to-end tests (every test opens its own funded accounts; pending tests are listed and skipped)
+        env:
+          CV_SEQ_RPC: http://127.0.0.1:3050
+        run: e2e/run.sh
+      - name: Every hard requirement has a test, and docs/REQUIREMENTS.md is current
+        if: success() || failure()
+        run: cargo run --locked -p reqmap -- --check
+      - name: Sequencer log
+        if: always()
+        run: |
+          scripts/seq.sh dev stop || true
+          tail -n 200 ../run/local-dev.log || true

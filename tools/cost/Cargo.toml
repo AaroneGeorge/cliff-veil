@@ -1,0 +1,38 @@
+[package]
+name = "vesting_cost"
+description = "Cost of each vesting operation: executor cycles, and the fee a sequencer charges"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "vesting-cost"
+path = "src/main.rs"
+
+[features]
+# Operations of the `vesting_fees` program (fee switch). Off until that program is built: its rows are then reported
+# as "not built".
+fees = []
+
+[dependencies]
+vesting_core.workspace = true
+# The fee config a deployment holds after `Init` (executor mode).
+vesting_fees.workspace = true
+# Executor-level runs: the same `ValidatedStateDiff` execution the sequencer performs, with the cycle count.
+lee = { workspace = true, features = ["test-utils"] }
+lee_core.workspace = true
+clock_core = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3" }
+programs = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3", default-features = false, features = ["artifacts"] }
+anyhow.workspace = true
+borsh.workspace = true
+hex.workspace = true
+serde = { workspace = true, features = ["std"] }
+serde_json.workspace = true
+sha2 = { workspace = true, features = ["std"] }
+tokio.workspace = true
+# Sequencer mode sends through the end-to-end harness.
+vesting_e2e = { path = "../../e2e" }
+
+[lints]
+workspace = true

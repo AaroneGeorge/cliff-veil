@@ -1,0 +1,251 @@
+# Requirements of RFP-017 "Privacy-Preserving Token Vesting", with the RFP's own wording.
+#
+# `tools/reqmap` reads this file, finds every test in the workspace and maps it to a requirement:
+#   - by name: a test whose name starts with one of the row's `prefixes` (default: the lowercase id and "_",
+#     e.g. `f3_cancel_refund_exact` -> F3);
+#   - by table: a test listed in the row's `tests` (as `<crate dir>::<test name>`, e.g. "core::prop_vested_monotone").
+# It writes docs/REQUIREMENTS.md (`cargo run -p reqmap`) and fails with `--check` when a hard requirement of
+# Functionality, Usability, Reliability, Performance or Privacy has no test, or when docs/REQUIREMENTS.md is stale.
+# Supportability rows may be met by `evidence` (a file or a CI job) instead of a test.
+#
+# Fields: id, group, kind ("hard", "soft" or "fee"), text (verbatim from the RFP), optional parent (a sub-item of a
+# numbered requirement), prefixes, tests, evidence.
+
+# ---------------------------------------------------------------- Functionality
+
+[[requirement]]
+id = "F1"
+group = "Functionality"
+kind = "hard"
+text = "Implement a vesting program on LEZ that locks tokens in escrow against a configured schedule. The program must support: cliff + linear vesting, fully linear vesting, milestone-based vesting."
+
+[[requirement]]
+id = "F1a"
+parent = "F1"
+group = "Functionality"
+kind = "hard"
+text = "Cliff + linear vesting: tokens become claimable in a lump sum at the cliff date, then linearly over the remaining duration (e.g., 1-year cliff, 3-year linear release)."
+
+[[requirement]]
+id = "F1b"
+parent = "F1"
+group = "Functionality"
+kind = "hard"
+text = "Fully linear vesting: no cliff; tokens accrue continuously from the start date."
+
+[[requirement]]
+id = "F1c"
+parent = "F1"
+group = "Functionality"
+kind = "hard"
+text = "Milestone-based vesting: the schedule creator explicitly signals completion of discrete tranches; each signal unlocks a fixed token amount for the beneficiary to claim."
+
+[[requirement]]
+id = "F2"
+group = "Functionality"
+kind = "hard"
+text = "The schedule creator specifies the beneficiary at schedule creation. Recipients can claim vested tokens to a public account or to a private account. The schedule creator does not learn the recipient's private account address from the claim interaction."
+
+[[requirement]]
+id = "F3"
+group = "Functionality"
+kind = "hard"
+text = "The schedule creator sets whether the schedule is cancelable at creation time (default: cancelable). A cancelable schedule can be converted to non-cancelable by the creator; this conversion is irreversible. When a cancelable schedule is cancelled, the unclaimed, unvested token balance returns to the creator's account. Tokens already vested but not yet claimed remain claimable by the beneficiary after cancellation."
+
+[[requirement]]
+id = "F4"
+group = "Functionality"
+kind = "hard"
+text = "The schedule creator can configure whether the vesting position (beneficiary rights) is transferable to a new beneficiary. Transferability must be set at schedule creation and cannot be changed afterwards."
+
+[[requirement]]
+id = "F5"
+group = "Functionality"
+kind = "hard"
+text = "Multi-recipient batch creation: a creator can set up vesting schedules for multiple recipients in a single operation, up to the LEZ transaction size limit. Document the maximum number of recipients achievable in one transaction."
+
+[[requirement]]
+id = "F6"
+group = "Functionality"
+kind = "hard"
+text = "The program emits a log event (using the LEZ event/log mechanism; see LP-0012) for each state transition: schedule creation, claim, cancellation, milestone signal, and beneficiary transfer. Event schema must be documented."
+
+# ---------------------------------------------------------------- Usability
+
+[[requirement]]
+id = "U1"
+group = "Usability"
+kind = "hard"
+text = "Provide an SDK that can be used to build Logos modules interacting with the vesting program. The SDK must expose the full lifecycle: create schedule, query claimable amount, claim, cancel, signal milestone, and transfer beneficiary. The SDK must support claiming to both public and private accounts."
+
+[[requirement]]
+id = "U2"
+group = "Usability"
+kind = "hard"
+text = "Provide a Logos mini-app GUI with local build instructions, downloadable assets, and loadable in Logos app (Basecamp) via git repo. The mini-app must cover at minimum: Recipient view: current vesting position, total locked, amount claimable now, next unlock event, claim action. Creator view: create a new schedule (all parameters), list active schedules, cancel a schedule, signal a milestone."
+
+[[requirement]]
+id = "U3"
+group = "Usability"
+kind = "hard"
+text = "Provide a CLI that covers core functionality of the program. The CLI may have fewer features than the GUI mini-app but must support all essential operations: create schedule, claim, cancel, signal milestone, and query claimable amount."
+
+[[requirement]]
+id = "U4"
+group = "Usability"
+kind = "hard"
+text = "The mini-app must display a pre-claim confirmation summary: claimable amount and estimated transaction fee. When using the private account path, it must confirm that the beneficiary account has sufficient gas to cover the claim; a clear, actionable error must be shown if the balance is insufficient."
+
+[[requirement]]
+id = "U5"
+group = "Usability"
+kind = "hard"
+text = "When using the private account path, the mini-app must display a privacy disclosure before each claim, identifying what will be visible on-chain (claim amount, beneficiary address, vesting schedule address) and what will not be traceable (the destination private account and subsequent movements)."
+
+[[requirement]]
+id = "U6"
+group = "Usability"
+kind = "hard"
+text = "Provide an IDL for the vesting program using the SPEL framework."
+
+[[requirement]]
+id = "U7"
+group = "Usability"
+kind = "hard"
+text = "Failed claims must return clear, actionable error messages, including the case where nothing is yet claimable (with the next unlock time displayed)."
+
+# ---------------------------------------------------------------- Reliability
+
+[[requirement]]
+id = "R1"
+group = "Reliability"
+kind = "hard"
+text = "A claim is atomic: a failed or rejected claim does not consume vested tokens and leaves the claimant able to retry without loss."
+
+[[requirement]]
+id = "R2"
+group = "Reliability"
+kind = "hard"
+text = "A schedule cancellation is atomic: partial failure leaves the schedule in its prior state, not an undefined one."
+
+[[requirement]]
+id = "R3"
+group = "Reliability"
+kind = "hard"
+text = "Concurrent claims against independent schedules must not corrupt shared program state."
+
+[[requirement]]
+id = "R4"
+group = "Reliability"
+kind = "hard"
+text = "Milestone signalling is idempotent per milestone index: signalling the same milestone twice must be rejected with a deterministic error and must not double-unlock tokens."
+
+# ---------------------------------------------------------------- Performance
+
+[[requirement]]
+id = "P1"
+group = "Performance"
+kind = "hard"
+text = "A single claim completes within one LEZ transaction."
+
+[[requirement]]
+id = "P2"
+group = "Performance"
+kind = "hard"
+text = "Document the compute unit (CU) cost of each operation: create schedule, claim, cancel, signal milestone, transfer beneficiary. Measurements are taken on LEZ testnet 0.4."
+evidence = "docs/COSTS.md, written by tools/cost from evidence/cost/*.json"
+
+# ---------------------------------------------------------------- Supportability
+
+[[requirement]]
+id = "S1"
+group = "Supportability"
+kind = "hard"
+text = "The vesting LEZ program is delivered for LEZ testnet 0.4: it is deployed and tested on LEZ testnet 0.4."
+evidence = "Deployment on LEZ testnet 0.4 once it has a public endpoint; until then the same suite runs on a LEZ v0.4.0-rc3 standalone sequencer"
+
+[[requirement]]
+id = "S2"
+group = "Supportability"
+kind = "hard"
+text = "End-to-end integration tests run against a LEZ sequencer (standalone mode) and are included in CI. CI must be green on the default branch."
+evidence = "job `e2e` of .github/workflows/ci.yml"
+
+[[requirement]]
+id = "S3"
+group = "Supportability"
+kind = "hard"
+text = "Every hard requirement in Functionality, Usability, Reliability, and Performance has at least one corresponding test."
+evidence = "this file and `cargo run -p reqmap -- --check`, a step of job `e2e` of .github/workflows/ci.yml"
+
+[[requirement]]
+id = "S4"
+group = "Supportability"
+kind = "hard"
+text = "A README documents end-to-end usage: deployment steps, program addresses, and step-by-step instructions for creating a schedule, claiming, and cancelling via CLI and mini-app."
+evidence = "README.md"
+
+# ---------------------------------------------------------------- Privacy
+
+[[requirement]]
+id = "Pr1"
+group = "Privacy"
+kind = "hard"
+text = "The mini-app and SDK must support claiming to both public and private accounts."
+
+[[requirement]]
+id = "Pr2"
+group = "Privacy"
+kind = "hard"
+text = "When using the private account path, the mini-app must display the pre-confirmation privacy disclosure described in the Usability section before each claim, identifying what is visible on-chain (claim amount, beneficiary address, vesting schedule address) and what remains private (the destination private account and subsequent movements of claimed tokens)."
+
+[[requirement]]
+id = "Pr3"
+group = "Privacy"
+kind = "hard"
+text = "When using the private account path, the SDK must validate that the claim target is a private (shielded) account before submitting the transaction, and reject with an explicit error if it is not."
+
+# ---------------------------------------------------------------- Soft requirements
+
+[[requirement]]
+id = "Soft1"
+group = "Soft"
+kind = "soft"
+text = "The creator can nominate a separate cancellation authority distinct from the creator wallet (useful when vesting is managed by a multisig or DAO)."
+prefixes = ["soft1_", "soft_cancel_authority"]
+
+[[requirement]]
+id = "Soft2"
+group = "Soft"
+kind = "soft"
+text = "The creator can nominate a separate milestone authority distinct from the creator wallet."
+prefixes = ["soft2_", "soft_milestone_authority"]
+
+# ---------------------------------------------------------------- Fee structure (questions the proposal must answer)
+
+[[requirement]]
+id = "Fee1"
+group = "Fees"
+kind = "fee"
+text = "Who pays: whether fees (if any) are charged to the schedule creator, the beneficiary at claim time, or both."
+
+[[requirement]]
+id = "Fee2"
+group = "Fees"
+kind = "fee"
+text = "When fees are collected: at schedule creation, at each claim event, at cancellation, or a combination."
+tests = ["e2e::fee1_fee2_zero_rate_charges_the_creator_nothing_at_creation"]
+
+[[requirement]]
+id = "Fee3"
+group = "Fees"
+kind = "fee"
+text = "Fee rate: the exact rate or range, including whether a governance-activatable fee switch is included for future adjustment."
+tests = ["e2e::fee3_fee4_switch_is_admin_only_capped_and_a_stale_quote_is_refused"]
+
+[[requirement]]
+id = "Fee4"
+group = "Fees"
+kind = "fee"
+text = "Where fees are routed: the destination account or mechanism (protocol treasury, burn, staking reward pool, etc.)."
+tests = ["e2e::fee3_fee4_switch_is_admin_only_capped_and_a_stale_quote_is_refused", "e2e::fee4_token_fee_destination_is_the_treasury_ata_created_by_the_ata_program"]
