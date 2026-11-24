@@ -234,7 +234,7 @@ Payout destinations (`to`, `refund_to`):
 - Any account other than the schedule account itself (26).
 - Token schedules: a credit lands only on an existing holding of the same definition, and only the account itself
   can initialise its holding. A destination or refund account without a holding is initialised by its owner, with
-  token `InitializeHolding`, in an earlier transaction; the SDK checks, sends that transaction first and says so. A
+  token `InitializeHolding`, in an earlier transaction; the SDK checks before sending and, if the holding is missing, refuses with `NoHolding` and names the transaction the owner has to send. A
   claim to an account with no holding reverts as a whole; nothing is consumed and the claim can be retried. The same
   holds for a private token destination: its private holding is initialised in an earlier privacy-preserving
   transaction (section 9).
@@ -495,8 +495,8 @@ as measured by `tools/cost` for native and token schedules; the figures, method 
 `docs/COSTS.md`. Until that measurement is recorded the constants hold interim values, which the measurement
 replaces. A batch above its cap is refused with 25.
 
-The SDK splits a longer recipient list into several transactions at a recommended size of half the budget, so a
-batch does not need an empty block, and sets each transaction's gas limit from a local dry run.
+The SDK splits a longer recipient list into several transactions, each filled to an estimated 85% of the block budget
+(per-item cycles by asset, milestone count and fee, fitted to the measured batches), so a batch does not need an empty block, and sets each transaction's gas limit from a local dry run.
 
 ---
 

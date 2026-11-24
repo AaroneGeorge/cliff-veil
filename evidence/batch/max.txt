@@ -1,0 +1,59 @@
+# Largest CreateBatch the chain accepts under its execution budget (SPEC 8), measured 2026-11-24
+# Test: program/tests/batch_limit.rs (measure_batch_max_native, _token, _native_heaviest, _token_heaviest)
+# Command: source scripts/env.sh && cargo test -p vesting_methods --test batch_limit -- --ignored --nocapture --test-threads=1
+# Run in a build whose caps in core/src/create.rs were raised to 2000 (otherwise the program refuses above its cap with 25);
+# the program code is otherwise the code in the tree. Executor: LEZ v0.4.0-rc3, budget 10,000,000 cycles per transaction
+# (fee market MAX_GAS_EXEC); "refused" = LeeError::OutOfGas, cycles of a refused size are from a rerun with no budget.
+# "at budget N" is the `budget` field LEZ puts in that OutOfGas error (not the 10,000,000 limit); later runs print "(out of gas)".
+# Shapes: linear = BatchShape::Linear, fee 0; 64-milestones-with-fee = 64 milestone weights per item and a 1% fee.
+
+batch native n=64 cycles=3349874 accepted
+batch native n=128 cycles=6658479 accepted
+batch native n=256 cycles=13275330 refused (out of gas at budget 6678)
+batch native n=192 cycles=9943709 accepted
+batch native n=224 cycles=11598723 refused (out of gas at budget 6607)
+batch native n=208 cycles=10777423 refused (out of gas at budget 7405)
+batch native n=200 cycles=10354346 refused (out of gas at budget 2394)
+batch native n=196 cycles=10149160 refused (out of gas at budget 29210)
+batch native n=194 cycles=10046440 refused (out of gas at budget 24908)
+batch native n=193 cycles=9995075 accepted
+max native accepted=193 refused=194 budget=10000000
+batch token n=64 cycles=9471530 accepted
+batch token n=128 cycles=18900109 refused (out of gas at budget 24121)
+batch token n=96 cycles=14191339 refused (out of gas at budget 15798)
+batch token n=80 cycles=11822754 refused (out of gas at budget 2330)
+batch token n=72 cycles=10647127 refused (out of gas at budget 11039)
+batch token n=68 cycles=10059318 refused (out of gas at budget 14956)
+batch token n=66 cycles=9765626 accepted
+batch token n=67 cycles=9912873 accepted
+max token accepted=67 refused=68 budget=10000000
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 470.54s
+batch native-64-milestones-with-fee n=64 cycles=10462928 refused (out of gas at budget 26138)
+batch native-64-milestones-with-fee n=32 cycles=5257261 accepted
+batch native-64-milestones-with-fee n=48 cycles=7854228 accepted
+batch native-64-milestones-with-fee n=56 cycles=9155743 accepted
+batch native-64-milestones-with-fee n=60 cycles=9805014 accepted
+batch native-64-milestones-with-fee n=62 cycles=10129547 refused (out of gas at budget 33475)
+batch native-64-milestones-with-fee n=61 cycles=9967430 accepted
+max native-64-milestones-with-fee accepted=61 refused=62 budget=10000000
+batch token-64-milestones-with-fee n=64 cycles=16645413 refused (out of gas at budget 12353)
+batch token-64-milestones-with-fee n=32 cycles=8376967 accepted
+batch token-64-milestones-with-fee n=48 cycles=12513787 refused (out of gas at budget 13144)
+batch token-64-milestones-with-fee n=40 cycles=10441233 refused (out of gas at budget 2498)
+batch token-64-milestones-with-fee n=36 cycles=9408960 accepted
+batch token-64-milestones-with-fee n=38 cycles=9925636 accepted
+batch token-64-milestones-with-fee n=39 cycles=10183807 refused (out of gas at budget 30038)
+max token-64-milestones-with-fee accepted=38 refused=39 budget=10000000
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 174.95s
+
+# Result
+linear native:              accepted 193, refused 194
+linear token:               accepted 67,  refused 68
+64 milestones + fee native: accepted 61,  refused 62
+64 milestones + fee token:  accepted 38,  refused 39
+
+# Caps set in core/src/create.rs: 85% of the linear maximum
+MAX_BATCH_NATIVE = 164   (floor(0.85 * 193)); executor test f5_batch_at_the_cap_fits_the_chain_budget_native: 8,515,722 cycles
+MAX_BATCH_TOKEN  = 57    (floor(0.85 * 67));  executor test f5_batch_at_the_cap_fits_the_chain_budget_token:  8,446,110 cycles
+# A batch of 64-milestone items with a fee above 61 native / 38 token is refused whole by the chain (OutOfGas, nothing changes:
+# executor test r2_batch_over_the_budget_reverts_whole); 85% of those (51 / 32) are tested to fit (f5_batch_of_the_heaviest_items_fits_*).

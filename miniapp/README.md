@@ -60,7 +60,7 @@ priced, nothing sent), then `--yes` after the person confirms. For a claim to a 
 | Review / send a cancel | `cancel <schedule> --as <cancel authority>`, with `--dry-run` / `--yes` |
 | Review / send a signal | `signal <schedule> --index <i> --as <milestone authority>`, with `--dry-run` / `--yes` |
 | Settings check | `disclosure` |
-| List by account | `list --creator <a>` / `list --beneficiary <a>`: not in the command line yet; until it is, the views take schedule accounts typed in, one per line |
+| List by account | `list --creator <a>` / `list --beneficiary <a>` (block scan with a local cache); schedule accounts can also be typed in, one per line |
 
 Two details keep the send equal to the review: a claim reviewed with a new private account is sent to that same
 account (`--private-to`), and a creation without a label carries a schedule id the mini-app picks (`--id`), so the
