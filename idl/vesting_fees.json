@@ -1,0 +1,195 @@
+{
+  "version": "2",
+  "name": "vesting_fees",
+  "messages": [
+    {
+      "name": "CheckFee",
+      "tag": 0,
+      "docs": "Tag 0: refuse (27) unless `fee` is the configured rate's fee on `total` and, when `fee > 0`, `treasury` is\nthe configured treasury. Writes nothing. Accepted from anyone, only at the config actor, in every config\nstate: an empty config (before `Init`) reads as rate 0, and it keeps working after `Renounce`.",
+      "fields": [
+        {
+          "name": "total",
+          "type": "u128",
+          "docs": "The schedule total, or the sum of item totals of a batch."
+        },
+        {
+          "name": "fee",
+          "type": "u128",
+          "docs": "The quoted fee."
+        },
+        {
+          "name": "treasury",
+          "type": "account_id",
+          "docs": "The treasury named by the creation message (the owner of the fee destination)."
+        },
+        {
+          "name": "asset",
+          "type": {
+            "defined": "Asset"
+          },
+          "docs": "The asset the fee is paid in. Version 1 applies one rate to every asset."
+        }
+      ]
+    },
+    {
+      "name": "SetFee",
+      "tag": 1,
+      "docs": "Tag 1: set the rate and treasury; admin only. Refuses a rate above [`MAX_FEE_BPS`] (28).",
+      "fields": [
+        {
+          "name": "rate_bps",
+          "type": "u16",
+          "docs": "The new rate in basis points."
+        },
+        {
+          "name": "treasury",
+          "type": "account_id",
+          "docs": "The new treasury."
+        }
+      ]
+    }
+  ],
+  "state_types": [
+    "FeeConfig"
+  ],
+  "events": [
+    {
+      "name": "FeeChanged",
+      "selector": "14e7602077f31973",
+      "type": {
+        "defined": "FeeChanged"
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "Asset",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "Native"
+        },
+        {
+          "name": "Token",
+          "fields": [
+            {
+              "name": "definition",
+              "type": "account_id",
+              "docs": "The token definition account."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AuthoritySlot",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "Unset"
+        },
+        {
+          "name": "Held",
+          "fields": [
+            {
+              "name": "holder",
+              "type": {
+                "defined": "Holder"
+              },
+              "docs": "The holder."
+            },
+            {
+              "name": "nominee",
+              "type": {
+                "option": "account_id"
+              },
+              "docs": "The account the holder nominated, until it accepts or the offer changes."
+            }
+          ]
+        },
+        {
+          "name": "Renounced"
+        }
+      ]
+    },
+    {
+      "name": "FeeChanged",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "old_rate_bps",
+          "type": "u16",
+          "docs": "The rate before, in basis points."
+        },
+        {
+          "name": "new_rate_bps",
+          "type": "u16",
+          "docs": "The rate after, in basis points."
+        },
+        {
+          "name": "treasury",
+          "type": "account_id",
+          "docs": "The treasury after."
+        },
+        {
+          "name": "by",
+          "type": "account_id",
+          "docs": "The admin who changed it."
+        }
+      ]
+    },
+    {
+      "name": "FeeConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "rate_bps",
+          "type": "u16",
+          "docs": "Fee rate in basis points, `0..=MAX_FEE_BPS`."
+        },
+        {
+          "name": "treasury",
+          "type": "account_id",
+          "docs": "The treasury: the owner of the fee destination (SPEC 6)."
+        },
+        {
+          "name": "admin",
+          "type": {
+            "defined": "AuthoritySlot"
+          },
+          "docs": "The admin slot of the RFP-001 admin authority."
+        }
+      ]
+    },
+    {
+      "name": "Holder",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "account",
+          "type": "account_id",
+          "docs": "The holder's account."
+        },
+        {
+          "name": "via",
+          "type": {
+            "option": "account_id"
+          },
+          "docs": "The program the holder acts through, or `None` for top level."
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 27,
+      "name": "FeeMismatch",
+      "msg": "the creation fee does not match the current rate or treasury"
+    },
+    {
+      "code": 28,
+      "name": "FeeAboveCap",
+      "msg": "the fee rate exceeds the hard cap"
+    }
+  ]
+}

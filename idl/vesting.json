@@ -1,0 +1,1081 @@
+{
+  "version": "2",
+  "name": "vesting",
+  "messages": [
+    {
+      "name": "Create",
+      "tag": 0,
+      "docs": "Tag 0: open one schedule and fund its escrow from `source`; the caller becomes the creator.",
+      "fields": [
+        {
+          "name": "schedule_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "docs": "Chosen by the creator; with the creator it derives the schedule account."
+        },
+        {
+          "name": "terms",
+          "type": {
+            "defined": "Terms"
+          },
+          "docs": "The schedule's terms."
+        },
+        {
+          "name": "source",
+          "type": "account_id",
+          "docs": "Funding account (native balance, or token holding of the definition). Default refund account."
+        },
+        {
+          "name": "fee",
+          "type": "u128",
+          "docs": "The creation fee the SDK quoted; checked by `vesting_fees`, and against the hard cap by `vesting`."
+        },
+        {
+          "name": "treasury",
+          "type": "account_id",
+          "docs": "The fee treasury the SDK read from the `vesting_fees` config; checked by `vesting_fees` when `fee > 0`."
+        }
+      ]
+    },
+    {
+      "name": "CreateBatch",
+      "tag": 1,
+      "docs": "Tag 1: open one schedule per item, sharing `common`, in one transaction.",
+      "fields": [
+        {
+          "name": "common",
+          "type": {
+            "defined": "BatchTerms"
+          },
+          "docs": "Terms shared by every item."
+        },
+        {
+          "name": "items",
+          "type": {
+            "vec": {
+              "defined": "BatchItem"
+            }
+          },
+          "docs": "One schedule each."
+        },
+        {
+          "name": "source",
+          "type": "account_id",
+          "docs": "Funding account. Default refund account of every item."
+        },
+        {
+          "name": "fee",
+          "type": "u128",
+          "docs": "The creation fee on the sum of item totals."
+        },
+        {
+          "name": "treasury",
+          "type": "account_id",
+          "docs": "The fee treasury, as in `Create`."
+        }
+      ]
+    },
+    {
+      "name": "Claim",
+      "tag": 2,
+      "docs": "Tag 2: pay everything claimable now (clock time) to `to`.",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        },
+        {
+          "name": "to",
+          "type": "account_id",
+          "docs": "The payout destination; never stored or emitted."
+        }
+      ]
+    },
+    {
+      "name": "ClaimAsOf",
+      "tag": 3,
+      "docs": "Tag 3: pay everything claimable at `as_of` to `to`; the transaction is valid from `as_of` on.",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        },
+        {
+          "name": "to",
+          "type": "account_id",
+          "docs": "The payout destination; never stored or emitted. On the privacy-preserving path, a one-time blinded\naddress of the claimant's private account (SPEC 9), never its canonical id."
+        },
+        {
+          "name": "as_of",
+          "type": "u64",
+          "docs": "The time the claim is computed at (ms); the claim is computed at `max(as_of, last_time)`."
+        }
+      ]
+    },
+    {
+      "name": "Cancel",
+      "tag": 4,
+      "docs": "Tag 4: cancel, refunding the unvested part.",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        }
+      ]
+    },
+    {
+      "name": "MakeNonCancelable",
+      "tag": 5,
+      "docs": "Tag 5: make the schedule non-cancelable, for good.",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        }
+      ]
+    },
+    {
+      "name": "SignalMilestone",
+      "tag": 6,
+      "docs": "Tag 6: signal milestone `index`.",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        },
+        {
+          "name": "index",
+          "type": "u8",
+          "docs": "The milestone index."
+        }
+      ]
+    },
+    {
+      "name": "TransferBeneficiary",
+      "tag": 7,
+      "docs": "Tag 7: hand the schedule to `new_beneficiary`.",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        },
+        {
+          "name": "new_beneficiary",
+          "type": "account_id",
+          "docs": "The new beneficiary."
+        }
+      ]
+    }
+  ],
+  "state_types": [
+    "ScheduleState"
+  ],
+  "events": [
+    {
+      "name": "ScheduleCreated",
+      "selector": "68ee839f2ce9efac",
+      "type": {
+        "defined": "ScheduleCreated"
+      }
+    },
+    {
+      "name": "Claimed",
+      "selector": "aa25b4641ce8cb29",
+      "type": {
+        "defined": "Claimed"
+      }
+    },
+    {
+      "name": "Cancelled",
+      "selector": "fee82a2f47263d1f",
+      "type": {
+        "defined": "Cancelled"
+      }
+    },
+    {
+      "name": "MilestoneSignalled",
+      "selector": "0882439381b3eec9",
+      "type": {
+        "defined": "MilestoneSignalled"
+      }
+    },
+    {
+      "name": "BeneficiaryTransferred",
+      "selector": "3edd69d43332bdb2",
+      "type": {
+        "defined": "BeneficiaryTransferred"
+      }
+    },
+    {
+      "name": "MadeNonCancelable",
+      "selector": "947bede70fe02f82",
+      "type": {
+        "defined": "MadeNonCancelable"
+      }
+    },
+    {
+      "name": "FeeChanged",
+      "selector": "14e7602077f31973",
+      "type": {
+        "defined": "FeeChanged"
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "Asset",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "Native"
+        },
+        {
+          "name": "Token",
+          "fields": [
+            {
+              "name": "definition",
+              "type": "account_id",
+              "docs": "The token definition account."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BatchItem",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "schedule_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "docs": "As in `Create`."
+        },
+        {
+          "name": "beneficiary",
+          "type": "account_id",
+          "docs": "Who may claim."
+        },
+        {
+          "name": "total",
+          "type": "u128",
+          "docs": "Amount escrowed for this item."
+        }
+      ]
+    },
+    {
+      "name": "BatchShape",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "Linear",
+          "fields": [
+            {
+              "name": "start",
+              "type": "u64",
+              "docs": "As [`Kind::Linear`]."
+            },
+            {
+              "name": "cliff",
+              "type": "u64",
+              "docs": "As [`Kind::Linear`]."
+            },
+            {
+              "name": "end",
+              "type": "u64",
+              "docs": "As [`Kind::Linear`]."
+            }
+          ]
+        },
+        {
+          "name": "Milestones",
+          "fields": [
+            {
+              "name": "bps",
+              "type": {
+                "vec": "u16"
+              },
+              "docs": "One weight per milestone."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BatchTerms",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "asset",
+          "type": {
+            "defined": "Asset"
+          },
+          "docs": "What is vested."
+        },
+        {
+          "name": "shape",
+          "type": {
+            "defined": "BatchShape"
+          },
+          "docs": "The curve every item follows."
+        },
+        {
+          "name": "cancelable",
+          "type": "bool",
+          "docs": "As [`Terms::cancelable`]."
+        },
+        {
+          "name": "transferable",
+          "type": "bool",
+          "docs": "As [`Terms::transferable`]."
+        },
+        {
+          "name": "cancel_authority",
+          "type": {
+            "option": "account_id"
+          },
+          "docs": "As [`Terms::cancel_authority`]."
+        },
+        {
+          "name": "milestone_authority",
+          "type": {
+            "option": "account_id"
+          },
+          "docs": "As [`Terms::milestone_authority`]."
+        },
+        {
+          "name": "refund_to",
+          "type": {
+            "option": "account_id"
+          },
+          "docs": "As [`Terms::refund_to`]."
+        }
+      ]
+    },
+    {
+      "name": "BeneficiaryTransferred",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        },
+        {
+          "name": "from",
+          "type": "account_id",
+          "docs": "The previous beneficiary."
+        },
+        {
+          "name": "to",
+          "type": "account_id",
+          "docs": "The new beneficiary."
+        }
+      ]
+    },
+    {
+      "name": "Cancellation",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "at",
+          "type": "u64",
+          "docs": "Effective time of the cancel (ms): `max(clock time, last_time)`."
+        },
+        {
+          "name": "vested_at_cancel",
+          "type": "u128",
+          "docs": "The vested amount, frozen at the cancel."
+        },
+        {
+          "name": "refunded",
+          "type": "u128",
+          "docs": "Paid to `refund_to`: `total - vested_at_cancel`."
+        }
+      ]
+    },
+    {
+      "name": "Cancelled",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        },
+        {
+          "name": "at",
+          "type": "u64",
+          "docs": "Effective time of the cancel: `max(clock time, last_time)`."
+        },
+        {
+          "name": "vested_at_cancel",
+          "type": "u128",
+          "docs": "The vested amount, frozen."
+        },
+        {
+          "name": "refunded",
+          "type": "u128",
+          "docs": "Paid to `refund_to`."
+        },
+        {
+          "name": "refund_to",
+          "type": "account_id",
+          "docs": "The refund account."
+        }
+      ]
+    },
+    {
+      "name": "Claimed",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        },
+        {
+          "name": "beneficiary",
+          "type": "account_id",
+          "docs": "The beneficiary that claimed."
+        },
+        {
+          "name": "amount",
+          "type": "u128",
+          "docs": "Paid by this claim."
+        },
+        {
+          "name": "at",
+          "type": "u64",
+          "docs": "The effective time the claim was computed at: `max(clock time or as_of, last_time)`."
+        },
+        {
+          "name": "claimed_total",
+          "type": "u128",
+          "docs": "`claimed` after this claim."
+        }
+      ]
+    },
+    {
+      "name": "FeeChanged",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "old_rate_bps",
+          "type": "u16",
+          "docs": "The rate before, in basis points."
+        },
+        {
+          "name": "new_rate_bps",
+          "type": "u16",
+          "docs": "The rate after, in basis points."
+        },
+        {
+          "name": "treasury",
+          "type": "account_id",
+          "docs": "The treasury after."
+        },
+        {
+          "name": "by",
+          "type": "account_id",
+          "docs": "The admin who changed it."
+        }
+      ]
+    },
+    {
+      "name": "Kind",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "Linear",
+          "fields": [
+            {
+              "name": "start",
+              "type": "u64",
+              "docs": "Accrual is measured from here (ms)."
+            },
+            {
+              "name": "cliff",
+              "type": "u64",
+              "docs": "Nothing is vested before this time (ms)."
+            },
+            {
+              "name": "end",
+              "type": "u64",
+              "docs": "Everything is vested from this time on (ms)."
+            }
+          ]
+        },
+        {
+          "name": "Milestones",
+          "fields": [
+            {
+              "name": "amounts",
+              "type": {
+                "vec": "u128"
+              },
+              "docs": "Amount unlocked by milestone `i`."
+            },
+            {
+              "name": "signalled",
+              "type": "u64",
+              "docs": "Bit `i` set: milestone `i` was signalled."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "MadeNonCancelable",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        },
+        {
+          "name": "by",
+          "type": "account_id",
+          "docs": "Who did it (the creator or the cancel authority)."
+        }
+      ]
+    },
+    {
+      "name": "MilestoneSignalled",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        },
+        {
+          "name": "index",
+          "type": "u8",
+          "docs": "The milestone index."
+        },
+        {
+          "name": "amount",
+          "type": "u128",
+          "docs": "The amount it unlocked."
+        },
+        {
+          "name": "signalled",
+          "type": "u64",
+          "docs": "The bitmap after the signal."
+        }
+      ]
+    },
+    {
+      "name": "Pending",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "Claim",
+          "fields": [
+            {
+              "name": "to",
+              "type": "account_id",
+              "docs": "The payout destination."
+            }
+          ]
+        },
+        {
+          "name": "Cancel"
+        }
+      ]
+    },
+    {
+      "name": "ScheduleCreated",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "schedule",
+          "type": "account_id",
+          "docs": "The schedule account."
+        },
+        {
+          "name": "schedule_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "docs": "The id the creator chose; with `creator` it derives `schedule`."
+        },
+        {
+          "name": "creator",
+          "type": "account_id",
+          "docs": "Its creator."
+        },
+        {
+          "name": "beneficiary",
+          "type": "account_id",
+          "docs": "Its beneficiary."
+        },
+        {
+          "name": "asset",
+          "type": {
+            "defined": "Asset"
+          },
+          "docs": "The vested asset."
+        },
+        {
+          "name": "total",
+          "type": "u128",
+          "docs": "The escrowed total."
+        },
+        {
+          "name": "kind",
+          "type": {
+            "defined": "Kind"
+          },
+          "docs": "The curve."
+        },
+        {
+          "name": "cancelable",
+          "type": "bool",
+          "docs": "The cancelable flag."
+        },
+        {
+          "name": "transferable",
+          "type": "bool",
+          "docs": "The transferable flag."
+        },
+        {
+          "name": "cancel_authority",
+          "type": "account_id",
+          "docs": "Who may cancel."
+        },
+        {
+          "name": "milestone_authority",
+          "type": "account_id",
+          "docs": "Who may signal milestones."
+        },
+        {
+          "name": "refund_to",
+          "type": "account_id",
+          "docs": "Where a cancel refunds to."
+        }
+      ]
+    },
+    {
+      "name": "ScheduleState",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "V1",
+          "fields": [
+            {
+              "name": "0",
+              "type": {
+                "defined": "ScheduleV1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ScheduleV1",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "schedule_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "docs": "Chosen by the creator; with `creator` it derives the schedule account."
+        },
+        {
+          "name": "creator",
+          "type": "account_id",
+          "docs": "The account that created and funded the schedule."
+        },
+        {
+          "name": "beneficiary",
+          "type": "account_id",
+          "docs": "Who may claim. Changes only by `TransferBeneficiary`, and only when `transferable`."
+        },
+        {
+          "name": "asset",
+          "type": {
+            "defined": "Asset"
+          },
+          "docs": "What is vested."
+        },
+        {
+          "name": "total",
+          "type": "u128",
+          "docs": "Escrowed at creation; greater than zero."
+        },
+        {
+          "name": "claimed",
+          "type": "u128",
+          "docs": "Paid out so far; never more than the vested amount at `last_time`."
+        },
+        {
+          "name": "last_time",
+          "type": "u64",
+          "docs": "High-water time (ms): the latest time a claim or cancel was computed at; 0 until the first one. Every claim\nand cancel is computed at `max(t, last_time)`, so the clock read and a claimant's `as_of` act as one\nnon-decreasing time source per schedule."
+        },
+        {
+          "name": "kind",
+          "type": {
+            "defined": "Kind"
+          },
+          "docs": "The vesting curve."
+        },
+        {
+          "name": "cancelable",
+          "type": "bool",
+          "docs": "`true` to `false` only (`MakeNonCancelable`)."
+        },
+        {
+          "name": "transferable",
+          "type": "bool",
+          "docs": "Written at creation, never changed."
+        },
+        {
+          "name": "cancel_authority",
+          "type": "account_id",
+          "docs": "May cancel. Default: the creator."
+        },
+        {
+          "name": "milestone_authority",
+          "type": "account_id",
+          "docs": "May signal milestones. Default: the creator."
+        },
+        {
+          "name": "refund_to",
+          "type": "account_id",
+          "docs": "Receives the unvested part on cancel. Default: the funding account (`source`). Fixed at creation."
+        },
+        {
+          "name": "cancelled",
+          "type": {
+            "option": {
+              "defined": "Cancellation"
+            }
+          },
+          "docs": "Set once by a cancel."
+        },
+        {
+          "name": "pending",
+          "type": {
+            "option": {
+              "defined": "Pending"
+            }
+          },
+          "docs": "An operation waiting for the clock reply; `Some` only inside one transaction."
+        }
+      ]
+    },
+    {
+      "name": "Terms",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "beneficiary",
+          "type": "account_id",
+          "docs": "Who may claim."
+        },
+        {
+          "name": "asset",
+          "type": {
+            "defined": "Asset"
+          },
+          "docs": "What is vested."
+        },
+        {
+          "name": "total",
+          "type": "u128",
+          "docs": "Amount escrowed; greater than zero."
+        },
+        {
+          "name": "kind",
+          "type": {
+            "defined": "Kind"
+          },
+          "docs": "The vesting curve. `Milestones.signalled` must be 0."
+        },
+        {
+          "name": "cancelable",
+          "type": "bool",
+          "docs": "SDK default: `true`."
+        },
+        {
+          "name": "transferable",
+          "type": "bool",
+          "docs": "SDK default: `false`."
+        },
+        {
+          "name": "cancel_authority",
+          "type": {
+            "option": "account_id"
+          },
+          "docs": "`None`: the creator."
+        },
+        {
+          "name": "milestone_authority",
+          "type": {
+            "option": "account_id"
+          },
+          "docs": "`None`: the creator."
+        },
+        {
+          "name": "refund_to",
+          "type": {
+            "option": "account_id"
+          },
+          "docs": "`None`: the funding account (`source` of the creation message)."
+        }
+      ]
+    }
+  ],
+  "internal_messages": [
+    {
+      "name": "Open",
+      "tag": 0,
+      "docs": "Tag 0: write a new schedule. Accepted only from `(state.creator, vesting)` at the derived account.",
+      "fields": [
+        {
+          "name": "state",
+          "type": {
+            "defined": "ScheduleV1"
+          },
+          "docs": "The complete initial state, checked with [`ScheduleV1::validate_new`]."
+        }
+      ]
+    },
+    {
+      "name": "ClaimFor",
+      "tag": 1,
+      "docs": "Tag 1: a public claim to `to`; completes on the clock reply.",
+      "fields": [
+        {
+          "name": "to",
+          "type": "account_id",
+          "docs": "The payout destination."
+        }
+      ]
+    },
+    {
+      "name": "ClaimForAsOf",
+      "tag": 2,
+      "docs": "Tag 2: a claim computed at `as_of`.",
+      "fields": [
+        {
+          "name": "to",
+          "type": "account_id",
+          "docs": "The payout destination."
+        },
+        {
+          "name": "as_of",
+          "type": "u64",
+          "docs": "The time the claim is computed at (ms)."
+        }
+      ]
+    },
+    {
+      "name": "CancelFor",
+      "tag": 3,
+      "docs": "Tag 3: a cancel; completes on the clock reply."
+    },
+    {
+      "name": "MakeNonCancelableFor",
+      "tag": 4,
+      "docs": "Tag 4: make the schedule non-cancelable."
+    },
+    {
+      "name": "SignalFor",
+      "tag": 5,
+      "docs": "Tag 5: signal milestone `index`.",
+      "fields": [
+        {
+          "name": "index",
+          "type": "u8",
+          "docs": "The milestone index."
+        }
+      ]
+    },
+    {
+      "name": "TransferFor",
+      "tag": 6,
+      "docs": "Tag 6: hand the schedule to `new_beneficiary`.",
+      "fields": [
+        {
+          "name": "new_beneficiary",
+          "type": "account_id",
+          "docs": "The new beneficiary."
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 1,
+      "name": "NotAuthorised",
+      "msg": "the caller did not authorise this transaction"
+    },
+    {
+      "code": 2,
+      "name": "InvalidMessage",
+      "msg": "the message does not decode"
+    },
+    {
+      "code": 3,
+      "name": "NotBeneficiary",
+      "msg": "only the beneficiary may do this"
+    },
+    {
+      "code": 4,
+      "name": "NotCreator",
+      "msg": "only the creator or the cancel authority may do this"
+    },
+    {
+      "code": 5,
+      "name": "NotCancelAuthority",
+      "msg": "only the cancel authority may cancel"
+    },
+    {
+      "code": 6,
+      "name": "NotMilestoneAuthority",
+      "msg": "only the milestone authority may signal a milestone"
+    },
+    {
+      "code": 7,
+      "name": "ScheduleExists",
+      "msg": "a schedule with this id already exists for this creator"
+    },
+    {
+      "code": 8,
+      "name": "NoSuchSchedule",
+      "msg": "no schedule at this account"
+    },
+    {
+      "code": 9,
+      "name": "AddressMismatch",
+      "msg": "the schedule account does not match the creator and schedule id"
+    },
+    {
+      "code": 10,
+      "name": "ZeroTotal",
+      "msg": "the total must be greater than zero"
+    },
+    {
+      "code": 11,
+      "name": "BadTimes",
+      "msg": "times must satisfy start <= cliff <= end and start < end"
+    },
+    {
+      "code": 12,
+      "name": "BadMilestones",
+      "msg": "milestone amounts must be non-zero and sum to the total"
+    },
+    {
+      "code": 13,
+      "name": "TooManyMilestones",
+      "msg": "at most 64 milestones"
+    },
+    {
+      "code": 14,
+      "name": "NothingClaimable",
+      "msg": "nothing claimable yet, next unlock at <T>"
+    },
+    {
+      "code": 15,
+      "name": "NotCancelable",
+      "msg": "the schedule is not cancelable"
+    },
+    {
+      "code": 16,
+      "name": "AlreadyCancelled",
+      "msg": "the schedule is cancelled"
+    },
+    {
+      "code": 17,
+      "name": "MilestoneOutOfRange",
+      "msg": "no milestone with this index"
+    },
+    {
+      "code": 18,
+      "name": "MilestoneAlreadySignalled",
+      "msg": "this milestone was already signalled"
+    },
+    {
+      "code": 19,
+      "name": "NotTransferable",
+      "msg": "this schedule is not transferable"
+    },
+    {
+      "code": 20,
+      "name": "NotMilestoneSchedule",
+      "msg": "this schedule has no milestones"
+    },
+    {
+      "code": 21,
+      "name": "OperationPending",
+      "msg": "another operation on this schedule is in progress in this transaction"
+    },
+    {
+      "code": 22,
+      "name": "UnexpectedClockReply",
+      "msg": "clock reply with no operation pending"
+    },
+    {
+      "code": 23,
+      "name": "UnexpectedSender",
+      "msg": "a schedule accepts messages only from a vesting actor"
+    },
+    {
+      "code": 24,
+      "name": "EmptyBatch",
+      "msg": "a batch needs at least one item"
+    },
+    {
+      "code": 25,
+      "name": "BatchTooLarge",
+      "msg": "too many schedules in one batch"
+    },
+    {
+      "code": 26,
+      "name": "PayoutToEscrow",
+      "msg": "a claim destination or refund account cannot be the schedule account"
+    },
+    {
+      "code": 27,
+      "name": "FeeMismatch",
+      "msg": "the creation fee does not match the current rate or treasury"
+    },
+    {
+      "code": 28,
+      "name": "FeeAboveCap",
+      "msg": "the fee rate exceeds the hard cap"
+    },
+    {
+      "code": 29,
+      "name": "Overflow",
+      "msg": "amount overflow"
+    }
+  ]
+}
