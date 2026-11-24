@@ -1,0 +1,96 @@
+# e2e/run.sh against local-dev (http://127.0.0.1:3050, RISC0_DEV_MODE=1), LEZ v0.4.0-rc3, 20261124T163557Z
+# ids: deploy/ids-local-dev.toml
+[programs]
+token = "3uSMsxaS8RE6eLbLg3xwvLedXWmRp88LnJUhJ9xLKGtY"   # sha256 7b0178907ac0cfc61542d7d5585481dbbbfa88f594df37cdb3ebb2b88c9db1b5, 292988 bytes, release build, 20261124T131724Z
+vesting_fees = "D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5"   # sha256 797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69, 301608 bytes, release build, 20261124T131724Z
+ata = "4AwKPBQecPM5pFpGQ1DNny8U7vefMgTpJZQrpTacrLDU"   # sha256 97188dfddd46b7b0f75308c54c3b518f887cb4ce32b5758cc8d8b1196e23ec73, 266772 bytes, release build, 20261124T132238Z
+vesting = "5nCVf47kVHKC9RwgfyokEgYM1n2wdjEhS3D9z7RkJFsZ"   # sha256 de7e1c0da03961c724683c0b70fa44ca069e4f96d38056361957661ee235f1ee, 356208 bytes, release build, 20261124T132238Z
+
+[accounts]
+fees_config = "5aH6Z3GiECyNPUrUJTYQ1sgh67z8MpA4LQsNUfxa84jb"   # vesting_fees config (PDA), Init by the deployer
+
+# RISC Zero image ids of the deployed binaries (scripts/check_image_ids.sh <release dir> <this file>).
+[image_ids]
+# launchpad example (e2e/deploy_compose.sh): deploy/ids-local-dev-compose.toml
+[programs]
+vesting_fees = "D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5"   # sha256 797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69, 301608 bytes, release build, 20261124T131724Z
+vesting = "5nCVf47kVHKC9RwgfyokEgYM1n2wdjEhS3D9z7RkJFsZ"   # sha256 de7e1c0da03961c724683c0b70fa44ca069e4f96d38056361957661ee235f1ee, 356208 bytes, release build, 20261124T132238Z
+launchpad_escrow = "8NRB4E76SoaMbC9MaTqwKgeZSJPt8EEwnX4gnYypmXTH"   # sha256 2b4575e7a4d5bffcd2206e83f822560c6c721870254f63fe417b60a55afea5aa, 296664 bytes, local build, 20261124T163357Z
+
+[accounts]
+fees_config = "5aH6Z3GiECyNPUrUJTYQ1sgh67z8MpA4LQsNUfxa84jb"   # vesting_fees config (PDA), Init by the deployer
+
+[image_ids]
+launchpad_escrow = "284ba0ce61da25ca2dbbb118265841015289c65152b6ae44edf6c985a822a26c"
+
+[build]
+
+e2e: skipping 0 pending-test arguments (0 tests); CV_E2E_INCLUDE_PENDING=1 runs them
+   Compiling launchpad_escrow v0.1.0 (<workdir>/repo/examples/launchpad_escrow)
+   Compiling vesting_e2e v0.1.0 (<workdir>/repo/e2e)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 15.29s
+     Running unittests src/lib.rs (<workdir>/build/target/debug/deps/vesting_e2e-00361d7d854c4ca8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+     Running tests/compose.rs (<workdir>/build/target/debug/deps/compose-99e491d63290b365)
+
+running 2 tests
+
+thread 'main' (1) panicked at program/guest/src/lib.rs:413:5:
+cliff-veil error 6: only the milestone authority may signal a milestone
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (1) panicked at examples/launchpad_escrow/src/lib.rs:514:5:
+launchpad-escrow error 10: only an approver of this launch may do this
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (1) panicked at program/guest/src/lib.rs:413:5:
+cliff-veil error 14: nothing claimable yet, next unlock when a milestone is signalled
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test soft1_compose_only_the_launch_rule_cancels_and_refunds_the_unvested_collateral has been running for over 60 seconds
+test soft2_compose_launch_pda_holds_the_milestone_authority_and_m_of_n_approvals_pay_the_project has been running for over 60 seconds
+
+thread 'main' (1) panicked at program/guest/src/lib.rs:413:5:
+cliff-veil error 5: only the cancel authority may cancel
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (1) panicked at examples/launchpad_escrow/src/lib.rs:514:5:
+launchpad-escrow error 10: only an approver of this launch may do this
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test soft2_compose_launch_pda_holds_the_milestone_authority_and_m_of_n_approvals_pay_the_project ... ok
+
+thread 'main' (1) panicked at examples/launchpad_escrow/src/lib.rs:514:5:
+launchpad-escrow error 14: the launch is cancelled
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test soft1_compose_only_the_launch_rule_cancels_and_refunds_the_unvested_collateral ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 104.95s
+
+     Running tests/fees_on.rs (<workdir>/build/target/debug/deps/fees_on-4c7d9a65fec042a7)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/requirements.rs (<workdir>/build/target/debug/deps/requirements-d94994a2530bc59a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 34 filtered out; finished in 0.00s
+
+     Running tests/sequencer.rs (<workdir>/build/target/debug/deps/sequencer-661ad09b14513f8d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+   Doc-tests vesting_e2e
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+# exit 0

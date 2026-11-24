@@ -1,0 +1,18 @@
+[package]
+name = "launchpad_escrow"
+description = "Example launch program: locks a project's collateral in a vesting schedule whose milestone and cancel authority is the program's own account"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+borsh.workspace = true
+lee_core.workspace = true
+sha2.workspace = true
+vesting_core.workspace = true
+# For `decode_base58_id` and the schedule derivation `vesting` itself uses.
+vesting_program = { path = "../../program/guest" }

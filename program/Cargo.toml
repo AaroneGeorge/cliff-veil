@@ -23,6 +23,9 @@ token_core = { git = "https://github.com/logos-blockchain/lez-programs", rev = "
 vesting_core.workspace = true
 vesting_fees.workspace = true
 vesting_program = { path = "guest" }
+# Composition tests (tests/compose.rs): the launchpad_escrow example, its rules and its guest.
+launchpad_escrow = { path = "../examples/launchpad_escrow" }
+launchpad_escrow_methods = { path = "../examples/launchpad_escrow/methods" }
 
 [package.metadata.risc0]
 # `token-guest` is the token program of lez-programs at the pinned commit, unchanged (see its Cargo.toml).

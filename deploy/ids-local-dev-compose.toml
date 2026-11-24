@@ -1,0 +1,16 @@
+# The launchpad_escrow example on local-dev, written by e2e/deploy_compose.sh. Last update 2026-11-24T16:35:57Z.
+# vesting, vesting_fees and fees_config are those of deploy/ids-local-dev.toml it was built against.
+[programs]
+vesting_fees = "D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5"   # sha256 797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69, 301608 bytes, release build, 20261124T131724Z
+vesting = "5nCVf47kVHKC9RwgfyokEgYM1n2wdjEhS3D9z7RkJFsZ"   # sha256 de7e1c0da03961c724683c0b70fa44ca069e4f96d38056361957661ee235f1ee, 356208 bytes, release build, 20261124T132238Z
+launchpad_escrow = "8NRB4E76SoaMbC9MaTqwKgeZSJPt8EEwnX4gnYypmXTH"   # sha256 2b4575e7a4d5bffcd2206e83f822560c6c721870254f63fe417b60a55afea5aa, 296664 bytes, local build, 20261124T163357Z
+
+[accounts]
+fees_config = "5aH6Z3GiECyNPUrUJTYQ1sgh67z8MpA4LQsNUfxa84jb"   # vesting_fees config (PDA), Init by the deployer
+
+[image_ids]
+launchpad_escrow = "284ba0ce61da25ca2dbbb118265841015289c65152b6ae44edf6c985a822a26c"
+
+[build]
+builder = "local rzup toolchain (image ids depend on the machine)"
+launchpad_escrow_inputs = "CV_VESTING_PROGRAM_ID=5nCVf47kVHKC9RwgfyokEgYM1n2wdjEhS3D9z7RkJFsZ"

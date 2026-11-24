@@ -1,0 +1,16 @@
+[package]
+name = "launchpad_escrow_methods"
+description = "Builds the launchpad_escrow example guest for riscv32im-risc0-zkvm-elf and embeds its ELF and image id"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[build-dependencies]
+risc0-build.workspace = true
+
+[package.metadata.risc0]
+methods = ["../guest"]

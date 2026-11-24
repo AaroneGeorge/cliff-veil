@@ -211,6 +211,16 @@ impl Chain {
         Some(chain)
     }
 
+    /// Deploys another program at `id`, for tests of a program that calls `vesting` (tests/compose.rs).
+    #[must_use]
+    pub fn with_program(self, id: AccountId, elf: &'static [u8]) -> Self {
+        let program = Program::new(Cow::Borrowed(elf)).expect("the guest loads");
+        Self {
+            state: self.state.with_named_programs([(id, program)]),
+            ..self
+        }
+    }
+
     /// Writes the `vesting_fees` config (test setup: the state `Init` then `SetFee` would leave).
     pub fn set_fee_config(&mut self, rate_bps: u16, treasury: AccountId) {
         let config = FeeConfig {
