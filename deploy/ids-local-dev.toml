@@ -1,0 +1,30 @@
+# Program ids on local-dev, written by scripts/deploy_local.sh. Last update 2026-11-24T13:35:19Z.
+[deploy]
+network = "local-dev"
+rpc = "http://127.0.0.1:3050"
+lez = "v0.4.0-rc3"
+dev_mode = true
+
+# Program-loader header accounts (the program ids). vesting is built with the token, vesting_fees and ata
+# ids of this table; ata absent means it is built with its local test ATA id (token fees stay at rate 0).
+[programs]
+token = "3uSMsxaS8RE6eLbLg3xwvLedXWmRp88LnJUhJ9xLKGtY"   # sha256 7b0178907ac0cfc61542d7d5585481dbbbfa88f594df37cdb3ebb2b88c9db1b5, 292988 bytes, release build, 20261124T131724Z
+vesting_fees = "D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5"   # sha256 797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69, 301608 bytes, release build, 20261124T131724Z
+ata = "4AwKPBQecPM5pFpGQ1DNny8U7vefMgTpJZQrpTacrLDU"   # sha256 97188dfddd46b7b0f75308c54c3b518f887cb4ce32b5758cc8d8b1196e23ec73, 266772 bytes, release build, 20261124T132238Z
+vesting = "5nCVf47kVHKC9RwgfyokEgYM1n2wdjEhS3D9z7RkJFsZ"   # sha256 de7e1c0da03961c724683c0b70fa44ca069e4f96d38056361957661ee235f1ee, 356208 bytes, release build, 20261124T132238Z
+
+[accounts]
+fees_config = "5aH6Z3GiECyNPUrUJTYQ1sgh67z8MpA4LQsNUfxa84jb"   # vesting_fees config (PDA), Init by the deployer
+
+# RISC Zero image ids of the deployed binaries (scripts/check_image_ids.sh <release dir> <this file>).
+[image_ids]
+token = "aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c"
+vesting_fees = "7e5b5539f82c19d8e4dd502852d5a35673fac4ccefba438bc101099f341cc147"
+ata = "339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110"
+vesting = "908567e3c178ded0e25a14cf9b99026797f37437864b439bc6a2e23f4c77171d"
+
+[build]
+builder = "risczero/risc0-guest-builder:r0.1.91.1@sha256:fafb377a44e1cfca415577c48d2f7012bda99ed36f2fae27f9a663b9fe6048f0"
+commit = "298a1dedb59932281f92b3ecd604d4cee12e7554"
+tree = "c783323e585e009378abaaea9aa0d681bb2a3063"
+vesting_inputs = "CV_TOKEN_PROGRAM_ID=3uSMsxaS8RE6eLbLg3xwvLedXWmRp88LnJUhJ9xLKGtY CV_FEES_PROGRAM_ID=D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5 CV_ATA_PROGRAM_ID=4AwKPBQecPM5pFpGQ1DNny8U7vefMgTpJZQrpTacrLDU"

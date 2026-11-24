@@ -1,0 +1,22 @@
+[package]
+name = "vesting_fees"
+description = "The vesting_fees program: the creation-fee switch (rate, hard cap, treasury) behind the RFP-001 admin authority"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+borsh.workspace = true
+lee_core.workspace = true
+lez-admin-authority.workspace = true
+vesting_core.workspace = true
+
+[dev-dependencies]
+# Executor-level tests (tests/executor.rs): the real guest run by LEZ's public execution, as the sequencer runs it.
+lee = { workspace = true, features = ["test-utils"] }
+lee_core = { workspace = true, features = ["host", "test_utils"] }
+vesting_methods.workspace = true

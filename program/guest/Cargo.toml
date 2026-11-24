@@ -1,0 +1,26 @@
+[package]
+name = "vesting_program"
+description = "The vesting program: schedules, escrow and claims as a LEZ guest"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "vesting"
+path = "src/bin/vesting.rs"
+
+[dependencies]
+borsh.workspace = true
+clock_core = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3" }
+lee_core.workspace = true
+risc0-zkvm.workspace = true
+# The token program's messages, at the pinned lez-programs commit (branch refactor/lez-v0.4.x, SPEC.md).
+token_core = { git = "https://github.com/logos-blockchain/lez-programs", rev = "3f04cc37ec5f90358e606b0fe7d28baa6b1dbd7e" }
+vesting_core.workspace = true

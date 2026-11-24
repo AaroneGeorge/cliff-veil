@@ -1,0 +1,25 @@
+[package]
+name = "vesting_fees_admin"
+description = "Admin client of the vesting_fees program: Init, SetFee, SetTreasury, handover, CheckFee and reading the config"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "vesting-fees-admin"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+borsh.workspace = true
+clap.workspace = true
+lee_core.workspace = true
+lez-admin-authority.workspace = true
+tokio.workspace = true
+vesting_core.workspace = true
+vesting_fees.workspace = true
+wallet.workspace = true

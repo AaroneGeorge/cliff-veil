@@ -1,0 +1,76 @@
+# The associated token account (ATA) program of lez-programs, vendored: branch refactor/ata-lez-v0.4.x, commit
+# 064b73fb28320aa5c14e6da12410acaed0664048 (MIT, LICENSE). Sources (src/, core/src/, guest/src/) are unchanged; only the
+# manifests differ: lee_core is LEZ tag v0.4.0-rc3 (upstream: rev 616256b9) and token_core / nft_core are lez-programs
+# rev 3f04cc37 (the token program this repository deploys). Its own workspace, outside the cliff-veil one, so its
+# upstream lints and formatting stay as they are. README.md says why it is here.
+[workspace]
+members = [".", "core"]
+exclude = ["guest"]
+resolver = "2"
+
+[patch.crates-io]
+keccak = { git = "https://github.com/logos-blockchain/sponges", rev = "3a56e99771beedf04946eab21a4a62adc2951377" }
+
+[package]
+name = "ata_program"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+lee_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", tag = "v0.4.0-rc3" }
+ata_core = { path = "core" }
+token_core = { git = "https://github.com/logos-blockchain/lez-programs.git", rev = "3f04cc37ec5f90358e606b0fe7d28baa6b1dbd7e" }
+nft_core = { git = "https://github.com/logos-blockchain/lez-programs.git", rev = "3f04cc37ec5f90358e606b0fe7d28baa6b1dbd7e" }
+borsh = { version = "1.5", features = ["derive"] }
+
+[dev-dependencies]
+lee_core = { git = "https://github.com/logos-blockchain/logos-execution-zone.git", tag = "v0.4.0-rc3", features = [
+  "host",
+] }
+
+[workspace.lints.rust]
+rust_2018_idioms = { level = "deny", priority = -1 }
+# deny (not forbid) so a targeted per-item #[allow] remains possible if ever needed
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+# Deny only the groups where a new lint should always be a hard error.
+# style/pedantic lints default to warn so toolchain upgrades don't break the
+# build unexpectedly — they can be evaluated and addressed at our own pace.
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+style = { level = "warn", priority = -1 }
+
+# Generated-code / placeholder blockers.
+dbg_macro = "deny"
+todo = "deny"
+unimplemented = "deny"
+unwrap_used = "deny"
+
+# Lint suppression hygiene.
+allow_attributes = "warn"
+allow_attributes_without_reason = "deny"
+
+# Determinism, panic-safety, and arithmetic correctness.
+arithmetic_side_effects = "deny"
+indexing_slicing = "deny"
+
+# Cast discipline.
+as_conversions = "deny"
+cast_possible_truncation = "deny"
+cast_possible_wrap = "deny"
+cast_sign_loss = "deny"
+
+# API and enum evolution.
+large_enum_variant = "deny"
+wildcard_enum_match_arm = "deny"
+
+# Too noisy for this codebase unless enforced selectively.
+module_name_repetitions = "allow"
+similar_names = "allow"

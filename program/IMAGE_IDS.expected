@@ -1,0 +1,10 @@
+# Expected RISC Zero image ids of the guests built by scripts/guests_release.sh without --ids (pinned image
+# risczero/risc0-guest-builder:r0.1.91.1; vesting with its local test ids). CI rebuilds them from the committed tree
+# and compares. The ids of a deployment (vesting built with that network's program ids) are in the [image_ids] table
+# of deploy/ids-<network>.toml.
+# Any change to guest code, to the workspace profiles or to a guest dependency graph changes these: rebuild with
+# scripts/guests_release.sh and update this file in the same commit.
+vesting a8a9a283bc1e4da12f3441095cd9bda524b247e70434575bd60f7de524389b62
+vesting_fees 7e5b5539f82c19d8e4dd502852d5a35673fac4ccefba438bc101099f341cc147
+token aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c
+ata 339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110

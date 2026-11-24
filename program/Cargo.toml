@@ -1,0 +1,29 @@
+[package]
+name = "vesting_methods"
+description = "Builds the vesting and vesting_fees program guests for riscv32im-risc0-zkvm-elf and embeds their ELFs and image ids"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[build-dependencies]
+risc0-build.workspace = true
+
+[dev-dependencies]
+# Executor-level tests (tests/): the real guests run by LEZ's public execution, as the sequencer runs a block.
+borsh.workspace = true
+clock_core = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3" }
+lee = { workspace = true, features = ["test-utils"] }
+lee_core = { workspace = true, features = ["host", "test_utils"] }
+programs = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3", default-features = false, features = ["artifacts"] }
+token_core = { git = "https://github.com/logos-blockchain/lez-programs", rev = "3f04cc37ec5f90358e606b0fe7d28baa6b1dbd7e" }
+vesting_core.workspace = true
+vesting_fees.workspace = true
+vesting_program = { path = "guest" }
+
+[package.metadata.risc0]
+# `token-guest` is the token program of lez-programs at the pinned commit, unchanged (see its Cargo.toml).
+methods = ["guest", "fees/guest", "token-guest"]
