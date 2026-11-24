@@ -7,7 +7,7 @@ ENV := source scripts/env.sh &&
 NICE := nice -n 10
 GUESTS := vesting vesting_fees token
 
-.PHONY: help fmt fmt-check clippy lint test test-executor guests guests-release guests-release-network e2e ci seq-dev-start seq-dev-stop \
+.PHONY: help fmt fmt-check clippy lint test test-executor c-example guests guests-release guests-release-network e2e ci seq-dev-start seq-dev-stop \
         seq-pub-start seq-pub-stop deploy-local
 
 help: ## List targets
@@ -29,6 +29,9 @@ test: ## Unit and integration tests (dev mode, guest build skipped; end-to-end t
 
 test-executor: ## Executor tests with the real guests (builds them with the local rzup toolchain; a missing guest fails)
 	$(ENV) CV_REQUIRE_GUESTS=1 $(NICE) cargo test --locked -p vesting_methods -p vesting_fees
+
+c-example: ## Build the SDK's C library (sdk/ffi) and run the C example against the in-memory chain
+	$(ENV) RISC0_SKIP_BUILD=1 $(NICE) cargo build --locked -p vesting_sdk_ffi && sdk/ffi/examples/c/run.sh "$$CARGO_TARGET_DIR/debug"
 
 guests: ## Build the guests with the local rzup toolchain into $$CARGO_TARGET_DIR/guests
 	$(ENV) $(NICE) cargo build --locked -p vesting_methods && scripts/collect_guests.sh $(GUESTS)

@@ -1,0 +1,37 @@
+# make c-example: sdk/ffi/examples/c/claim.c against libcliff_veil.so (in-memory chain), commit 6032e94 + working tree, 2026-11-24T16:31Z
+# cc: cc (Ubuntu 15.2.0-16ubuntu1) 15.2.0; c++: c++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+header compiles and links as C11 and C++17
+cliff-veil C ABI version 1 (header 1)
+[pass] open an in-memory client
+    {"accounts":{"alice":"4Vwj8ny9q6gFLXY4UzApHVD7CunhLxts3J3ZoWPshi7A","creator":"Hsbfy97T8PSBMUu3AR5SrpxGndw4W6fEhw7fDpXueSjg","vault":"BktBtM1jtvFJ7BfHLFcDNKGQjsGf4L4c5YY66n4zPP9X"},"backend":"memory","dev_mode":true,"ok":true,"programs":{"ata":null,"token":"US517G5965aydkZ46HS38QLi7UQiSojurfbQfKCELF ...
+[pass] prepare create
+    {"ok":true,"transactions":[{"creation_fee":"0","estimate":{"cycles":0,"headroom_blocks":12,"headroom_reserve":"22","network_fee":"10","payer":"Hsbfy97T8PSBMUu3AR5SrpxGndw4W6fEhw7fDpXueSjg","private":false,"reserve":"10"},"operation":"create","prepared":1,"schedule_id":"d21800fc1fe8f454767ce25a1c587e ...
+[pass] send create
+    {"ok":true,"prepared":1,"sent":[{"block":1,"declared_fee":"10","hash":"0000000000000000000000000000000000000000000000000000000000000001"}]}
+[pass] claimable before the cliff (nothing)
+    {"claimable":{"claimable_now":"0","clock":"2026-01-01T00:00:00.000Z","next_unlock":"2026-01-11T00:00:00.000Z","schedule":"GhoqmnyUfA13GaXCHiFMAhuHXRGaMN5Zyujfoa7YsgmF"},"ok":true}
+[pass] claim before the cliff is refused (code 14)
+    {"error":{"action":"wait until the next unlock and claim again; nothing was consumed","code":14,"message":"cliff-veil error 14: nothing claimable yet; next unlock at 2026-01-11T00:00:00.000Z (1768089600000 ms)","name":"NothingClaimable"},"ok":false}
+[pass] set the clock to day 50
+    {"clock":"2026-02-20T00:00:00.000Z","clock_ms":1771545600000,"ok":true}
+[pass] prepare a public claim (summary + estimate)
+    {"ok":true,"transactions":[{"amount":"50000","at":"2026-02-20T00:00:00.000Z","at_ms":1771545600000,"beneficiary":"4Vwj8ny9q6gFLXY4UzApHVD7CunhLxts3J3ZoWPshi7A","claimed_after":"50000","destination":{"account":"4Vwj8ny9q6gFLXY4UzApHVD7CunhLxts3J3ZoWPshi7A","kind":"public"},"estimate":{"cycles":0,"hea ...
+[pass] send the public claim
+    {"ok":true,"prepared":2,"sent":[{"block":2,"declared_fee":"10","hash":"0000000000000000000000000000000000000000000000000000000000000002"}]}
+[pass] set the clock to day 60
+    {"clock":"2026-03-02T00:00:00.000Z","clock_ms":1772409600000,"ok":true}
+[pass] prepare a private claim (summary + disclosure)
+    {"ok":true,"transactions":[{"amount":"10000","at":"2026-03-02T00:00:00.000Z","at_ms":1772409600000,"beneficiary":"4Vwj8ny9q6gFLXY4UzApHVD7CunhLxts3J3ZoWPshi7A","claimed_after":"60000","destination":{"account":"BktBtM1jtvFJ7BfHLFcDNKGQjsGf4L4c5YY66n4zPP9X","fresh":false,"kind":"private","one_time_add ...
+[pass] send without acknowledging the disclosure is refused
+    {"error":{"action":"show `privacy_disclosure` of this claim to the person; once they accept it, send again with this claim's `disclosure_ack`","code":null,"message":"a claim to a private account is sent only after its privacy disclosure is acknowledged; nothing was sent","name":"DisclosureNotAcknowl ...
+[pass] send after the disclosure is acknowledged
+    {"ok":true,"prepared":3,"private_balance_after":{"account":"BktBtM1jtvFJ7BfHLFcDNKGQjsGf4L4c5YY66n4zPP9X","native":"9950"},"sent":[{"block":3,"declared_fee":"50","hash":"0000000000000000000000000000000000000000000000000000000000000003"}]}
+[pass] set the clock to day 70
+    {"clock":"2026-03-12T00:00:00.000Z","clock_ms":1773273600000,"ok":true}
+[pass] prepare cancel (refund the unvested part)
+    {"ok":true,"transactions":[{"at":"2026-03-12T00:00:00.000Z","at_ms":1773273600000,"estimate":{"cycles":0,"headroom_blocks":12,"headroom_reserve":"22","network_fee":"10","payer":"Hsbfy97T8PSBMUu3AR5SrpxGndw4W6fEhw7fDpXueSjg","private":false,"reserve":"10"},"operation":"cancel","prepared":4,"refund_to ...
+[pass] send cancel
+    {"ok":true,"prepared":4,"sent":[{"block":4,"declared_fee":"10","hash":"0000000000000000000000000000000000000000000000000000000000000004"}]}
+[pass] show the schedule
+    {"ok":true,"schedule":{"account":"GhoqmnyUfA13GaXCHiFMAhuHXRGaMN5Zyujfoa7YsgmF","asset":"native","beneficiary":"4Vwj8ny9q6gFLXY4UzApHVD7CunhLxts3J3ZoWPshi7A","cancel_authority":"Hsbfy97T8PSBMUu3AR5SrpxGndw4W6fEhw7fDpXueSjg","cancelable":true,"cancelled":{"at":"2026-03-12T00:00:00.000Z","at_ms":17732 ...
+all steps passed: 0 failure(s)

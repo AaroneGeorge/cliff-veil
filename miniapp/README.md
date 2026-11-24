@@ -45,6 +45,13 @@ The SDK links the LEZ wallet and the RISC Zero host crates, which do not belong 
 runs the `cliff-veil` command line (the SDK's own front end, `cli/`) once per request and reads one JSON document
 from its standard output. Core modules run outside the QML sandbox, in their own `logos_host` process.
 
+A module can also link the SDK as a C library instead: `sdk/ffi` builds `libcliff_veil` with the header
+`sdk/ffi/include/cliff_veil.h`, whose calls answer the same JSON as the command line (both print the shapes of
+`cliff_veil_sdk::json`), and which keeps the disclosure gate of a private claim in the library itself
+([docs/SDK.md](../docs/SDK.md)). This module stays on the command line: the SDK needs the repository's Rust toolchain
+and LEZ's git dependencies, which the module builder's crate build does not provide, and a separate process keeps
+the wallet and the prover out of the Basecamp host.
+
 ### What the module runs (`cliff-veil --json ...`)
 
 Arguments are built in one place, `rust-lib/logic/src/backend.rs` (`argv`); the JSON the command line prints is read

@@ -15,7 +15,7 @@ path = "src/main.rs"
 
 [dependencies]
 # The SDK (library name `cliff_veil_sdk`).
-vesting_sdk.workspace = true
+vesting_sdk = { workspace = true, features = ["json"] }
 vesting_core.workspace = true
 lee_core.workspace = true
 anyhow.workspace = true

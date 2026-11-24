@@ -1,0 +1,18 @@
+# cargo test -p vesting_sdk_ffi -- --include-ignored --nocapture, against the dev-mode sequencer (LEZ v0.4.0-rc3, RISC0_DEV_MODE=1) with deploy/ids-local-dev.toml, 2026-11-24T16:33Z
+# u1_c_abi_dry_runs_against_a_sequencer is read-only: the creation is priced by a dry run and discarded, never sent
+running 10 tests
+test tests::u1_c_abi_disclosure_and_version_need_no_client ... ok
+test tests::u1_c_abi_a_panic_becomes_an_error_and_never_unwinds_into_c ... ok
+test tests::u1_c_abi_header_declares_every_exported_function ... ok
+test tests::u1_c_abi_errors_carry_code_name_message_and_action ... ok
+test tests::u1_c_abi_batch_list_address_and_fees ... ok
+test tests::u1_c_abi_prepared_transactions_are_used_once ... ok
+test tests::u1_c_abi_full_lifecycle_with_public_and_private_claims ... ok
+test tests::u1_c_abi_milestones_signal_transfer_and_make_non_cancelable ... ok
+open: {"backend":"sequencer","dev_mode":true,"ok":true,"programs":{"ata":"4AwKPBQecPM5pFpGQ1DNny8U7vefMgTpJZQrpTacrLDU","token":"3uSMsxaS8RE6eLbLg3xwvLedXWmRp88LnJUhJ9xLKGtY","vesting":"5nCVf47kVHKC9RwgfyokEgYM1n2wdjEhS3D9z7RkJFsZ","vesting_fees":"D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5"}}
+fees: {"fees":{"config_account":"5aH6Z3GiECyNPUrUJTYQ1sgh67z8MpA4LQsNUfxa84jb","deployed":true,"max_fee_bps":100,"program":"D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5","rate_bps":0,"treasury":"not set"},"ok":true}
+test tests::u1_c_abi_one_handle_serves_many_threads ... ok
+prepared create (dry run, not sent): {"creation_fee":"0","estimate":{"cycles":94103,"headroom_blocks":12,"headroom_reserve":"2844960","network_fee":"760112","payer":"CbgR6tj5kWx5oziiFptM7jMvrQeYY3Mzaao6ciuhSr2r","private":false,"reserve":"948320"},"operation":"create","prepared":1,"schedule_id":"709801cad1242695c27230abfbaabd86f104e5f81842cefdd544fe7426ae9712","schedules":["23GaZUUwkCKr8ZmiuK1Fk5xLYsje6TWyFigmvHeo1H5N"],"total":"1000","treasury":"CbgR6tj5kWx5oziiFptM7jMvrQeYY3Mzaao6ciuhSr2r"}
+show (not created): {"error":{"action":"check the address (`show <schedule>`)","code":8,"message":"cliff-veil error 8: no schedule at 23GaZUUwkCKr8ZmiuK1Fk5xLYsje6TWyFigmvHeo1H5N","name":"NoSuchSchedule"},"ok":false}
+test tests::u1_c_abi_dry_runs_against_a_sequencer ... ok
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s

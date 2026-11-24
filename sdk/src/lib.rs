@@ -18,6 +18,10 @@
 //! | [`errors`] | [`Error`], with a message and an action for every program error code |
 //! | [`disclosure`] | the privacy disclosure shown before every private claim |
 //! | [`time`] | ISO-8601 UTC rendering of clock times |
+//! | `json` | (feature `json`) the JSON shapes the CLI's `--json` and the C ABI print |
+//!
+//! The C ABI over this crate (JSON in, JSON out, for Logos core modules and other C or C++ hosts) is the crate in
+//! `sdk/ffi` (library `cliff_veil`, header `sdk/ffi/include/cliff_veil.h`); see `docs/SDK.md`.
 //!
 //! # Example (in memory)
 //!
@@ -51,6 +55,8 @@ pub mod batch;
 pub mod client;
 pub mod disclosure;
 pub mod errors;
+#[cfg(feature = "json")]
+pub mod json;
 pub mod list;
 pub mod memory;
 pub mod sequencer;

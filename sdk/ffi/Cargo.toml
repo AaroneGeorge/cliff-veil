@@ -1,0 +1,32 @@
+[package]
+name = "vesting_sdk_ffi"
+description = "C ABI of the cliff-veil SDK: JSON in, JSON out, for Logos core modules and other C or C++ hosts"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+# libcliff_veil.so / libcliff_veil.a; the rlib lets Rust hosts and the unit tests call the same functions.
+name = "cliff_veil"
+crate-type = ["cdylib", "staticlib", "rlib"]
+# No doc tests: they would link the cdylib and staticlib on every `cargo test`.
+doctest = false
+
+# Not the workspace lints: the workspace forbids `unsafe`, and a C ABI needs it at the boundary. Here it is denied
+# everywhere except `src/abi.rs`, which holds every `extern "C"` function.
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[dependencies]
+vesting_sdk = { workspace = true, features = ["json"] }
+vesting_core.workspace = true
+lee_core.workspace = true
+anyhow.workspace = true
+hex.workspace = true
+serde_json.workspace = true
+sha2 = { workspace = true, features = ["std"] }
+tokio.workspace = true
