@@ -1,0 +1,28 @@
+# Program ids on local-dev, written by scripts/deploy_local.sh. Last update 2026-11-24T16:00:22Z.
+[deploy]
+network = "local-dev"
+rpc = "http://127.0.0.1:3050"
+lez = "v0.4.0-rc3"
+dev_mode = true
+
+# Program-loader header accounts (the program ids). vesting is built with the token, vesting_fees and ata
+# ids of this table; ata absent means it is built with its local test ATA id (token fees stay at rate 0).
+[programs]
+token = "3uSMsxaS8RE6eLbLg3xwvLedXWmRp88LnJUhJ9xLKGtY"   # sha256 7b0178907ac0cfc61542d7d5585481dbbbfa88f594df37cdb3ebb2b88c9db1b5, 292988 bytes, release build, 20261124T131724Z
+vesting_fees = "4tBfL4RRHAyS9xVkkAFxhxNy5UXzkokNtRDjVc2FMhyA"   # sha256 0b873275887bc103598dcc038c67010ebff753596403cba0383edb200a4f9a85, 301744 bytes, local build, 20261124T155505Z
+ata = "4AwKPBQecPM5pFpGQ1DNny8U7vefMgTpJZQrpTacrLDU"   # sha256 97188dfddd46b7b0f75308c54c3b518f887cb4ce32b5758cc8d8b1196e23ec73, 266772 bytes, release build, 20261124T132238Z
+vesting = "EFxqM64pqiSZoKReDZBzjbzi1xJUSw3YCARFnGFdD9RV"   # sha256 bac1a08609f36eaeca57c666ecb10689cef0531134de395948c1433798f98363, 356336 bytes, local build, 20261124T155505Z
+
+[accounts]
+fees_config = "CWGaNHW7H7nhRck7janQZbjMCXg15Aou6AxersojPYAs"   # vesting_fees config (PDA), Init by the deployer
+
+# RISC Zero image ids of the deployed binaries (scripts/check_image_ids.sh <release dir> <this file>).
+[image_ids]
+token = "aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c"
+vesting_fees = "08d44e3ce55c040512dbd88ee9a55ca60966ccda05cfb3399182eeaea0875bd2"
+ata = "339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110"
+vesting = "10f60be5978241b3ecd38e3ad00337f36f4a59bcdd529d87e4b17d2bd9655b4d"
+
+[build]
+builder = "local rzup toolchain (image ids depend on the machine; --build release for reproducible ones)"
+vesting_inputs = "CV_TOKEN_PROGRAM_ID=3uSMsxaS8RE6eLbLg3xwvLedXWmRp88LnJUhJ9xLKGtY CV_FEES_PROGRAM_ID=4tBfL4RRHAyS9xVkkAFxhxNy5UXzkokNtRDjVc2FMhyA CV_ATA_PROGRAM_ID=4AwKPBQecPM5pFpGQ1DNny8U7vefMgTpJZQrpTacrLDU"

@@ -10,8 +10,10 @@ publish.workspace = true
 vesting_core.workspace = true
 # The SDK, for the tests of its own lifecycle and private-claim calls.
 vesting_sdk.workspace = true
-# The fee switch's wire messages (SetFee), for the admin-only test.
+# The fee switch's wire messages (SetFee) and the admin library's operations (Accept, Nominate, Renounce), for the
+# fee tests.
 vesting_fees.workspace = true
+lez-admin-authority.workspace = true
 # The token program's messages and state, at the pinned lez-programs commit (as the program uses them).
 token_core = { git = "https://github.com/logos-blockchain/lez-programs", rev = "3f04cc37ec5f90358e606b0fe7d28baa6b1dbd7e" }
 # LEZ v0.4.0-rc3: the wallet builds, prices, simulates and signs public transactions; `lee` and `common` carry the

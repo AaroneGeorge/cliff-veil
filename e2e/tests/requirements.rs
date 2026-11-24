@@ -9,9 +9,8 @@
 use anyhow::{Context as _, Result, ensure};
 use cliff_veil_sdk::{ClaimTarget, Destination, Error as SdkError, Outcome, Standing, linear_terms, milestone_terms};
 use vesting_core::{Asset, BatchItem, BatchShape, BatchTerms};
-use vesting_e2e::token;
 use vesting_e2e::vesting::{core_id, linear, milestones};
-use vesting_e2e::{Ctx, SendError};
+use vesting_e2e::{Ctx, SendError, private, record, token};
 
 /// One block on the local network, in clock milliseconds.
 const BLOCK: u64 = 15_000;
@@ -243,6 +242,21 @@ async fn f2_claim_private_to_a_blinded_destination() -> Result<()> {
     let receipt = sdk.send(&prepared).await?;
     let state = ctx.schedule(&p, schedule).await?.expect("schedule");
     assert_eq!(state.claimed, summary.amount, "claimed by the private claim");
+    // The private side, as the wallet reads it after syncing: the claim minus the fee reserve fixed in the proof,
+    // paid by the destination out of the claim (no other private account in this wallet).
+    let fee = receipt
+        .declared_fee
+        .context("a private claim declares its fee reserve")?;
+    assert_eq!(summary.fee_payer, account, "the destination pays the fee");
+    assert_eq!(
+        private::private_native_balance(sdk.backend().wallet(), account),
+        Some(summary.amount - fee),
+        "the private account received the claim less the declared fee"
+    );
+    let name = "f2_claim_private_to_a_blinded_destination";
+    record(name, "claim_amount", summary.amount);
+    record(name, "fee_reserve", fee);
+    record(name, "tx", format!("{} block {}", receipt.hash, receipt.block));
     assert_eq!(
         ctx.native(schedule).await?,
         PRIVATE_TOTAL - summary.amount,
@@ -284,20 +298,33 @@ async fn f2_destination_is_not_in_schedule_state() -> Result<()> {
 #[tokio::test]
 #[ignore = "needs a sequencer: e2e/run.sh"]
 async fn f3_cancel_refunds_exactly_the_unvested_part() -> Result<()> {
-    let mut ctx = Ctx::new("f3-refund", &["creator", "beneficiary"]).await?;
+    // A separate cancel authority cancels, so the creator (the default refund account) signs nothing and pays no
+    // network fee: its balance moves by the refund alone.
+    let mut ctx = Ctx::new("f3-refund", &["creator", "beneficiary", "dao"]).await?;
     let p = ctx.programs()?;
-    let (creator, ben) = (ctx.id("creator"), ctx.id("beneficiary"));
+    let (creator, ben, dao) = (ctx.id("creator"), ctx.id("beneficiary"), ctx.id("dao"));
     let now = ctx.clock().await?;
-    let schedule = ctx
-        .create(&p, "creator", linear(ben, TOTAL, now, now, now + 10 * BLOCK))
-        .await?;
-    ctx.wait_clock(now + 2 * BLOCK).await?;
+    let mut terms = linear(ben, TOTAL, now, now, now + 10 * BLOCK);
+    terms.cancel_authority = Some(core_id(dao));
+    let schedule = ctx.create(&p, "creator", terms).await?;
     let state = ctx.schedule(&p, schedule).await?.expect("schedule");
-    p.cancel(creator, schedule, &state)?.send(&ctx).await?;
+    assert_eq!(
+        state.refund_to,
+        core_id(creator),
+        "the refund account defaults to the creator"
+    );
+    ctx.wait_clock(now + 2 * BLOCK).await?;
+    let creator_before = ctx.native(creator).await?;
+    p.cancel(dao, schedule, &state)?.send(&ctx).await?;
     let s = ctx.schedule(&p, schedule).await?.expect("schedule");
     let c = s.cancelled.expect("cancelled");
     assert_eq!(c.refunded, TOTAL - c.vested_at_cancel);
     assert!(c.vested_at_cancel > 0 && c.refunded > 0);
+    assert_eq!(
+        ctx.native(creator).await? - creator_before,
+        c.refunded,
+        "the creator received exactly the unvested part"
+    );
     assert_eq!(
         ctx.native(schedule).await?,
         c.vested_at_cancel - s.claimed,
@@ -343,11 +370,21 @@ async fn f3_non_cancelable_is_one_way_and_defaults_to_cancelable() -> Result<()>
     let p = ctx.programs()?;
     let (creator, ben) = (ctx.id("creator"), ctx.id("beneficiary"));
     let now = ctx.clock().await?;
-    let schedule = ctx
-        .create(&p, "creator", linear(ben, TOTAL, now, now, now + 10 * BLOCK))
-        .await?;
+    // Terms as a client builds them without saying anything about cancellation: the SDK's constructors (which the
+    // CLI and the mini-app use), created through the SDK.
+    let mut sdk = ctx.sdk()?;
+    let id = sdk.fresh_schedule_id();
+    let terms = linear_terms(ben, Asset::Native, TOTAL, now, now, now + 10 * BLOCK);
+    assert!(
+        milestone_terms(ben, Asset::Native, vec![TOTAL]).cancelable,
+        "milestone default"
+    );
+    let create = sdk.prepare_create(creator, id, terms).await?;
+    sdk.send(&create).await?;
+    let schedule = sdk.programs().schedule_account(creator, &id);
     let state = ctx.schedule(&p, schedule).await?.expect("schedule");
     assert!(state.cancelable, "default is cancelable");
+    assert_eq!(state.cancel_authority, core_id(creator), "and the creator may cancel");
     p.make_non_cancelable(creator, schedule).send(&ctx).await?;
     assert!(!ctx.schedule(&p, schedule).await?.expect("schedule").cancelable);
     refused_with(
@@ -469,9 +506,22 @@ async fn f5_batch_at_the_cap_is_accepted_and_one_more_is_refused() -> Result<()>
         code::BATCH_TOO_LARGE,
     )?;
     let at_cap = batch_items(&mut ctx, vesting_core::MAX_BATCH_NATIVE, ben);
-    p.create_batch(ctx.id("creator"), batch_common(now), at_cap)?
-        .send(&ctx)
-        .await?;
+    let totals: Vec<u128> = at_cap.iter().map(|i| i.total).collect();
+    let tx = p.create_batch(ctx.id("creator"), batch_common(now), at_cap)?;
+    let schedules = tx.schedules.clone();
+    let included = tx.send(&ctx).await?;
+    for (schedule, total) in schedules.iter().zip(&totals) {
+        assert_eq!(ctx.native(*schedule).await?, *total, "every escrow funded");
+    }
+    let bytes = ctx.transaction_bytes(&included.hash.to_string()).await?.len();
+    let name = "f5_batch_at_the_cap_is_accepted_and_one_more_is_refused";
+    record(name, "native_cap_n", schedules.len());
+    record(name, "native_cap_tx_bytes", bytes);
+    record(
+        name,
+        "native_cap_tx",
+        format!("{} block {}", included.hash, included.block),
+    );
     Ok(())
 }
 
@@ -578,7 +628,8 @@ async fn r3_concurrent_claims_on_independent_schedules() -> Result<()> {
         schedules.push(ctx.create(&p, "creator", terms).await?);
     }
     ctx.wait_clock(now + BLOCK).await?;
-    // All claims are sent at once and land in the same block(s).
+    // Right after a block is made, every claim is sent at once: they land together.
+    ctx.wait_blocks(1).await?;
     let claims = (0..N).map(|i| {
         let tx = p.claim(
             ctx.id(&format!("ben{i}")),
@@ -589,10 +640,31 @@ async fn r3_concurrent_claims_on_independent_schedules() -> Result<()> {
         let ctx = &ctx;
         async move { tx?.send(ctx).await.map_err(anyhow::Error::from) }
     });
-    let included = futures_join_all(claims).await;
-    for r in included {
-        r?;
+    let included: Vec<vesting_e2e::Included> = futures_join_all(claims).await.into_iter().collect::<Result<_>>()?;
+    // Read the blocks back: at least two independent claims are in one block, none reverted.
+    let mut most = 0;
+    for b in included
+        .iter()
+        .map(|i| i.block)
+        .collect::<std::collections::BTreeSet<_>>()
+    {
+        let in_block = ctx.block_transactions(b).await?;
+        let ours: Vec<_> = included.iter().filter(|i| i.block == b).collect();
+        for i in &ours {
+            assert!(
+                in_block.iter().any(|(h, reverted)| *h == i.hash && !reverted),
+                "claim {} is in block {b}, not reverted",
+                i.hash
+            );
+        }
+        most = most.max(ours.len());
+        record(
+            "r3_concurrent_claims_on_independent_schedules",
+            "claims_in_block",
+            format!("{b}: {}", ours.len()),
+        );
     }
+    assert!(most >= 2, "no two claims shared a block: {included:?}");
     for (i, schedule) in schedules.iter().enumerate() {
         let s = ctx.schedule(&p, *schedule).await?.expect("schedule");
         assert_eq!(s.claimed, TOTAL + i as u128, "schedule {i} paid in full, once");
@@ -777,8 +849,23 @@ async fn u3_cli_create_claim_cancel_signal_and_query_on_the_sequencer() -> Resul
     let linear = p.schedule_account(creator, &cliff_veil_sdk::schedule_id_from_label(&linear_label));
     assert_eq!(ctx.native(linear).await?, TOTAL, "escrow funded by the CLI create");
     ctx.wait_blocks(2).await?;
+    // `claimable` reports vested minus claimed at the clock it read: between the values at the clock before and
+    // after the call.
+    let state = ctx.schedule(&p, linear).await?.expect("schedule");
+    let t0 = ctx.clock().await?;
     let shown = cli(&["claimable", &linear.to_string()])?;
-    assert!(!shown.trim().is_empty());
+    let t1 = ctx.clock().await?;
+    let amount: u128 = shown
+        .split("claimable now ")
+        .nth(1)
+        .and_then(|rest| rest.split_whitespace().next())
+        .and_then(|n| n.parse().ok())
+        .with_context(|| format!("no amount in: {shown}"))?;
+    assert!(
+        (state.vested(t0)?..=state.vested(t1)?).contains(&amount),
+        "claimable {amount} not between vested at {t0} and {t1}"
+    );
+    assert!(amount > 0 && amount < TOTAL, "part vested: {amount}");
     cli(&["claim", &linear.to_string(), "--as", "beneficiary"])?;
     let claimed = ctx.schedule(&p, linear).await?.expect("schedule").claimed;
     assert!(claimed > 0, "the CLI claim paid");
@@ -846,10 +933,25 @@ async fn pr1_sdk_claims_to_a_public_and_to_a_private_account() -> Result<()> {
             },
         )
         .await?;
-    sdk.send(&private).await?;
+    let Outcome::Claim(summary) = private.outcome.clone() else {
+        anyhow::bail!("not a claim")
+    };
+    let Destination::Private { account, .. } = summary.destination else {
+        anyhow::bail!("not a private destination")
+    };
+    let receipt = sdk.send(&private).await?;
     assert_eq!(
         ctx.schedule(&p, schedule).await?.expect("schedule").claimed,
         PRIVATE_TOTAL
+    );
+    assert_eq!(summary.amount, PRIVATE_TOTAL - first, "the rest");
+    let fee = receipt
+        .declared_fee
+        .context("a private claim declares its fee reserve")?;
+    assert_eq!(
+        private::private_native_balance(sdk.backend().wallet(), account),
+        Some(summary.amount - fee),
+        "the private account received the rest less the declared fee"
     );
     assert_eq!(ctx.native(schedule).await?, 0, "private claim debited the rest");
     Ok(())
@@ -935,21 +1037,45 @@ async fn soft_milestone_authority_signals_and_the_creator_cannot() -> Result<()>
 #[tokio::test]
 #[ignore = "needs a sequencer: e2e/run.sh"]
 async fn fee1_fee2_zero_rate_charges_the_creator_nothing_at_creation() -> Result<()> {
-    let mut ctx = Ctx::new("fee0", &["creator", "beneficiary"]).await?;
+    let mut ctx = Ctx::new("fee0", &["creator", "beneficiary", "treasury"]).await?;
     let p = ctx.programs()?;
-    ensure!(p.fees.is_some(), "vesting_fees not deployed");
+    let (fees, config) = p.fees.context("vesting_fees not deployed")?;
+    let rate = vesting_fees::read_config(&ctx.actor_state(config, fees).await?).rate_bps;
+    assert_eq!(rate, 0, "this deployment's rate");
+    let (creator, ben, treasury) = (ctx.id("creator"), ctx.id("beneficiary"), ctx.id("treasury"));
+    let (creator_before, treasury_before, ben_before) = (
+        ctx.native(creator).await?,
+        ctx.native(treasury).await?,
+        ctx.native(ben).await?,
+    );
     let now = ctx.clock().await?;
-    let schedule = ctx
-        .create(
-            &p,
-            "creator",
-            linear(ctx.id("beneficiary"), TOTAL, now, now, now + BLOCK),
-        )
-        .await?;
+    let id = ctx.fresh_id();
+    let tx = p.create_with_fee(creator, id, linear(ben, TOTAL, now, now, now + BLOCK), 0, treasury)?;
+    let schedule = tx.schedules[0];
+    let included = tx.send(&ctx).await?;
     assert_eq!(
         ctx.native(schedule).await?,
         TOTAL,
         "the escrow gets the whole total; no protocol fee"
+    );
+    // The creator paid the total and the network fee, nothing else: what left beyond the total is above zero and
+    // within the fee cap the transaction declared.
+    let network_fee = creator_before - ctx.native(creator).await? - TOTAL;
+    let cap = included.max_fee.context("declared fee cap")?;
+    assert!(
+        network_fee > 0 && network_fee <= cap,
+        "network fee {network_fee}, cap {cap}"
+    );
+    assert_eq!(ctx.native(treasury).await?, treasury_before, "nothing to the treasury");
+    assert_eq!(
+        ctx.native(ben).await?,
+        ben_before,
+        "the beneficiary pays nothing at creation"
+    );
+    record(
+        "fee1_fee2_zero_rate_charges_the_creator_nothing_at_creation",
+        "network_fee",
+        network_fee,
     );
     Ok(())
 }
@@ -971,10 +1097,13 @@ async fn fee3_fee4_switch_is_admin_only_capped_and_a_stale_quote_is_refused() ->
             borsh::to_vec(&set_fee)?,
         )
         .await;
-    ensure!(
-        matches!(r, Err(SendError::Refused { .. })),
-        "SetFee by a non-admin: {r:?}"
-    );
+    match r {
+        Err(SendError::Refused { code: None, reason }) => ensure!(
+            reason.contains("lez-authority/admin E103"),
+            "SetFee by a non-admin refused for another reason: {reason}"
+        ),
+        other => anyhow::bail!("SetFee by a non-admin: {other:?}"),
+    }
     let ben = ctx.id("beneficiary");
     let treasury = ctx.id("treasury");
     let treasury_before = ctx.native(treasury).await?;
@@ -1031,5 +1160,250 @@ async fn fee4_token_fee_destination_is_the_treasury_ata_created_by_the_ata_progr
         token::balance(&ctx, token_program, holding).await?,
         Some((definition, 1_000))
     );
+    Ok(())
+}
+
+// ---------------------------------------------------------------- Token schedules on the sequencer
+
+/// A fixed-supply token minted to `creator`, and the asset of schedules in it.
+async fn token_setup(
+    ctx: &Ctx,
+    supply: u128,
+) -> Result<(lee_core::account::AccountId, lee_core::account::AccountId, Asset)> {
+    let p = ctx.programs()?;
+    let tp = p.token.context("token program not deployed on this sequencer")?;
+    let definition = token::new_definition(ctx, tp, "definition", "creator", supply).await?;
+    Ok((
+        tp,
+        definition,
+        Asset::Token {
+            definition: core_id(definition),
+        },
+    ))
+}
+
+#[tokio::test]
+#[ignore = "needs a sequencer: e2e/run.sh"]
+async fn f2_token_claim_public_pays_the_destination_holding() -> Result<()> {
+    let mut ctx = Ctx::new("f2-token-pub", &["creator", "beneficiary", "definition", "to"]).await?;
+    let p = ctx.programs()?;
+    let (tp, definition, asset) = token_setup(&ctx, 10 * TOTAL).await?;
+    token::init_holding(&ctx, tp, "to", definition).await?;
+    let (ben, to) = (ctx.id("beneficiary"), ctx.id("to"));
+    let now = ctx.clock().await?;
+    let end = now + 8 * BLOCK;
+    let mut terms = linear(ben, TOTAL, now, now, end);
+    terms.asset = asset;
+    let schedule = ctx.create(&p, "creator", terms).await?;
+
+    ctx.wait_clock(now + 2 * BLOCK).await?;
+    p.claim(ben, schedule, to, &asset)?.send(&ctx).await?;
+    let s = ctx.schedule(&p, schedule).await?.expect("schedule");
+    assert!(s.claimed > 0 && s.claimed < TOTAL, "partial {}", s.claimed);
+    assert_eq!(s.claimed, s.vested(s.last_time)?, "paid exactly vested(t)");
+    assert_eq!(token::balance(&ctx, tp, to).await?, Some((definition, s.claimed)));
+    assert_eq!(
+        token::balance(&ctx, tp, schedule).await?,
+        Some((definition, TOTAL - s.claimed)),
+        "escrow holding debited"
+    );
+
+    ctx.wait_clock(end).await?;
+    p.claim(ben, schedule, to, &asset)?.send(&ctx).await?;
+    assert_eq!(ctx.schedule(&p, schedule).await?.expect("schedule").claimed, TOTAL);
+    assert_eq!(token::balance(&ctx, tp, to).await?, Some((definition, TOTAL)));
+    assert_eq!(
+        token::balance(&ctx, tp, schedule).await?,
+        Some((definition, 0)),
+        "escrow empty"
+    );
+    Ok(())
+}
+
+#[tokio::test]
+#[ignore = "needs a sequencer: e2e/run.sh"]
+async fn f3_token_cancel_refunds_the_unvested_part_to_the_refund_holding() -> Result<()> {
+    let mut ctx = Ctx::new(
+        "f3-token-cancel",
+        &["creator", "beneficiary", "definition", "dao", "refund"],
+    )
+    .await?;
+    let p = ctx.programs()?;
+    let supply = 10 * TOTAL;
+    let (tp, definition, asset) = token_setup(&ctx, supply).await?;
+    token::init_holding(&ctx, tp, "refund", definition).await?;
+    token::init_holding(&ctx, tp, "beneficiary", definition).await?;
+    let (ben, dao, refund) = (ctx.id("beneficiary"), ctx.id("dao"), ctx.id("refund"));
+    let now = ctx.clock().await?;
+    let mut terms = linear(ben, TOTAL, now, now, now + 10 * BLOCK);
+    terms.asset = asset;
+    terms.cancel_authority = Some(core_id(dao));
+    terms.refund_to = Some(core_id(refund));
+    let schedule = ctx.create(&p, "creator", terms).await?;
+    assert_eq!(
+        token::balance(&ctx, tp, ctx.id("creator")).await?,
+        Some((definition, supply - TOTAL))
+    );
+
+    ctx.wait_clock(now + 2 * BLOCK).await?;
+    let state = ctx.schedule(&p, schedule).await?.expect("schedule");
+    p.cancel(dao, schedule, &state)?.send(&ctx).await?;
+    let c = ctx
+        .schedule(&p, schedule)
+        .await?
+        .and_then(|s| s.cancelled)
+        .expect("cancelled");
+    assert_eq!(c.refunded, TOTAL - c.vested_at_cancel);
+    assert!(c.vested_at_cancel > 0 && c.refunded > 0);
+    assert_eq!(
+        token::balance(&ctx, tp, refund).await?,
+        Some((definition, c.refunded)),
+        "the refund holding received exactly the unvested part"
+    );
+    assert_eq!(
+        token::balance(&ctx, tp, schedule).await?,
+        Some((definition, c.vested_at_cancel)),
+        "the vested part stays in escrow"
+    );
+
+    // The vested part is still the beneficiary's.
+    p.claim(ben, schedule, ben, &asset)?.send(&ctx).await?;
+    assert_eq!(
+        token::balance(&ctx, tp, ben).await?,
+        Some((definition, c.vested_at_cancel))
+    );
+    assert_eq!(token::balance(&ctx, tp, schedule).await?, Some((definition, 0)));
+    Ok(())
+}
+
+#[tokio::test]
+#[ignore = "needs a sequencer: e2e/run.sh"]
+async fn f5_token_batch_at_the_cap_of_57_is_sent_and_one_more_is_refused() -> Result<()> {
+    let name = "f5_token_batch_at_the_cap_of_57_is_sent_and_one_more_is_refused";
+    let mut ctx = Ctx::new("f5-token-max", &["creator", "beneficiary", "definition"]).await?;
+    let p = ctx.programs()?;
+    let supply = 10 * TOTAL;
+    let (tp, definition, asset) = token_setup(&ctx, supply).await?;
+    let now = ctx.clock().await?;
+    let ben = ctx.id("beneficiary");
+    let common = BatchTerms {
+        asset,
+        ..batch_common(now)
+    };
+    let over = batch_items(&mut ctx, vesting_core::MAX_BATCH_TOKEN + 1, ben);
+    refused_with(
+        p.create_batch(ctx.id("creator"), common.clone(), over)?
+            .send(&ctx)
+            .await,
+        code::BATCH_TOO_LARGE,
+    )?;
+    let at_cap = batch_items(&mut ctx, vesting_core::MAX_BATCH_TOKEN, ben);
+    assert_eq!(at_cap.len(), 57);
+    let totals: Vec<u128> = at_cap.iter().map(|i| i.total).collect();
+    let tx = p.create_batch(ctx.id("creator"), common, at_cap)?;
+    let schedules = tx.schedules.clone();
+    let included = tx.send(&ctx).await?;
+    for (schedule, total) in schedules.iter().zip(&totals) {
+        assert_eq!(
+            token::balance(&ctx, tp, *schedule).await?,
+            Some((definition, *total)),
+            "every escrow holding funded"
+        );
+    }
+    assert_eq!(
+        token::balance(&ctx, tp, ctx.id("creator")).await?,
+        Some((definition, supply - totals.iter().sum::<u128>()))
+    );
+    let bytes = ctx.transaction_bytes(&included.hash.to_string()).await?.len();
+    record(name, "token_cap_n", schedules.len());
+    record(name, "token_cap_tx_bytes", bytes);
+    record(
+        name,
+        "token_cap_tx",
+        format!("{} block {}", included.hash, included.block),
+    );
+    Ok(())
+}
+
+/// A token claim to a private holding, proved in dev mode: the destination's private holding is initialised by the
+/// private account itself, and a second private account holding native balance pays every network fee, since a token
+/// claim brings no native balance (SPEC 9).
+#[tokio::test]
+#[ignore = "needs a sequencer: e2e/run.sh"]
+async fn f2_token_claim_private_to_an_owned_private_holding() -> Result<()> {
+    let name = "f2_token_claim_private_to_an_owned_private_holding";
+    let mut ctx = Ctx::new("f2-token-priv", &["creator", "beneficiary", "definition"]).await?;
+    let p = ctx.programs()?;
+    let (tp, definition, asset) = token_setup(&ctx, 10 * TOTAL).await?;
+    let ben = ctx.id("beneficiary");
+    let now = ctx.clock().await?;
+    let mut terms = linear(ben, TOTAL, now, now, now + BLOCK);
+    terms.asset = asset;
+    let schedule = ctx.create(&p, "creator", terms).await?;
+
+    let mut sdk = ctx.sdk()?;
+    let wallet = sdk.backend_mut().wallet_mut();
+    let payer = private::new_private(wallet)?;
+    let dest = private::new_private(wallet)?;
+    private::fund_private(wallet, ben, payer, PRIVATE_TOTAL / 2).await?;
+    let funded = private::private_native_balance(wallet, payer).context("payer synced")?;
+    assert!(funded > 0, "the private fee payer holds native balance");
+    private::init_private_holding(wallet, tp, dest, definition, payer).await?;
+    assert_eq!(
+        private::private_token_balance(wallet, tp, dest),
+        Some((definition, 0)),
+        "the private holding exists, empty"
+    );
+
+    ctx.wait_clock(now + BLOCK).await?;
+    // The SDK's own private claim path (SPEC 9): `ClaimAsOf` at the clock time to a one-time blinded address of
+    // `dest`, the fee paid by the named private `payer`; the SDK gives the prover `vesting` and the token program,
+    // whose transfer the proof re-executes.
+    let prepared = sdk
+        .prepare_claim(
+            ben,
+            schedule,
+            ClaimTarget::Private {
+                account: Some(dest),
+                fee_payer: Some(payer),
+            },
+        )
+        .await?;
+    assert!(
+        prepared.tx.prover_programs().contains(&tp),
+        "the token program is declared to the prover"
+    );
+    let Outcome::Claim(summary) = &prepared.outcome else {
+        anyhow::bail!("a claim outcome")
+    };
+    let Destination::Private { blinded, .. } = summary.destination else {
+        anyhow::bail!("a private destination")
+    };
+    assert_eq!(summary.fee_payer, payer, "the named fee payer pays");
+    let receipt = sdk.send(&prepared).await?;
+    let (hash, block) = (receipt.hash.clone(), receipt.block);
+    let state = ctx.schedule(&p, schedule).await?.expect("schedule");
+    assert_eq!(state.claimed, TOTAL, "fully vested, claimed by the private claim");
+    assert_eq!(
+        token::balance(&ctx, tp, schedule).await?,
+        Some((definition, 0)),
+        "escrow emptied"
+    );
+    let wallet = sdk.backend().wallet();
+    assert_eq!(
+        private::private_token_balance(wallet, tp, dest),
+        Some((definition, TOTAL)),
+        "the private holding received the claim"
+    );
+    let payer_after = private::private_native_balance(wallet, payer).unwrap_or(0);
+    assert!(payer_after < funded, "the fee payer paid the network fee");
+    record(name, "claim_amount", state.claimed);
+    record(name, "fee_paid_by_private_payer", funded - payer_after);
+    let bytes = ctx.transaction_bytes(&hash.to_string()).await?;
+    let has = |id: lee_core::account::AccountId| bytes.windows(32).any(|w| w == id.value());
+    assert!(has(blinded), "the blinded destination is in the transaction");
+    assert!(!has(dest), "the canonical private id occurs in the transaction");
+    assert!(!has(payer), "the fee payer's canonical id occurs in the transaction");
+    record(name, "tx", format!("{hash} block {block}"));
     Ok(())
 }

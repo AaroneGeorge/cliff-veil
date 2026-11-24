@@ -7,6 +7,8 @@
 //! |---|---|---|
 //! | `CV_SEQ_RPC` | `http://127.0.0.1:3050` | RPC endpoint of the sequencer (`scripts/seq.sh dev start`) |
 //! | `CV_IDS` | `deploy/ids-local-dev.toml` | program ids written by `scripts/deploy_local.sh` (relative to the repo root) |
+//! | `CV_IDS_FEES` | `deploy/ids-local-dev-fees.toml` | the fee-enabled pair of `e2e/deploy_fees.sh` (`tests/fees_on.rs`) |
+//! | `CV_E2E_RECORD` | unset | a file the tests append measured figures to (`test<TAB>key<TAB>value` lines) |
 //! | `CV_LEZ_DIR` | `../vendor/lez` | LEZ checkout; the funding key is LEZ's published local test key from its `Justfile` |
 //! | `CV_E2E_FUNDER_INDEX` | `1` | which of the `Justfile` test keys funds the tests (0 is the one deployment pays with) |
 //! | `CV_E2E_FUND` | `1000000000` | native units given to every test account |
@@ -29,6 +31,7 @@
 //! timestamp of block `n - 1`. [`Ctx::clock`] returns exactly that value (the clock account), and
 //! [`Ctx::wait_clock`] waits until the clock has reached a time.
 
+pub mod private;
 pub mod sdk;
 pub mod token;
 pub mod vesting;
@@ -38,7 +41,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 
-use anyhow::{Context as _, Result, anyhow, bail};
+use anyhow::{Context as _, Result, anyhow, bail, ensure};
 use common::{HashType, transaction::LeeTransaction};
 use lee::{
     FeeDeclaration, PrivateKey, PublicAccountEvidence, PublicKey, PublicTransaction,
@@ -55,6 +58,8 @@ use wallet::{AccountIdentity, AccountMention, ExecutionFailureKind, WalletCore};
 pub const DEFAULT_RPC: &str = "http://127.0.0.1:3050";
 /// Program ids file of the dev sequencer, relative to the repository root.
 pub const DEFAULT_IDS: &str = "deploy/ids-local-dev.toml";
+/// Program ids of the fee-enabled pair (`e2e/deploy_fees.sh`), relative to the repository root.
+pub const DEFAULT_IDS_FEES: &str = "deploy/ids-local-dev-fees.toml";
 /// The chain's execution cap per transaction and per block (rc3 fee market `MAX_GAS_EXEC`).
 pub const MAX_GAS_EXEC: u64 = 10_000_000;
 /// Blocks of the steepest base-fee climb a fee is priced to cover (the wallet's default is 5). Tests fill blocks, so
@@ -156,6 +161,12 @@ impl Ids {
         Self::parse(&text)
     }
 
+    /// The fee-enabled pair's ids file: `CV_IDS_FEES`, else [`DEFAULT_IDS_FEES`] under the repository root.
+    #[must_use]
+    pub fn fees_path() -> PathBuf {
+        std::env::var("CV_IDS_FEES").map_or_else(|_| repo_root().join(DEFAULT_IDS_FEES), PathBuf::from)
+    }
+
     /// The id of program `name`, if deployed.
     #[must_use]
     pub fn get(&self, name: &str) -> Option<AccountId> {
@@ -217,6 +228,27 @@ fn funder_key() -> Result<PrivateKey> {
     PrivateKey::try_new(bytes).map_err(|e| anyhow!("test key: {e:?}"))
 }
 
+/// The account of the shared funder (LEZ's local test key `CV_E2E_FUNDER_INDEX`).
+///
+/// # Errors
+/// The LEZ `Justfile` or the key is missing.
+pub fn funder_account() -> Result<AccountId> {
+    Ok(funder()?.id)
+}
+
+/// Appends a measured figure to the file `CV_E2E_RECORD` names (`test<TAB>key<TAB>value`), and prints it (shown by
+/// libtest on failure or with `--nocapture`). The run script turns the lines into the run's JSON summary.
+pub fn record(test: &str, key: &str, value: impl std::fmt::Display) {
+    use std::io::Write as _;
+    let line = format!("{test}\t{key}\t{value}");
+    println!("record: {line}");
+    if let Ok(path) = std::env::var("CV_E2E_RECORD")
+        && let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(path)
+    {
+        let _ = writeln!(f, "{line}");
+    }
+}
+
 /// The account id a key controls.
 #[must_use]
 pub fn account_of(key: &PrivateKey) -> AccountId {
@@ -231,6 +263,7 @@ pub struct Ctx {
     pub name: String,
     /// Program ids of the sequencer.
     pub ids: Ids,
+    ids_path: PathBuf,
     rpc: String,
     client: SequencerClient,
     wallet: WalletCore<SequencerClient>,
@@ -246,6 +279,8 @@ pub struct Included {
     pub hash: HashType,
     /// The block that holds it.
     pub block: u64,
+    /// The fee cap the transaction declared (public transactions sent through the test's wallet).
+    pub max_fee: Option<u128>,
 }
 
 /// Why a send did not produce an included transaction.
@@ -294,11 +329,24 @@ impl Ctx {
         Self::with_rpc(&rpc_url(), name, parties).await
     }
 
+    /// As [`Self::new`], with the programs of the ids file at `ids` (for example [`Ids::fees_path`]).
+    ///
+    /// # Errors
+    /// As [`Self::new`]; the ids file is missing.
+    pub async fn new_with_ids(ids: &Path, name: &str, parties: &[&str]) -> Result<Self> {
+        ensure!(ids.exists(), "{} is missing", ids.display());
+        Self::open(&rpc_url(), ids.to_path_buf(), name, parties).await
+    }
+
     /// As [`Self::new`], against the sequencer at `rpc`.
     ///
     /// # Errors
     /// As [`Self::new`].
     pub async fn with_rpc(rpc: &str, name: &str, parties: &[&str]) -> Result<Self> {
+        Self::open(rpc, Ids::path(), name, parties).await
+    }
+
+    async fn open(rpc: &str, ids_path: PathBuf, name: &str, parties: &[&str]) -> Result<Self> {
         let rpc = rpc.to_owned();
         let client = SequencerClientBuilder::default()
             .build(&rpc)
@@ -307,7 +355,10 @@ impl Ctx {
             .check_health()
             .await
             .map_err(|e| anyhow!("sequencer {rpc} not healthy: {e}"))?;
-        let ids = Ids::load().unwrap_or_default();
+        let ids = std::fs::read_to_string(&ids_path)
+            .ok()
+            .and_then(|text| Ids::parse(&text).ok())
+            .unwrap_or_default();
 
         let dir = std::env::temp_dir().join(format!("cv-e2e-{}-{name}-{}", std::process::id(), nonce_seed()));
         let mut wallet = open_wallet(&rpc, &dir)?;
@@ -326,6 +377,7 @@ impl Ctx {
             name: name.to_owned(),
             rpc,
             ids,
+            ids_path,
             client,
             wallet,
             parties,
@@ -359,6 +411,12 @@ impl Ctx {
             .find(|(n, _)| n == name)
             .unwrap_or_else(|| panic!("no party {name}"))
             .1
+    }
+
+    /// The ids file this context reads its programs from.
+    #[must_use]
+    pub fn ids_path(&self) -> &Path {
+        &self.ids_path
     }
 
     /// A fresh 32-byte id unique to this test run (schedule ids).
@@ -453,18 +511,54 @@ impl Ctx {
     /// # Errors
     /// [`SendError::Refused`] when the simulation reverts (nothing is sent), else [`SendError::Other`].
     pub async fn send(&self, accounts: Vec<AccountMention>, message: Vec<u8>) -> Result<Included, SendError> {
-        let hash = self
-            .wallet
-            .send_pub_tx(accounts, 0, message)
-            .await
-            .map_err(|e| match e {
-                ExecutionFailureKind::SimulatedRevert(reason) => SendError::Refused {
-                    code: vesting_core::parse_code(&reason),
-                    reason,
-                },
-                other => SendError::Other(anyhow!("{other:#}")),
-            })?;
-        self.wait_included(hash).await.map_err(SendError::Other)
+        let hash = self.wallet.send_pub_tx(accounts, 0, message).await.map_err(refusal)?;
+        let max_fee = match self.wallet.take_declared_fee() {
+            Some(wallet::DeclaredFee::Public(d)) => Some(d.max_fee),
+            _ => None,
+        };
+        let mut included = self.wait_included(hash).await.map_err(SendError::Other)?;
+        included.max_fee = max_fee;
+        Ok(included)
+    }
+
+    /// As [`Self::send`], signed by the shared funder (LEZ's local test account): used where an account fixed
+    /// outside the test must sign, such as the admin nominee of the fee-enabled pair (`e2e/deploy_fees.sh`).
+    /// `accounts` gets the funder's account id. The funder's transfers are held back meanwhile, and the next one
+    /// re-reads its nonce.
+    ///
+    /// # Errors
+    /// As [`Self::send`]; the funder's earlier transfers were not included within `CV_E2E_TX_TIMEOUT`.
+    pub async fn send_as_funder(
+        &mut self,
+        accounts: impl FnOnce(AccountId) -> Vec<AccountMention>,
+        message: Vec<u8>,
+    ) -> Result<Included, SendError> {
+        let f = funder().map_err(SendError::Other)?;
+        let mut next = f.next_nonce.lock().await;
+        // The wallet reads the nonce from the chain: wait until every transfer numbered so far is included.
+        if let Some(n) = *next {
+            let deadline = Instant::now() + Duration::from_secs(env_u64("CV_E2E_TX_TIMEOUT", 180));
+            while self.nonce(f.id).await.map_err(SendError::Other)? < n {
+                if Instant::now() > deadline {
+                    *next = None;
+                    return Err(SendError::Other(anyhow!(
+                        "funder transfers up to nonce {n} not included"
+                    )));
+                }
+                tokio::time::sleep(Duration::from_millis(500)).await;
+            }
+        }
+        self.counter += 1;
+        let mut wallet =
+            open_wallet(&self.rpc, &self.dir.join(format!("funder-{}", self.counter))).map_err(SendError::Other)?;
+        wallet
+            .storage_mut()
+            .key_chain_mut()
+            .add_imported_public_account(f.key.clone());
+        let sent = wallet.send_pub_tx(accounts(f.id), 0, message).await.map_err(refusal);
+        // Whatever happened, the next transfer re-reads the nonce; the lock is held until this one is settled.
+        *next = None;
+        self.wait_included(sent?).await.map_err(SendError::Other)
     }
 
     /// As [`Self::send`], but a transaction whose simulation reverts is sent anyway and pays its fee: used to show
@@ -492,7 +586,11 @@ impl Ctx {
         let deadline = Instant::now() + Duration::from_secs(env_u64("CV_E2E_TX_TIMEOUT", 180));
         loop {
             if let Ok(Some((_, block))) = self.client.get_transaction(hash).await {
-                return Ok(Included { hash, block });
+                return Ok(Included {
+                    hash,
+                    block,
+                    max_fee: None,
+                });
             }
             if Instant::now() > deadline {
                 bail!("transaction {hash} not included in time");
@@ -587,6 +685,25 @@ impl Ctx {
         }
     }
 
+    /// The transactions of block `block`, in order: `(hash, reverted)`.
+    ///
+    /// # Errors
+    /// RPC failure or no such block.
+    pub async fn block_transactions(&self, block: u64) -> Result<Vec<(HashType, bool)>> {
+        let b = self
+            .client
+            .get_block(block)
+            .await
+            .map_err(|e| anyhow!("getBlock {block}: {e}"))?
+            .with_context(|| format!("block {block} not found"))?;
+        Ok(b.body
+            .transactions
+            .iter()
+            .enumerate()
+            .map(|(i, tx)| (tx.hash(), b.body.is_reverted(i)))
+            .collect())
+    }
+
     /// The Borsh bytes of an included transaction, exactly as any client reads it from the sequencer (`hash`: hex).
     ///
     /// # Errors
@@ -646,6 +763,17 @@ impl Ctx {
         let msg =
             borsh::to_vec(&native_token::Message::Transfer { to, amount }).map_err(|e| SendError::Other(e.into()))?;
         self.send(accounts, msg).await
+    }
+}
+
+/// A wallet failure as a [`SendError`]: a simulated revert is a refusal, with the program's code when it has one.
+fn refusal(e: ExecutionFailureKind) -> SendError {
+    match e {
+        ExecutionFailureKind::SimulatedRevert(reason) => SendError::Refused {
+            code: vesting_core::parse_code(&reason),
+            reason,
+        },
+        other => SendError::Other(anyhow!("{other:#}")),
     }
 }
 

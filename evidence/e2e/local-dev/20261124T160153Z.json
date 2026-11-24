@@ -1,0 +1,112 @@
+{
+  "run_utc": "20261124T160153Z",
+  "network": "local-dev",
+  "rpc": "http://127.0.0.1:3050",
+  "dev_mode": true,
+  "lez": "v0.4.0-rc3",
+  "ids": [
+    "deploy/ids-local-dev.toml",
+    "deploy/ids-local-dev-fees.toml"
+  ],
+  "exit_code": 0,
+  "passed": [
+    "f1_escrow_native_holds_exactly_the_total",
+    "f1_escrow_token_holds_exactly_the_total",
+    "f1a_cliff_then_linear",
+    "f1b_fully_linear_accrues_from_start",
+    "f1c_each_signal_unlocks_its_amount",
+    "f2_claim_private_to_a_blinded_destination",
+    "f2_claim_public_by_the_beneficiary_only",
+    "f2_destination_is_not_in_schedule_state",
+    "f2_token_claim_private_to_an_owned_private_holding",
+    "f2_token_claim_public_pays_the_destination_holding",
+    "f3_cancel_refunds_exactly_the_unvested_part",
+    "f3_non_cancelable_is_one_way_and_defaults_to_cancelable",
+    "f3_token_cancel_refunds_the_unvested_part_to_the_refund_holding",
+    "f3_vested_stays_claimable_after_cancel",
+    "f4_non_transferable_is_refused_and_the_flag_never_changes",
+    "f4_transfer_by_the_holder_only_and_the_new_holder_claims",
+    "f5_batch_at_the_cap_is_accepted_and_one_more_is_refused",
+    "f5_batch_of_8_opens_8_funded_schedules_in_one_transaction",
+    "f5_token_batch_at_the_cap_of_57_is_sent_and_one_more_is_refused",
+    "fee1_fee2_zero_rate_charges_the_creator_nothing_at_creation",
+    "fee1_fee4_native_fee_at_50_bps_is_paid_by_the_creator_to_the_treasury",
+    "fee3_admin_switch_refuses_above_the_cap_and_renounce_freezes_it_while_creation_goes_on",
+    "fee3_fee4_switch_is_admin_only_capped_and_a_stale_quote_is_refused",
+    "fee4_token_fee_at_50_bps_goes_to_the_treasury_ata_made_by_the_ata_program",
+    "fee4_token_fee_destination_is_the_treasury_ata_created_by_the_ata_program",
+    "p1_a_claim_completes_in_one_transaction",
+    "pr1_sdk_claims_to_a_public_and_to_a_private_account",
+    "pr3_private_claim_to_a_public_account_is_refused_before_sending",
+    "r1_failed_claim_on_chain_changes_nothing_then_retry_pays",
+    "r2_failed_cancel_on_chain_keeps_the_prior_state",
+    "r3_concurrent_claims_on_independent_schedules",
+    "r4_second_signal_of_a_milestone_is_refused_and_unlocks_nothing",
+    "s2_harness_clock_advances_with_blocks",
+    "s2_harness_funds_isolated_accounts_concurrently",
+    "s2_harness_sends_and_reads_a_refusal_before_sending",
+    "s2_sequencer_rpc_accepts_connections",
+    "soft_cancel_authority_cancels_and_the_creator_cannot",
+    "soft_milestone_authority_signals_and_the_creator_cannot",
+    "u1_sdk_full_lifecycle_on_the_sequencer",
+    "u3_cli_create_claim_cancel_signal_and_query_on_the_sequencer",
+    "u7_nothing_claimable_reports_the_next_unlock_time"
+  ],
+  "failed": [],
+  "ignored": [],
+  "recorded": {
+    "fee1_fee4_native_fee_at_50_bps_is_paid_by_the_creator_to_the_treasury": {
+      "protocol_fee": "5000",
+      "tx": "2aedc0e5e882e8cf48cba4c593abe7a1fe028fd8d771cc8f6e636771c35a616f block 1335"
+    },
+    "fee4_token_fee_at_50_bps_goes_to_the_treasury_ata_made_by_the_ata_program": {
+      "protocol_fee": "5000",
+      "tx": "24fd6965a187bc2f7e0944d88b9ffaf5aebfec19d22708b45fcc92c1f2a2d710 block 1337"
+    },
+    "f2_claim_private_to_a_blinded_destination": {
+      "claim_amount": "100000000",
+      "fee_reserve": "5521064",
+      "tx": "cf83ade09933acc4e597734b95794cda2d8c88734a73705a8b64a1bc2275924e block 1345"
+    },
+    "f2_token_claim_private_to_an_owned_private_holding": {
+      "claim_amount": "1000000",
+      "fee_paid_by_private_payer": "22272688",
+      "tx": "114e721f187fa87989ebf553bcda25360b72589966aba36b8e53211a28a54f6c block 1352"
+    },
+    "f5_batch_at_the_cap_is_accepted_and_one_more_is_refused": {
+      "native_cap_n": "164",
+      "native_cap_tx_bytes": "34754",
+      "native_cap_tx": "22bb0bfce5fa1932f48b82bf63df1d16aa124b330b3f7fe8d49ad482ecc9a2ed block 1353"
+    },
+    "fee1_fee2_zero_rate_charges_the_creator_nothing_at_creation": {
+      "network_fee": "759576"
+    },
+    "f5_token_batch_at_the_cap_of_57_is_sent_and_one_more_is_refused": {
+      "token_cap_n": "57",
+      "token_cap_tx_bytes": "12594",
+      "token_cap_tx": "3d2e26fd19cfbef5d2d9e63866a7738d164f3e924571b9a747621569b020a5e7 block 1357"
+    },
+    "r3_concurrent_claims_on_independent_schedules": {
+      "claims_in_block": "1370: 6"
+    }
+  },
+  "image_ids": {
+    "deploy/ids-local-dev.toml": {
+      "token": "aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c",
+      "vesting_fees": "7e5b5539f82c19d8e4dd502852d5a35673fac4ccefba438bc101099f341cc147",
+      "ata": "339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110",
+      "vesting": "908567e3c178ded0e25a14cf9b99026797f37437864b439bc6a2e23f4c77171d"
+    },
+    "deploy/ids-local-dev-fees.toml": {
+      "token": "aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c",
+      "vesting_fees": "08d44e3ce55c040512dbd88ee9a55ca60966ccda05cfb3399182eeaea0875bd2",
+      "ata": "339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110",
+      "vesting": "10f60be5978241b3ecd38e3ad00337f36f4a59bcdd529d87e4b17d2bd9655b4d"
+    }
+  },
+  "counts": {
+    "passed": 41,
+    "failed": 0,
+    "ignored": 0
+  }
+}

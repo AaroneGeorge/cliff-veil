@@ -4,11 +4,11 @@
 use anyhow::Result;
 use cliff_veil_sdk::{Client, Programs, SequencerBackend};
 
-use crate::{Ctx, Ids, open_wallet};
+use crate::{Ctx, open_wallet};
 
 impl Ctx {
     /// An SDK client over a wallet of its own holding the keys of every party of this context, with the programs of
-    /// the ids file ([`Ids::path`]). Each call opens a new wallet (and a new set of private accounts).
+    /// the context's ids file ([`Ctx::ids_path`]). Each call opens a new wallet (and a new set of private accounts).
     ///
     /// # Errors
     /// The ids file has no `vesting`, or the wallet does not open.
@@ -22,7 +22,7 @@ impl Ctx {
                 .key_chain_mut()
                 .add_imported_public_account(key.clone());
         }
-        let programs = Programs::from_ids_file(&Ids::path())?;
+        let programs = Programs::from_ids_file(self.ids_path())?;
         Ok(Client::new(SequencerBackend::new(wallet, programs)))
     }
 }

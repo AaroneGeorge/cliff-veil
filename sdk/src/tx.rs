@@ -516,6 +516,23 @@ impl Tx {
         self.accounts.iter().map(AccountMention::actor).collect()
     }
 
+    /// The deployed programs a proof of this transaction re-executes, which the prover needs the bytecode of: every
+    /// program whose actor the transaction declares (`vesting`, the token program for a token claim or escrow,
+    /// `vesting_fees` or the ATA program where a creation reaches them), without the programs built into LEZ (the
+    /// native token program and the clock), in a stable order. The chained calls of every vesting operation reach
+    /// only programs whose actors it declares (SPEC 3.2), so this is the whole set.
+    #[must_use]
+    pub fn prover_programs(&self) -> Vec<AccountId> {
+        let builtin = [NATIVE_TOKEN_PROGRAM_ID, clock_core::clock_actor().program_account_id];
+        let set: std::collections::BTreeSet<AccountId> = self
+            .accounts
+            .iter()
+            .map(|m| m.program_account_id)
+            .filter(|p| !builtin.contains(p))
+            .collect();
+        set.into_iter().collect()
+    }
+
     /// `true` for a privacy-preserving transaction.
     #[must_use]
     pub const fn is_private(&self) -> bool {
@@ -675,6 +692,45 @@ mod tests {
         let private = &tx.accounts[3];
         assert!(private.identity.is_private());
         assert_eq!(private.address_openings, BTreeSet::from([opening]));
+    }
+
+    #[test]
+    fn f2_prover_gets_the_token_program_for_a_token_claim() {
+        let p = programs();
+        let token = Asset::Token {
+            definition: core_id(AccountId::new([4; 32])),
+        };
+        let tx = p.claim_private(A, B, C, [42; 32], 77, &token, None).expect("builds");
+        let set = tx.prover_programs();
+        assert!(
+            set.contains(&p.token.expect("token")),
+            "token program declared to the prover"
+        );
+        assert!(set.contains(&p.vesting));
+        assert!(
+            !set.contains(&NATIVE_TOKEN_PROGRAM_ID),
+            "built-in programs need no bytecode"
+        );
+        assert_eq!(set.len(), 2);
+        // A native claim reaches only `vesting` among deployed programs.
+        let native = p
+            .claim_private(A, B, C, [42; 32], 77, &Asset::Native, None)
+            .expect("builds");
+        assert_eq!(native.prover_programs(), vec![p.vesting]);
+        // A public claim reads the clock, which is built in.
+        assert_eq!(
+            p.claim(A, B, A, &Asset::Native).expect("builds").prover_programs(),
+            vec![p.vesting]
+        );
+        // A token creation with a fee reaches vesting_fees and the token program (the ATA is a token actor).
+        let create = p.create(A, [9; 32], terms(B, token), 3, C).expect("builds");
+        assert_eq!(
+            create
+                .prover_programs()
+                .into_iter()
+                .collect::<std::collections::BTreeSet<_>>(),
+            [p.vesting, p.fees.expect("fees"), p.token.expect("token")].into()
+        );
     }
 
     #[test]

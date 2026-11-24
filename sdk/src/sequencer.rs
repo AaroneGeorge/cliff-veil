@@ -30,7 +30,8 @@ pub type Wallet = WalletCore<SequencerClient>;
 pub struct SequencerBackend {
     wallet: Wallet,
     programs: Programs,
-    catalog: Option<ProgramCatalog>,
+    /// Deployed bytecode fetched for the prover, by program id.
+    bytecode: std::collections::BTreeMap<AccountId, lee::program::Program>,
     headroom_blocks: u64,
     /// How long [`Backend::submit`] waits for inclusion.
     pub inclusion_timeout: Duration,
@@ -52,7 +53,7 @@ impl SequencerBackend {
         Self {
             wallet,
             programs,
-            catalog: None,
+            bytecode: std::collections::BTreeMap::new(),
             headroom_blocks: DEFAULT_FEE_HEADROOM_BLOCKS,
             inclusion_timeout: Duration::from_secs(300),
             drop_after_blocks: 20,
@@ -121,20 +122,26 @@ impl SequencerBackend {
             .unwrap_or_default())
     }
 
-    /// The deployed `vesting` bytecode keyed by its id, for the prover (fetched once).
-    async fn catalog(&mut self) -> Result<ProgramCatalog> {
-        if let Some(c) = &self.catalog {
-            return Ok(c.clone());
+    /// The deployed bytecode of every program a proof of `tx` re-executes ([`Tx::prover_programs`]), keyed by
+    /// id, for the prover. Each program is fetched from its deployment once.
+    async fn catalog(&mut self, tx: &Tx) -> Result<ProgramCatalog> {
+        let needed = tx.prover_programs();
+        for id in &needed {
+            if self.bytecode.contains_key(id) {
+                continue;
+            }
+            let program = ProgramLoader(&self.wallet)
+                .program(*id)
+                .await
+                .map_err(|e| anyhow!("fetch program {id}: {e:#}"))?
+                .with_context(|| format!("no program is deployed at {id}"))?;
+            self.bytecode.insert(*id, program);
         }
-        let vesting = self.programs.vesting;
-        let program = ProgramLoader(&self.wallet)
-            .program(vesting)
-            .await
-            .map_err(|e| anyhow!("fetch the vesting program: {e:#}"))?
-            .with_context(|| format!("no program is deployed at {vesting}"))?;
-        let catalog = ProgramCatalog::from([(vesting, program)]);
-        self.catalog = Some(catalog.clone());
-        Ok(catalog)
+        Ok(ProgramCatalog::from_iter(
+            needed
+                .iter()
+                .filter_map(|id| self.bytecode.get(id).map(|p| (*id, p.clone()))),
+        ))
     }
 
     async fn send_raw(&mut self, tx: &Tx) -> std::result::Result<common::HashType, ExecutionFailureKind> {
@@ -143,7 +150,7 @@ impl SequencerBackend {
             Route::Public => self.wallet.send_pub_tx(tx.accounts.clone(), 0, message).await,
             Route::Private { fee_payer, .. } => {
                 let catalog = self
-                    .catalog()
+                    .catalog(tx)
                     .await
                     .map_err(|e| ExecutionFailureKind::SequencerError(anyhow!("{e}")))?;
                 self.wallet

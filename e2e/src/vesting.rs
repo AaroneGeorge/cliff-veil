@@ -31,6 +31,8 @@ pub struct Programs {
     pub token: Option<AccountId>,
     /// `vesting_fees` and its config account, when deployed.
     pub fees: Option<(AccountId, AccountId)>,
+    /// The associated token account program, for a token creation fee (SPEC 6).
+    pub ata: Option<AccountId>,
 }
 
 impl Programs {
@@ -43,6 +45,7 @@ impl Programs {
             vesting: ctx.ids.require("vesting")?,
             token: ctx.ids.get("token"),
             fees: ctx.ids.get("vesting_fees").zip(ctx.ids.get("fees_config")),
+            ata: ctx.ids.get("ata"),
         })
     }
 
@@ -105,10 +108,11 @@ impl Programs {
         self.create_with_fee(creator, schedule_id, terms, 0, creator)
     }
 
-    /// `Create` quoting `fee` to `treasury` (native: `native(treasury)` is declared when `fee > 0`).
+    /// `Create` quoting `fee` to `treasury`. When `fee > 0` the fee destination is declared last: `native(treasury)`,
+    /// or for a token schedule the treasury's associated token account under the ATA program (SPEC 6).
     ///
     /// # Errors
-    /// A token schedule without a deployed token program, or a token schedule with a fee (not built here).
+    /// A token schedule without a deployed token program, or a token fee without a deployed ATA program.
     pub fn create_with_fee(
         &self,
         creator: AccountId,
@@ -133,11 +137,15 @@ impl Programs {
         }
         self.fee_actors(&mut accounts);
         if fee > 0 {
-            anyhow::ensure!(
-                terms.asset == Asset::Native,
-                "a token fee needs the treasury's ATA (not built here)"
-            );
-            accounts.push(AccountIdentity::PublicNoSign(treasury).balance());
+            accounts.push(match terms.asset {
+                Asset::Native => AccountIdentity::PublicNoSign(treasury).balance(),
+                Asset::Token { definition } => {
+                    let token = self.token.context("token program not deployed")?;
+                    let ata = self.ata.context("ata program not deployed")?;
+                    let holding = crate::token::ata_account(ata, token, treasury, lez_id(definition));
+                    AccountIdentity::PublicNoSign(holding).select_program_actor_state(token)
+                }
+            });
         }
         let message = Message::Create {
             schedule_id,
@@ -417,6 +425,7 @@ mod tests {
             vesting: AccountId::new([5; 32]),
             token: None,
             fees: None,
+            ata: None,
         }
     }
 
