@@ -282,6 +282,22 @@ pub enum Error {
         /// Block.
         block: u64,
     },
+    /// The transaction was accepted by the sequencer but never included: it was dropped at settlement, which
+    /// leaves no reason a client can read. Nothing was consumed.
+    #[error(
+        "transaction {hash} was not included within {blocks} blocks: the sequencer dropped it, and nothing was \
+         consumed.{} What to do: prepare it again and retry{}",
+        if *private { " For a private claim the usual cause is a fee reserve below the base fee at inclusion." } else { "" },
+        if *private { "; name a funded private fee payer so the reserve covers more blocks of fee rise" } else { "" }
+    )]
+    Dropped {
+        /// Transaction hash.
+        hash: String,
+        /// Blocks waited.
+        blocks: u64,
+        /// `true` for a privacy-preserving transaction.
+        private: bool,
+    },
     /// A wrong argument.
     #[error("{0}")]
     Input(String),
@@ -352,6 +368,7 @@ impl Error {
                 ChainFailure::ForeignPrivateAccount => "ForeignPrivateAccount",
             },
             Self::Reverted { .. } => "Reverted",
+            Self::Dropped { .. } => "Dropped",
             Self::Input(_) => "Input",
             Self::Backend(_) => "Backend",
         }
@@ -598,6 +615,14 @@ mod tests {
                     block: 1,
                 },
                 "Reverted",
+            ),
+            (
+                Error::Dropped {
+                    hash: String::new(),
+                    blocks: 20,
+                    private: true,
+                },
+                "Dropped",
             ),
             (Error::Input(String::new()), "Input"),
             (Error::from_text("socket closed"), "Backend"),

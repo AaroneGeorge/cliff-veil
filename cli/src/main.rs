@@ -44,6 +44,10 @@ struct Cli {
     /// The token program id, with `--vesting`.
     #[arg(long, env = "CV_TOKEN_PROGRAM", global = true)]
     token_program: Option<String>,
+    /// Blocks of steepest base-fee rise every fee is priced for. A private claim's fee reserve is fixed in its
+    /// proof, so it must cover the rise until inclusion.
+    #[arg(long, env = "CV_FEE_HEADROOM_BLOCKS", default_value_t = cliff_veil_sdk::DEFAULT_FEE_HEADROOM_BLOCKS, global = true)]
+    fee_headroom_blocks: u64,
     /// Print one JSON object instead of text.
     #[arg(long, global = true)]
     json: bool,
@@ -348,7 +352,8 @@ async fn run(cli: &Cli, out: &Printer) -> Result<ExitCode> {
         out.disclosure();
         return Ok(ExitCode::SUCCESS);
     }
-    let backend = SequencerBackend::from_env(programs(cli)?)?;
+    let mut backend = SequencerBackend::from_env(programs(cli)?)?;
+    backend.set_fee_headroom_blocks(cli.fee_headroom_blocks);
     let mut client = Client::new(backend);
     let resolve = |c: &Client<SequencerBackend>, s: &str| c.backend().resolve(s);
     let schedule_of = |c: &Client<SequencerBackend>, s: &str| -> Result<AccountId> { Ok(resolve(c, s)?) };

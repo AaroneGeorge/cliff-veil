@@ -61,6 +61,20 @@ pub struct Estimate {
     pub private: bool,
     /// Execution cycles of the (public part of the) transaction.
     pub cycles: u64,
+    /// Blocks of steepest base-fee climb the fee is priced to survive ([`crate::DEFAULT_FEE_HEADROOM_BLOCKS`]
+    /// unless configured).
+    pub headroom_blocks: u64,
+    /// The fee after `headroom_blocks` of climb: what a reserve needs to cover them. A private reserve is fixed
+    /// inside the proof; one below this can fail settlement if base fees rise before inclusion.
+    pub headroom_reserve: u128,
+}
+
+impl Estimate {
+    /// `true` when the reserve covers the whole headroom.
+    #[must_use]
+    pub const fn headroom_covered(&self) -> bool {
+        self.reserve >= self.headroom_reserve
+    }
 }
 
 /// A transaction that was included.
@@ -130,6 +144,12 @@ pub trait Backend {
 
     /// The native balance of an owned private account, as the wallet last synced it.
     fn private_native_balance(&self, account: AccountId) -> Option<u128>;
+
+    /// Every owned regular private account of the wallet with its native balance (fee payer candidates).
+    fn owned_private_accounts(&self) -> Vec<(AccountId, u128)>;
+
+    /// Blocks of base-fee climb every fee is priced for.
+    fn fee_headroom_blocks(&self) -> u64;
 
     /// A fresh owned private account (stored in the wallet).
     async fn new_private_account(&mut self) -> Result<AccountId>;

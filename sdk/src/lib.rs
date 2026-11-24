@@ -59,14 +59,14 @@ pub mod tx;
 
 pub use backend::{AccountRecord, Backend, Estimate, FeeSettings, Receipt, RootCallSeen};
 pub use client::{
-    ClaimSummary, ClaimTarget, Client, Destination, Outcome, Prepared, ScheduleView, Standing, linear_terms,
-    milestone_terms, schedule_id_from_label,
+    ClaimSummary, ClaimTarget, Client, Destination, FeePayerChoice, Outcome, Prepared, ScheduleView, Standing,
+    linear_terms, milestone_terms, schedule_id_from_label,
 };
 pub use disclosure::{DEV_MODE_NOTE, PRIVACY_DISCLOSURE, dev_mode, privacy_disclosure};
 pub use errors::{ChainFailure, Error, Result};
 pub use list::{ListFilter, ScanCache};
 pub use memory::MemoryBackend;
-pub use sequencer::SequencerBackend;
+pub use sequencer::{DEFAULT_FEE_HEADROOM_BLOCKS, SequencerBackend};
 pub use tx::{Programs, Route, Tx, core_id, lez_id};
 pub use vesting_core::{self, STATE_VERSION};
 

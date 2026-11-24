@@ -358,7 +358,11 @@ impl Printer {
                 (
                     json!({"schedule": c.schedule.to_string(), "beneficiary": c.beneficiary.to_string(), "amount": n(c.amount),
                            "at": utc(c.at), "at_ms": c.at, "claimed_after": n(c.claimed_total), "still_to_come": n(c.remaining),
-                           "destination": dest, "fee_payer_holds": n(c.fee_payer_holds)}),
+                           "destination": dest, "fee_payer_holds": n(c.fee_payer_holds),
+                           "reserve": n(c.reserve), "headroom_blocks": c.headroom_blocks,
+                           "fee_payer": c.fee_payer.to_string(), "fee_payer_choice": c.fee_payer_choice.tag(),
+                           "fee_payer_reason": c.fee_payer_reason(),
+                           "headroom_reserve": n(c.headroom_reserve), "headroom_covered": c.headroom_covered()}),
                     text,
                 )
             }
@@ -395,7 +399,8 @@ impl Printer {
                 m.insert("operation".into(), Value::String(op.to_owned()));
                 m.insert(
                     "estimate".into(),
-                    json!({"network_fee": n(e.fee), "reserve": n(e.reserve), "payer": e.payer.to_string(), "private": e.private, "cycles": e.cycles}),
+                    json!({"network_fee": n(e.fee), "reserve": n(e.reserve), "payer": e.payer.to_string(), "private": e.private, "cycles": e.cycles,
+                           "headroom_blocks": e.headroom_blocks, "headroom_reserve": n(e.headroom_reserve)}),
                 );
                 if let Some(id) = schedule_id {
                     m.insert("schedule_id".into(), Value::String(hex_id(&id)));

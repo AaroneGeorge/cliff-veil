@@ -84,6 +84,46 @@ pub struct ClaimSummary {
     pub fee_payer: AccountId,
     /// What the fee payer holds when the fee is charged.
     pub fee_payer_holds: u128,
+    /// The fee reserve: for a private claim, the amount fixed inside the proof that the fee is paid from; for a
+    /// public claim, what admission holds from the signer.
+    pub reserve: u128,
+    /// Blocks of base-fee climb the fee is priced for.
+    pub headroom_blocks: u64,
+    /// The reserve that covers `headroom_blocks` of climb.
+    pub headroom_reserve: u128,
+    /// How the fee payer was chosen.
+    pub fee_payer_choice: FeePayerChoice,
+}
+
+/// How the network fee payer of a claim was chosen.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FeePayerChoice {
+    /// A public claim: the beneficiary, which signs, pays.
+    Signer,
+    /// The caller named the private fee payer.
+    Named,
+    /// None named: the SDK picked the owned private account (not the destination) with the smallest balance that
+    /// covers the reserve for the whole headroom. `balance` is what it held.
+    Auto {
+        /// The payer's native balance when picked.
+        balance: u128,
+    },
+    /// None named and no other owned private account covers the headroom reserve: the destination pays out of
+    /// the claim.
+    Destination,
+}
+
+impl FeePayerChoice {
+    /// A stable tag: `signer`, `named`, `auto`, `destination`.
+    #[must_use]
+    pub const fn tag(&self) -> &'static str {
+        match self {
+            Self::Signer => "signer",
+            Self::Named => "named",
+            Self::Auto { .. } => "auto",
+            Self::Destination => "destination",
+        }
+    }
 }
 
 impl ClaimSummary {
@@ -114,20 +154,71 @@ impl ClaimSummary {
         format!(
             "Claim summary ({kind} claim)\n  schedule:       {}\n  beneficiary:    {}\n  claimable now:  {amount}\n  \
              destination:    {to}\n  claimed after:  {}\n  still to come:  {}\n  network fee:    ~{} (estimated), paid by \
-             {} which will hold {}",
+             {} which will hold {}\n  fee payer:      {}\n  fee reserve:    {}",
             self.schedule,
             self.beneficiary,
             self.claimed_total,
             self.remaining,
             self.fee,
             self.fee_payer,
-            self.fee_payer_holds
+            self.fee_payer_holds,
+            self.fee_payer_reason(),
+            self.reserve_text()
         )
+    }
+
+    /// Why this account pays the network fee.
+    #[must_use]
+    pub fn fee_payer_reason(&self) -> String {
+        match self.fee_payer_choice {
+            FeePayerChoice::Signer => "the beneficiary, which signs the public claim".to_owned(),
+            FeePayerChoice::Named => "named for this claim".to_owned(),
+            FeePayerChoice::Auto { balance } => format!(
+                "chosen by the SDK: the private account of this wallet with the smallest balance ({balance}) that \
+                 covers the reserve for {} blocks of base-fee rise ({})",
+                self.headroom_blocks, self.headroom_reserve
+            ),
+            FeePayerChoice::Destination => format!(
+                "the destination, out of the claim: no other private account of this wallet holds the reserve for {} \
+                 blocks of base-fee rise ({})",
+                self.headroom_blocks, self.headroom_reserve
+            ),
+        }
+    }
+
+    /// `true` when the reserve covers `headroom_blocks` of base-fee climb.
+    #[must_use]
+    pub const fn headroom_covered(&self) -> bool {
+        self.reserve >= self.headroom_reserve
+    }
+
+    /// The fee reserve line of the summary.
+    #[must_use]
+    pub fn reserve_text(&self) -> String {
+        let private = matches!(self.destination, Destination::Private { .. });
+        let fixed = if private { ", fixed in the proof" } else { "" };
+        if self.headroom_covered() {
+            format!(
+                "{}{fixed}; covers {} blocks of base-fee rise before inclusion",
+                self.reserve, self.headroom_blocks
+            )
+        } else {
+            format!(
+                "{}{fixed}; covering {} blocks of base-fee rise needs {}, but the fee payer holds less before the \
+                 claim. If blocks are busy the claim can be dropped (nothing is consumed; retry). To cover the rise, \
+                 name a private fee payer of this wallet that holds at least {}",
+                self.reserve, self.headroom_blocks, self.headroom_reserve, self.headroom_reserve
+            )
+        }
     }
 }
 
 /// The predicted result of an operation.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[allow(
+    clippy::large_enum_variant,
+    reason = "one per prepared transaction, never stored in bulk; unboxed so callers match on the summary directly"
+)]
 pub enum Outcome {
     /// One or more schedules are created.
     Created {
@@ -647,16 +738,17 @@ impl<B: Backend> Client<B> {
                 let opening = self.backend.random_bytes();
                 let blinded = account.blinded(&opening);
                 vesting_core::check_destination(&core_id(schedule), &core_id(blinded)).map_err(Error::from_core)?;
-                // A native claim names its own destination as fee payer, so the fee comes out of the claim. Left
-                // unnamed, the wallet would pick any funded private account it holds, which the summary could not
-                // predict. A token claim brings no native balance: the caller's payer, or the wallet's choice.
-                let fee_payer = match (fee_payer, &state.asset) {
-                    (Some(p), _) => Some(p),
-                    (None, Asset::Native) => Some(account),
-                    (None, Asset::Token { .. }) => None,
-                };
-                let tx =
-                    programs.claim_private(beneficiary, schedule, account, opening, now, &state.asset, fee_payer)?;
+                // First priced with the payer named by the caller, else with the destination paying (out of a native
+                // claim). Left unnamed, the wallet would pick a payer the summary could not predict.
+                let tx = programs.claim_private(
+                    beneficiary,
+                    schedule,
+                    account,
+                    opening,
+                    now,
+                    &state.asset,
+                    Some(fee_payer.unwrap_or(account)),
+                )?;
                 (
                     tx,
                     Destination::Private {
@@ -668,7 +760,35 @@ impl<B: Backend> Client<B> {
             }
         };
 
-        let estimate = self.backend.estimate(&tx).await?;
+        let mut tx = tx;
+        let mut estimate = self.backend.estimate(&tx).await?;
+        let fee_payer_choice = match (target, destination) {
+            (ClaimTarget::Public(_), _) => FeePayerChoice::Signer,
+            (ClaimTarget::Private { fee_payer: Some(_), .. }, _) => FeePayerChoice::Named,
+            (_, Destination::Private { account, .. }) => {
+                // No payer named: the owned private account (other than the destination) with the smallest balance
+                // that covers the reserve for the whole headroom, so large holdings are not used needlessly; ties
+                // by account id. None qualifies: the destination pays (out of a native claim), with a warning.
+                let need = estimate.headroom_reserve;
+                let pick = self
+                    .backend
+                    .owned_private_accounts()
+                    .into_iter()
+                    .filter(|(a, balance)| *a != account && *balance >= need)
+                    .min_by_key(|(a, balance)| (*balance, *a));
+                match pick {
+                    Some((payer, balance)) => {
+                        if let crate::Route::Private { fee_payer, .. } = &mut tx.route {
+                            *fee_payer = Some(payer);
+                        }
+                        estimate = self.backend.estimate(&tx).await?;
+                        FeePayerChoice::Auto { balance }
+                    }
+                    None => FeePayerChoice::Destination,
+                }
+            }
+            (_, Destination::Public(_)) => FeePayerChoice::Signer,
+        };
         let fee_payer_holds = match destination {
             Destination::Public(_) => {
                 self.check_network_fee(beneficiary, &estimate).await?;
@@ -713,6 +833,10 @@ impl<B: Backend> Client<B> {
                 fee: estimate.fee,
                 fee_payer: estimate.payer,
                 fee_payer_holds,
+                reserve: estimate.reserve,
+                headroom_blocks: estimate.headroom_blocks,
+                headroom_reserve: estimate.headroom_reserve,
+                fee_payer_choice,
             }),
             tx,
             estimate,

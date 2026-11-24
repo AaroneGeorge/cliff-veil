@@ -31,20 +31,40 @@ pub struct SequencerBackend {
     wallet: Wallet,
     programs: Programs,
     catalog: Option<ProgramCatalog>,
+    headroom_blocks: u64,
     /// How long [`Backend::submit`] waits for inclusion.
     pub inclusion_timeout: Duration,
+    /// After this many new blocks without the transaction, [`Backend::submit`] reports it dropped.
+    pub drop_after_blocks: u64,
 }
+
+/// Blocks of steepest base-fee climb the SDK prices fees for, unless configured. LEZ's wallet default is 5; a
+/// private claim's reserve is fixed in its proof and must survive busy blocks until inclusion.
+pub const DEFAULT_FEE_HEADROOM_BLOCKS: u64 = 12;
 
 impl SequencerBackend {
     /// A backend over an opened wallet.
     #[must_use]
-    pub fn new(wallet: Wallet, programs: Programs) -> Self {
+    /// Fees are priced for [`DEFAULT_FEE_HEADROOM_BLOCKS`] blocks of base-fee climb
+    /// ([`Self::set_fee_headroom_blocks`] changes it).
+    pub fn new(mut wallet: Wallet, programs: Programs) -> Self {
+        wallet.set_fee_headroom_blocks(DEFAULT_FEE_HEADROOM_BLOCKS);
         Self {
             wallet,
             programs,
             catalog: None,
+            headroom_blocks: DEFAULT_FEE_HEADROOM_BLOCKS,
             inclusion_timeout: Duration::from_secs(300),
+            drop_after_blocks: 20,
         }
+    }
+
+    /// Prices every fee for `blocks` of the steepest base-fee climb past the current quote (the wallet's fee
+    /// headroom). A privacy-preserving transaction's reserve is fixed inside its proof, so it must already cover
+    /// the climb until inclusion.
+    pub fn set_fee_headroom_blocks(&mut self, blocks: u64) {
+        self.headroom_blocks = blocks;
+        self.wallet.set_fee_headroom_blocks(blocks);
     }
 
     /// Opens the wallet from the environment (`LEE_WALLET_HOME_DIR`, `LEE_WALLET_PASSWORD`), as LEZ's `wallet`
@@ -274,6 +294,23 @@ impl Backend for SequencerBackend {
         }
     }
 
+    fn owned_private_accounts(&self) -> Vec<(AccountId, u128)> {
+        // Regular accounts only: the wallet takes its fee payers from them.
+        let keys = self.wallet.storage().key_chain();
+        keys.private_account_ids()
+            .map(|(id, _)| id)
+            .filter(|id| {
+                keys.private_account(*id)
+                    .is_some_and(|f| *f.kind == lee_core::PrivateAccountKind::Regular)
+            })
+            .map(|id| (id, self.private_native_balance(id).unwrap_or(0)))
+            .collect()
+    }
+
+    fn fee_headroom_blocks(&self) -> u64 {
+        self.headroom_blocks
+    }
+
     fn private_native_balance(&self, account: AccountId) -> Option<u128> {
         self.wallet
             .get_account_private(account)
@@ -318,12 +355,17 @@ impl Backend for SequencerBackend {
                         payer: fee.payer,
                         private: false,
                         cycles,
+                        headroom_blocks: self.headroom_blocks,
+                        // The cap the wallet declares: the fee at the gas limit after the headroom climb.
+                        headroom_reserve: fee.max_fee,
                     })
                 }
                 DryRunReport::Private {
                     fee,
                     cycles,
                     fee_at_head,
+                    headroom_blocks,
+                    headroom_reserve,
                     ..
                 } => Ok(Estimate {
                     fee: fee_at_head,
@@ -331,6 +373,8 @@ impl Backend for SequencerBackend {
                     payer: fee.payer,
                     private: true,
                     cycles,
+                    headroom_blocks,
+                    headroom_reserve,
                 }),
             },
             Err(e) => Err(wallet_error(&e)),
@@ -346,6 +390,7 @@ impl Backend for SequencerBackend {
             DeclaredFee::Public(d) => d.max_fee,
             DeclaredFee::Private(p) => p.reserve,
         });
+        let sent_at = self.wallet.get_last_block_id().await.unwrap_or(0);
         let deadline = Instant::now() + self.inclusion_timeout;
         let block = loop {
             if let Some((_, block)) = self
@@ -355,6 +400,17 @@ impl Backend for SequencerBackend {
                 .map_err(|e| anyhow!("getTransaction {hash}: {e:#}"))?
             {
                 break block;
+            }
+            // A transaction that fails settlement (for example a private fee reserve below the base fee at
+            // inclusion) is dropped with no trace a client can read (S7): stop waiting after a number of blocks.
+            if let Ok(now) = self.wallet.get_last_block_id().await
+                && now > sent_at.saturating_add(self.drop_after_blocks)
+            {
+                return Err(Error::Dropped {
+                    hash: hash.to_string(),
+                    blocks: now - sent_at,
+                    private: tx.is_private(),
+                });
             }
             if Instant::now() > deadline {
                 return Err(Error::Backend(anyhow!(

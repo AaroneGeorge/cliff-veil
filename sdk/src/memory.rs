@@ -53,6 +53,9 @@ pub struct MemoryBackend {
     pub private_fee: u128,
     /// The `vesting_fees` configuration.
     pub fees: FeeSettings,
+    /// Blocks of base-fee climb fees are priced for. The memory chain's fee after `b` blocks is
+    /// `fee * (10 + b) / 10`.
+    pub headroom_blocks: u64,
     ledger: Ledger,
     owned_public: BTreeSet<AccountId>,
     counter: u64,
@@ -76,6 +79,7 @@ impl MemoryBackend {
                 treasury: AccountId::new([0; 32]),
                 deployed: programs.fees.is_some(),
             },
+            headroom_blocks: crate::DEFAULT_FEE_HEADROOM_BLOCKS,
             ledger: Ledger::default(),
             owned_public: BTreeSet::new(),
             counter: 0,
@@ -149,6 +153,10 @@ impl MemoryBackend {
     #[must_use]
     pub fn public_accounts(&self) -> Vec<AccountId> {
         self.ledger.native.keys().copied().collect()
+    }
+
+    fn climbed(&self, fee: u128) -> u128 {
+        fee.saturating_mul(10 + u128::from(self.headroom_blocks)) / 10
     }
 
     fn next(&mut self) -> u64 {
@@ -439,6 +447,14 @@ impl Backend for MemoryBackend {
         }
     }
 
+    fn owned_private_accounts(&self) -> Vec<(AccountId, u128)> {
+        self.ledger.private.iter().map(|(a, b)| (*a, *b)).collect()
+    }
+
+    fn fee_headroom_blocks(&self) -> u64 {
+        self.headroom_blocks
+    }
+
     fn private_native_balance(&self, account: AccountId) -> Option<u128> {
         self.private(account)
     }
@@ -477,16 +493,27 @@ impl Backend for MemoryBackend {
                     ),
                     _ => 0,
                 },
+                headroom_blocks: self.headroom_blocks,
+                headroom_reserve: self.climbed(self.public_fee),
             },
             Route::Private {
                 destination, fee_payer, ..
-            } => Estimate {
-                fee: self.private_fee,
-                reserve: self.private_fee,
-                payer: fee_payer.unwrap_or(destination),
-                private: true,
-                cycles: 0,
-            },
+            } => {
+                // As LEZ's wallet: the reserve is the headroom fee, clamped to what the payer holds before the root
+                // call, and never below the fee at head.
+                let payer = fee_payer.unwrap_or(destination);
+                let headroom = self.climbed(self.private_fee);
+                let before = self.private(payer).unwrap_or(0);
+                Estimate {
+                    fee: self.private_fee,
+                    reserve: headroom.min(before).max(self.private_fee),
+                    payer,
+                    private: true,
+                    cycles: 0,
+                    headroom_blocks: self.headroom_blocks,
+                    headroom_reserve: headroom,
+                }
+            }
         })
     }
 

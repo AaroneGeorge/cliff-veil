@@ -1035,3 +1035,197 @@ fn u3_listed_schedules_carry_claimable_and_next_unlock() {
         assert_eq!(v.next_unlock, NextUnlock::At(T0 + 20 * DAY + 86_400));
     });
 }
+
+#[test]
+fn u4_private_claim_summary_shows_the_fee_reserve_and_its_headroom() {
+    rt().block_on(async {
+        let mut c = Client::new(chain());
+        assert_eq!(c.backend().headroom_blocks, crate::DEFAULT_FEE_HEADROOM_BLOCKS);
+        assert_eq!(crate::DEFAULT_FEE_HEADROOM_BLOCKS, 12);
+        let s = linear_schedule(&mut c, "headroom").await;
+        c.backend_mut().now = T0 + 30 * DAY;
+
+        // A funded private fee payer: the reserve covers 12 blocks of climb (memory chain: 50 * 22 / 10 = 110).
+        c.backend_mut().add_private(SHIELDED, 1_000);
+        let p = c
+            .prepare_claim(
+                ALICE,
+                s,
+                ClaimTarget::Private {
+                    account: None,
+                    fee_payer: Some(SHIELDED),
+                },
+            )
+            .await
+            .unwrap();
+        let Outcome::Claim(summary) = p.outcome else { panic!() };
+        assert_eq!(
+            (summary.reserve, summary.headroom_reserve, summary.headroom_blocks),
+            (110, 110, 12)
+        );
+        assert!(summary.headroom_covered());
+        let text = summary.render();
+        assert!(
+            text.contains("fee reserve:    110, fixed in the proof; covers 12 blocks of base-fee rise"),
+            "{text}"
+        );
+
+        // The headroom is configurable.
+        c.backend_mut().headroom_blocks = 20;
+        let p = c
+            .prepare_claim(
+                ALICE,
+                s,
+                ClaimTarget::Private {
+                    account: None,
+                    fee_payer: Some(SHIELDED),
+                },
+            )
+            .await
+            .unwrap();
+        let Outcome::Claim(summary) = p.outcome else { panic!() };
+        assert_eq!((summary.reserve, summary.headroom_blocks), (150, 20));
+        assert!(summary.render().contains("covers 20 blocks"));
+    });
+}
+
+/// Three private accounts of the wallet besides the destination; the memory chain's 12-block reserve is 110.
+fn chain_with_payers(balances: &[(u8, u128)]) -> MemoryBackend {
+    let mut m = chain();
+    for (b, bal) in balances {
+        m.add_private(AccountId::new([*b; 32]), *bal);
+    }
+    m
+}
+
+#[test]
+fn u4_unnamed_fee_payer_is_the_smallest_private_account_that_covers_the_reserve() {
+    rt().block_on(async {
+        let mut c = Client::new(chain_with_payers(&[
+            (0xB1, 1_000),
+            (0xB2, 200),
+            (0xB3, 100),
+            (0xB4, 200),
+        ]));
+        let s = linear_schedule(&mut c, "auto-payer").await;
+        c.backend_mut().now = T0 + 30 * DAY;
+        let p = c
+            .prepare_claim(
+                ALICE,
+                s,
+                ClaimTarget::Private {
+                    account: None,
+                    fee_payer: None,
+                },
+            )
+            .await
+            .unwrap();
+        let Outcome::Claim(summary) = p.outcome else { panic!() };
+        // 0xB3 (100) is below the reserve of 110; of the two at 200 the lower id wins; 0xB1 (1 000) is left alone.
+        let chosen = AccountId::new([0xB2; 32]);
+        assert_eq!(summary.fee_payer, chosen);
+        assert_eq!(summary.fee_payer_choice, crate::FeePayerChoice::Auto { balance: 200 });
+        assert!(matches!(p.tx.route, crate::Route::Private { fee_payer: Some(f), .. } if f == chosen));
+        assert!(summary.headroom_covered());
+        let text = summary.render();
+        assert!(text.contains(&format!("paid by {chosen}")), "{text}");
+        assert!(
+            text.contains("chosen by the SDK: the private account of this wallet with the smallest balance (200)"),
+            "{text}"
+        );
+        c.send(&p).await.unwrap();
+        assert_eq!(
+            c.backend().private(chosen),
+            Some(150),
+            "the fee came from the chosen payer"
+        );
+    });
+}
+
+#[test]
+fn u4_unnamed_fee_payer_falls_back_to_the_destination_with_the_headroom_warning() {
+    rt().block_on(async {
+        let mut c = Client::new(chain_with_payers(&[(0xB3, 100)]));
+        let s = linear_schedule(&mut c, "fallback-payer").await;
+        c.backend_mut().now = T0 + 30 * DAY;
+        let p = c
+            .prepare_claim(
+                ALICE,
+                s,
+                ClaimTarget::Private {
+                    account: None,
+                    fee_payer: None,
+                },
+            )
+            .await
+            .unwrap();
+        let Outcome::Claim(summary) = p.outcome else { panic!() };
+        let Destination::Private { account, .. } = summary.destination else {
+            panic!()
+        };
+        assert_eq!(
+            (summary.fee_payer, summary.fee_payer_choice),
+            (account, crate::FeePayerChoice::Destination)
+        );
+        assert_eq!((summary.reserve, summary.headroom_reserve), (50, 110));
+        assert!(!summary.headroom_covered());
+        let text = summary.render();
+        assert!(
+            text.contains(
+                "the destination, out of the claim: no other private account of this wallet holds the reserve"
+            ),
+            "{text}"
+        );
+        assert!(text.contains("covering 12 blocks of base-fee rise needs 110"), "{text}");
+        assert!(
+            text.contains("name a private fee payer of this wallet that holds at least 110"),
+            "{text}"
+        );
+    });
+}
+
+#[test]
+fn u4_a_named_fee_payer_overrides_the_automatic_choice() {
+    rt().block_on(async {
+        let mut c = Client::new(chain_with_payers(&[(0xB1, 1_000), (0xB2, 200)]));
+        let s = linear_schedule(&mut c, "named-payer").await;
+        c.backend_mut().now = T0 + 30 * DAY;
+        let named = AccountId::new([0xB1; 32]);
+        let p = c
+            .prepare_claim(
+                ALICE,
+                s,
+                ClaimTarget::Private {
+                    account: None,
+                    fee_payer: Some(named),
+                },
+            )
+            .await
+            .unwrap();
+        let Outcome::Claim(summary) = p.outcome else { panic!() };
+        assert_eq!(
+            (summary.fee_payer, summary.fee_payer_choice),
+            (named, crate::FeePayerChoice::Named)
+        );
+        assert!(summary.render().contains("named for this claim"));
+        // Naming the destination itself is an override too: no automatic pick.
+        let dest = AccountId::new([0xD0; 32]);
+        c.backend_mut().add_private(dest, 0);
+        let p = c
+            .prepare_claim(
+                ALICE,
+                s,
+                ClaimTarget::Private {
+                    account: Some(dest),
+                    fee_payer: Some(dest),
+                },
+            )
+            .await
+            .unwrap();
+        let Outcome::Claim(summary) = p.outcome else { panic!() };
+        assert_eq!(
+            (summary.fee_payer, summary.fee_payer_choice),
+            (dest, crate::FeePayerChoice::Named)
+        );
+    });
+}
