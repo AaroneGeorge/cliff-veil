@@ -1,4 +1,5 @@
-//! Executor mode: every operation through LEZ's public execution on a local state, with its cycle count.
+//! Executor mode: every operation through LEZ's public execution on a local state, with its cycle count and the
+//! size of the transaction as a sequencer receives it.
 
 use std::borrow::Cow;
 use std::path::Path;
@@ -6,6 +7,7 @@ use std::path::Path;
 use anyhow::{Context as _, Result};
 use borsh::BorshSerialize;
 use clock_core::{CLOCK_PROGRAM_ACCOUNT_ID, ClockAccountData, clock_account_id, clock_actor};
+use common::transaction::LeeTransaction;
 use lee::{
     PrivateKey, PublicAccountEvidence, PublicKey, PublicTransaction, V03State, ValidatedStateDiff,
     program::Program,
@@ -16,8 +18,11 @@ use lee_core::{
     native_token::{self, NATIVE_TOKEN_PROGRAM_ID},
     program::PdaSeed,
 };
+use lez_admin_authority::{AdminOp, admin_op};
 use sha2::Digest as _;
+use token_core::{TokenHolding, TokenState};
 use vesting_core::{Asset, BatchItem, BatchShape, BatchTerms, Kind, Message, Terms};
+use vesting_fees::{CONFIG_SEED, FeeConfig, FeeMessage, config_actor, wire};
 
 use crate::{Row, Run};
 
@@ -26,13 +31,22 @@ const CAP: u64 = 10_000_000;
 const T0: u64 = 1_700_000_000_000;
 const SPAN: u64 = 1_000_000;
 const TOTAL: u128 = 1_000_000;
-/// Batch sizes measured besides the maximum search.
+/// Batch sizes measured besides the program's cap.
 const BATCHES: [u64; 3] = [1, 8, 32];
+/// Fee rate of the fee-path rows, in basis points (0.5%).
+const FEE_BPS: u16 = 50;
+
+/// Cycles of a transaction and its size in bytes as sent (`LeeTransaction::Public`, Borsh).
+type Measured = Result<(u64, u64), String>;
 
 struct Chain {
     state: V03State,
     vesting: AccountId,
+    /// `vesting_fees` program and its config account.
     fees: Option<(AccountId, AccountId)>,
+    /// The token program and the ATA program `vesting` was built with.
+    token: Option<AccountId>,
+    ata: Option<AccountId>,
     block: u64,
     now: u64,
 }
@@ -58,7 +72,7 @@ impl Chain {
         self.state.force_insert_account(id, account);
     }
 
-    /// Runs one transaction at the current block and clock time under the chain cap; returns its cycles.
+    /// Runs one transaction at the current block and clock time under the chain cap; returns its cycles and size.
     fn submit(
         &mut self,
         root: Actor,
@@ -66,7 +80,7 @@ impl Chain {
         signers: &[&PrivateKey],
         evidence: Vec<PublicAccountEvidence>,
         message: &impl BorshSerialize,
-    ) -> Result<u64, String> {
+    ) -> Measured {
         let nonces = signers
             .iter()
             .map(|k| {
@@ -78,6 +92,7 @@ impl Chain {
             TxMessage::try_new(root, declared.iter().copied(), nonces, message).map_err(|e| format!("{e:?}"))?;
         msg.admission_evidence = evidence;
         let tx = PublicTransaction::new(msg.clone(), WitnessSet::for_message(&msg, signers));
+        let bytes = borsh::to_vec(&LeeTransaction::Public(tx.clone())).map_err(|e| format!("{e}"))?;
         let (diff, charge) =
             ValidatedStateDiff::from_public_transaction_with_cycle_budget(&tx, &self.state, self.block, self.now, CAP)
                 .map_err(|e| format!("{e}"))?;
@@ -85,10 +100,10 @@ impl Chain {
             return Err(revert);
         }
         self.state.apply_state_diff(diff).map_err(|e| format!("{e}"))?;
-        Ok(charge.cycles)
+        Ok((charge.cycles, bytes.len() as u64))
     }
 
-    fn tick(&mut self, now: u64) -> Result<u64, String> {
+    fn tick(&mut self, now: u64) -> Measured {
         self.block += 1;
         self.now = now;
         let msg = clock_core::Message::Tick {
@@ -109,13 +124,50 @@ impl Chain {
         Actor::new(who, self.vesting)
     }
 
-    /// Writes an initialised `vesting_fees` config at rate 0, as on a deployment after `Init`.
-    fn init_fee_config(&mut self) {
+    /// Writes the `vesting_fees` config: rate 0 is the state `Init` leaves on a deployment, a non-zero rate the state
+    /// a later `SetFee` leaves.
+    fn set_fee_config(&mut self, rate_bps: u16, treasury: AccountId) {
         let Some((program, config)) = self.fees else { return };
         let mut account = self.state.get_account_by_id(config);
-        let bytes = borsh::to_vec(&vesting_fees::FeeConfig::default()).expect("config encodes");
+        let fee_config = FeeConfig {
+            rate_bps,
+            treasury,
+            ..FeeConfig::default()
+        };
+        let bytes = borsh::to_vec(&fee_config).expect("config encodes");
         account.data.set_actor_state(program, bytes.into());
         self.state.force_insert_account(config, account);
+    }
+
+    /// The balance of `account` in `asset` (0 for an account without one).
+    fn balance(&self, asset: Asset, account: AccountId) -> u128 {
+        let data = &self.state.get_account_by_id(account).data;
+        match (asset, self.token) {
+            (Asset::Token { .. }, Some(token)) => match TokenState::decode(data.actor_state(token)) {
+                Some(TokenState::Holding(holding)) => holding.balance,
+                _ => 0,
+            },
+            _ => native_token::decode_balance(data.actor_state(NATIVE_TOKEN_PROGRAM_ID)).unwrap_or(0),
+        }
+    }
+
+    /// The actor holding `asset` on `account`.
+    fn asset_actor(&self, asset: Asset, account: AccountId) -> Actor {
+        match (asset, self.token) {
+            (Asset::Token { .. }, Some(token)) => Actor::new(account, token),
+            _ => Actor::native_balance(account),
+        }
+    }
+
+    /// The account a non-zero fee is paid to (SPEC 6): the treasury, or its associated token account.
+    fn fee_destination(&self, asset: Asset, treasury: AccountId) -> Option<AccountId> {
+        match asset {
+            Asset::Native => Some(treasury),
+            Asset::Token { definition } => {
+                let seed = vesting_core::ata_seed(&core(self.token?), &core(treasury), &definition);
+                Some(AccountId::for_public_pda(&self.ata?, &PdaSeed::new(seed)))
+            }
+        }
     }
 
     fn fee_actors(&self) -> Vec<Actor> {
@@ -123,11 +175,12 @@ impl Chain {
     }
 }
 
-fn row(op: &str, n: u64, r: Result<u64, String>) -> Row {
+fn row(op: &str, n: u64, r: Measured) -> Row {
     let mut row = Row::new(op, "native", n);
     match r {
-        Ok(c) => {
-            row.cycles = Some(c);
+        Ok((cycles, bytes)) => {
+            row.cycles = Some(cycles);
+            row.bytes = Some(bytes);
             row.status = "ok".into();
         }
         Err(e) => row.status = format!("failed: {}", e.lines().next().unwrap_or("")),
@@ -169,17 +222,20 @@ pub fn run(bins: &Path) -> Result<Run> {
         ));
     }
     let mut fees = None;
-    if let (Ok(bytes), Some(p), Some(c)) = (
-        std::fs::read(bins.join("vesting_fees.bin")),
-        ids.get("vesting_fees"),
-        ids.get("fees_config"),
-    ) {
-        inputs.push(("vesting_fees.bin sha256".into(), sha256_hex(&bytes)));
+    let fees_bin = std::fs::read(bins.join("vesting_fees.bin")).ok();
+    if let (Some(bytes), Some(p), Some(c)) = (&fees_bin, ids.get("vesting_fees"), ids.get("fees_config")) {
+        inputs.push(("vesting_fees.bin sha256".into(), sha256_hex(bytes)));
         named.push((
             p,
-            Program::new(Cow::Owned(bytes)).context("vesting_fees.bin does not load")?,
+            Program::new(Cow::Owned(bytes.clone())).context("vesting_fees.bin does not load")?,
         ));
         fees = Some((p, c));
+    }
+    let mut token = None;
+    if let (Ok(bytes), Some(p)) = (std::fs::read(bins.join("token.bin")), ids.get("token")) {
+        inputs.push(("token.bin sha256".into(), sha256_hex(&bytes)));
+        named.push((p, Program::new(Cow::Owned(bytes)).context("token.bin does not load")?));
+        token = Some(p);
     }
     let clock = ClockAccountData {
         block_id: 1,
@@ -193,11 +249,13 @@ pub fn run(bins: &Path) -> Result<Run> {
         state,
         vesting,
         fees,
+        token,
+        ata: ids.get("ata"),
         block: 1,
         now: T0,
     };
     // The state `Init` leaves on a deployment (scripts/deploy_local.sh sends it right after deploying vesting_fees).
-    c.init_fee_config();
+    c.set_fee_config(0, AccountId::new([0; 32]));
     let (creator_k, ben_k, to_k, heir_k) = (key(1), key(2), key(3), key(4));
     let (creator, ben, to, heir) = (id_of(&creator_k), id_of(&ben_k), id_of(&to_k), id_of(&heir_k));
     c.fund(creator, u128::MAX / 4);
@@ -242,12 +300,25 @@ pub fn run(bins: &Path) -> Result<Run> {
     } else {
         vesting_rows(&mut c, &mut rows, [&creator_k, &ben_k, &heir_k], to);
     }
-    for op in ["create", "claim", "cancel"] {
-        let mut r = Row::new(op, "token", 1);
-        r.status = "not measured yet (token setup: definition and holdings)".into();
-        rows.push(r);
+    if vesting_bin.is_some() && c.token.is_some() {
+        token_rows(&mut c, &mut rows, &creator_k, &ben_k, &to_k);
+    } else {
+        for op in ["create", "claim", "cancel", "create_batch"] {
+            let mut r = Row::new(op, "token", 1);
+            r.status = "not built (needs vesting.bin, token.bin and the token id in the ids file)".into();
+            rows.push(r);
+        }
     }
-    fee_rows(&mut rows);
+    if vesting_bin.is_some() && c.fees.is_some() {
+        fee_path_rows(&mut c, &mut rows, &creator_k, &ben_k);
+    } else {
+        for asset in ["native", "token"] {
+            let mut r = Row::new("create_with_fee", asset, 1);
+            r.status = "not built (needs vesting.bin, vesting_fees.bin and their ids)".into();
+            rows.push(r);
+        }
+    }
+    fee_program_rows(fees_bin.as_deref(), &mut rows)?;
     Ok(Run {
         mode: "executor".into(),
         lez: "v0.4.0-rc3".into(),
@@ -274,22 +345,46 @@ fn linear_terms(ben: AccountId, transferable: bool) -> Terms {
     }
 }
 
-fn create(c: &mut Chain, creator_k: &PrivateKey, id: [u8; 32], terms: Terms) -> Result<u64, String> {
+fn create(c: &mut Chain, creator_k: &PrivateKey, id: [u8; 32], terms: Terms) -> Measured {
+    let creator = id_of(creator_k);
+    create_paying(c, creator_k, id, terms, 0, creator)
+}
+
+/// `Create` funded from the creator's own account, quoting `fee` to `treasury`.
+fn create_paying(
+    c: &mut Chain,
+    creator_k: &PrivateKey,
+    id: [u8; 32],
+    terms: Terms,
+    fee: u128,
+    treasury: AccountId,
+) -> Measured {
     let creator = id_of(creator_k);
     let schedule = c.schedule(creator, &id);
-    let mut declared = vec![
-        c.seat(creator),
-        Actor::new(schedule, c.vesting),
-        Actor::native_balance(creator),
-        Actor::native_balance(schedule),
-    ];
+    let asset = terms.asset;
+    let mut declared = vec![c.seat(creator), Actor::new(schedule, c.vesting)];
+    match asset {
+        Asset::Native => {
+            declared.push(Actor::native_balance(creator));
+            declared.push(Actor::native_balance(schedule));
+        }
+        Asset::Token { definition } => {
+            declared.push(c.asset_actor(asset, schedule));
+            declared.push(c.asset_actor(asset, creator));
+            declared.push(c.asset_actor(asset, AccountId::new(*definition.value())));
+        }
+    }
     declared.extend(c.fee_actors());
+    if fee > 0 {
+        let destination = c.fee_destination(asset, treasury).ok_or("no fee destination")?;
+        declared.push(c.asset_actor(asset, destination));
+    }
     let msg = Message::Create {
         schedule_id: id,
         terms,
         source: core(creator),
-        fee: 0,
-        treasury: core(creator),
+        fee,
+        treasury: core(treasury),
     };
     c.submit(c.seat(creator), &declared, &[creator_k], Vec::new(), &msg)
 }
@@ -415,82 +510,311 @@ fn vesting_rows(c: &mut Chain, rows: &mut Vec<Row>, [creator_k, ben_k, heir_k]: 
     ));
 
     let mut next_id = 1000;
-    let mut batch = |c: &mut Chain, n: u64| {
-        let items: Vec<BatchItem> = (0..n)
-            .map(|_| {
-                next_id += 1;
-                BatchItem {
-                    schedule_id: sid(next_id),
-                    beneficiary: core(ben),
-                    total: TOTAL,
-                }
-            })
-            .collect();
-        let mut declared = vec![c.seat(creator)];
-        for it in &items {
-            let s = c.schedule(creator, &it.schedule_id);
-            declared.push(Actor::new(s, c.vesting));
-            declared.push(Actor::native_balance(s));
-        }
-        declared.push(Actor::native_balance(creator));
-        declared.extend(c.fee_actors());
-        let common = BatchTerms {
-            asset: Asset::Native,
-            shape: BatchShape::Linear {
-                start: T0,
-                cliff: T0,
-                end: T0 + SPAN,
-            },
-            cancelable: true,
-            transferable: false,
-            cancel_authority: None,
-            milestone_authority: None,
-            refund_to: None,
-        };
-        let msg = Message::CreateBatch {
-            common,
-            items,
-            source: core(creator),
-            fee: 0,
-            treasury: core(creator),
-        };
-        c.submit(c.seat(creator), &declared, &[creator_k], Vec::new(), &msg)
-    };
     let mut ok = false;
     for n in BATCHES {
-        let r = batch(c, n);
+        let r = batch(c, creator_k, Asset::Native, &mut next_id, n);
         ok |= r.is_ok();
         rows.push(row("create_batch", n, r));
     }
-    let cap = vesting_core::MAX_BATCH_NATIVE as u64;
-    let r = batch(c, cap);
-    rows.push(row("create_batch (program cap)", cap, r));
-    if ok {
-        let mut r = Row::new("create_batch (cap + 1, must be refused)", "native", cap + 1);
-        r.status = match batch(c, cap + 1) {
-            Ok(cy) => format!("ACCEPTED ({cy} cycles): the cap does not hold"),
+    batch_cap_rows(c, rows, creator_k, Asset::Native, &mut next_id, ok);
+}
+
+/// `CreateBatch` of `n` linear items with fresh ids, funded from the creator's own account.
+fn batch(c: &mut Chain, creator_k: &PrivateKey, asset: Asset, next_id: &mut u32, n: u64) -> Measured {
+    let creator = id_of(creator_k);
+    let ben = id_of(&key(2));
+    let items: Vec<BatchItem> = (0..n)
+        .map(|_| {
+            *next_id += 1;
+            BatchItem {
+                schedule_id: sid(*next_id),
+                beneficiary: core(ben),
+                total: TOTAL,
+            }
+        })
+        .collect();
+    let mut declared = vec![c.seat(creator)];
+    for it in &items {
+        let s = c.schedule(creator, &it.schedule_id);
+        declared.push(Actor::new(s, c.vesting));
+        declared.push(c.asset_actor(asset, s));
+    }
+    declared.push(c.asset_actor(asset, creator));
+    if let Asset::Token { definition } = asset {
+        declared.push(c.asset_actor(asset, AccountId::new(*definition.value())));
+    }
+    declared.extend(c.fee_actors());
+    let common = BatchTerms {
+        asset,
+        shape: BatchShape::Linear {
+            start: T0,
+            cliff: T0,
+            end: T0 + SPAN,
+        },
+        cancelable: true,
+        transferable: false,
+        cancel_authority: None,
+        milestone_authority: None,
+        refund_to: None,
+    };
+    let msg = Message::CreateBatch {
+        common,
+        items,
+        source: core(creator),
+        fee: 0,
+        treasury: core(creator),
+    };
+    c.submit(c.seat(creator), &declared, &[creator_k], Vec::new(), &msg)
+}
+
+/// A batch at the program's cap for `asset` (accepted, with its size in bytes) and one item more (refused, 25).
+fn batch_cap_rows(
+    c: &mut Chain,
+    rows: &mut Vec<Row>,
+    creator_k: &PrivateKey,
+    asset: Asset,
+    next_id: &mut u32,
+    smaller_ok: bool,
+) {
+    let (cap, name) = match asset {
+        Asset::Native => (vesting_core::MAX_BATCH_NATIVE as u64, "native"),
+        Asset::Token { .. } => (vesting_core::MAX_BATCH_TOKEN as u64, "token"),
+    };
+    let mut r = row(
+        "create_batch (program cap)",
+        cap,
+        batch(c, creator_k, asset, next_id, cap),
+    );
+    r.asset = name.into();
+    rows.push(r);
+    if smaller_ok {
+        let mut r = Row::new("create_batch (cap + 1, must be refused)", name, cap + 1);
+        r.status = match batch(c, creator_k, asset, next_id, cap + 1) {
+            Ok((cy, _)) => format!("ACCEPTED ({cy} cycles): the cap does not hold"),
             Err(e) => format!("refused: {}", e.lines().next().unwrap_or("")),
         };
         rows.push(r);
     }
 }
 
-#[cfg(feature = "fees")]
-fn fee_rows(rows: &mut Vec<Row>) {
-    for op in ["check_fee", "set_fee"] {
-        let mut r = Row::new(op, "-", 1);
-        r.status = "not measured yet (vesting_fees messages)".into();
-        rows.push(r);
+/// Token rows: a token definition and holdings set up as a user would (`NewDefinition`, `InitializeHolding`), then
+/// create, claim and cancel of one token schedule, and token batches.
+fn token_rows(c: &mut Chain, rows: &mut Vec<Row>, creator_k: &PrivateKey, ben_k: &PrivateKey, to_k: &PrivateKey) {
+    let Some(token) = c.token else { return };
+    let (creator, ben, to) = (id_of(creator_k), id_of(ben_k), id_of(to_k));
+    let def_k = key(10);
+    let def = id_of(&def_k);
+    let root = Actor::new(def, token);
+    let setup = c
+        .submit(
+            root,
+            &[root, Actor::new(creator, token)],
+            &[&def_k, creator_k],
+            Vec::new(),
+            &token_core::Message::NewDefinition {
+                name: "VEST".to_owned(),
+                total_supply: u128::MAX / 4,
+                mint_authority: None,
+                holding: creator,
+            },
+        )
+        .and_then(|_| {
+            let holding = Actor::new(to, token);
+            c.submit(
+                holding,
+                &[holding, Actor::new(def, token)],
+                &[to_k],
+                Vec::new(),
+                &token_core::Message::InitializeHolding { definition: def },
+            )
+        });
+    let asset = Asset::Token { definition: core(def) };
+    let tok = |mut r: Row| {
+        r.asset = "token".into();
+        r
+    };
+    if let Err(e) = setup {
+        for op in ["create", "claim", "cancel", "create_batch"] {
+            let mut r = Row::new(op, "token", 1);
+            r.status = format!("failed: token setup: {}", e.lines().next().unwrap_or(""));
+            rows.push(r);
+        }
+        return;
+    }
+    let mut terms = linear_terms(ben, false);
+    terms.asset = asset;
+    let start = c.now;
+    if let Kind::Linear { start: s, cliff, end } = &mut terms.kind {
+        (*s, *cliff, *end) = (start, start, start + SPAN);
+    }
+    rows.push(tok(row("create", 1, create(c, creator_k, sid(100), terms))));
+    let s = c.schedule(creator, &sid(100));
+    let _ = c.tick(start + SPAN / 4);
+    let declared = [
+        c.seat(ben),
+        Actor::new(s, c.vesting),
+        clock_actor(),
+        c.asset_actor(asset, s),
+        c.asset_actor(asset, to),
+    ];
+    let claim = Message::Claim {
+        schedule: core(s),
+        to: core(to),
+    };
+    rows.push(tok(row(
+        "claim",
+        1,
+        c.submit(c.seat(ben), &declared, &[ben_k], Vec::new(), &claim),
+    )));
+    let _ = c.tick(start + SPAN / 2);
+    // The refund goes back to the source holding (the default `refund_to`).
+    let declared = [
+        c.seat(creator),
+        Actor::new(s, c.vesting),
+        clock_actor(),
+        c.asset_actor(asset, s),
+        c.asset_actor(asset, creator),
+    ];
+    rows.push(tok(row(
+        "cancel",
+        1,
+        c.submit(
+            c.seat(creator),
+            &declared,
+            &[creator_k],
+            Vec::new(),
+            &Message::Cancel { schedule: core(s) },
+        ),
+    )));
+    let mut next_id = 5000;
+    let r = batch(c, creator_k, asset, &mut next_id, 8);
+    let ok = r.is_ok();
+    rows.push(tok(row("create_batch", 8, r)));
+    batch_cap_rows(c, rows, creator_k, asset, &mut next_id, ok);
+}
+
+/// The fee path inside a creation: the fee checked by `vesting_fees` (`CheckFee`, a chained call) and paid to the
+/// treasury (native) or to the treasury's associated token account (token), at [`FEE_BPS`].
+fn fee_path_rows(c: &mut Chain, rows: &mut Vec<Row>, creator_k: &PrivateKey, ben_k: &PrivateKey) {
+    let treasury_k = key(7);
+    let treasury = id_of(&treasury_k);
+    let ben = id_of(ben_k);
+    c.fund(treasury, 1);
+    c.set_fee_config(FEE_BPS, treasury);
+    let fee = vesting_core::fee_for(TOTAL, FEE_BPS).unwrap_or(0);
+    let label = format!("create_with_fee ({FEE_BPS} bps)");
+    let before = c.balance(Asset::Native, treasury);
+    let mut r = row(
+        &label,
+        1,
+        create_paying(c, creator_k, sid(200), linear_terms(ben, false), fee, treasury),
+    );
+    if r.status == "ok" {
+        r.status = paid(fee, c.balance(Asset::Native, treasury) - before, "the treasury");
+    }
+    rows.push(r);
+
+    let mut r = Row::new(&label, "token", 1);
+    let token_def = id_of(&key(10));
+    let asset = Asset::Token {
+        definition: core(token_def),
+    };
+    match (c.token, c.fee_destination(asset, treasury)) {
+        (Some(token), Some(ata)) if !c.state.get_account_by_id(token_def).data.actor_state(token).is_empty() => {
+            // The state the ATA program's `Create` leaves: an empty holding of the definition at the treasury's ATA.
+            let holding = TokenState::Holding(TokenHolding {
+                definition_id: token_def,
+                balance: 0,
+            });
+            let mut account = c.state.get_account_by_id(ata);
+            account.data.set_actor_state(token, holding.encode().into());
+            c.state.force_insert_account(ata, account);
+            let mut terms = linear_terms(ben, false);
+            terms.asset = asset;
+            r = row(&label, 1, create_paying(c, creator_k, sid(201), terms, fee, treasury));
+            r.asset = "token".into();
+            if r.status == "ok" {
+                r.status = paid(fee, c.balance(asset, ata), "the treasury's associated token account");
+            }
+        }
+        _ => r.status = "not built (needs token.bin and the ata id in the ids file)".into(),
+    }
+    rows.push(r);
+    c.set_fee_config(0, AccountId::new([0; 32]));
+}
+
+/// The status of a fee row: `ok` only when `to` received exactly the quoted fee.
+fn paid(fee: u128, received: u128, to: &str) -> String {
+    if received == fee {
+        format!("ok (fee {fee} received by {to})")
+    } else {
+        format!("fee not paid as quoted: {to} received {received}, quoted {fee}")
     }
 }
 
-#[cfg(not(feature = "fees"))]
-fn fee_rows(rows: &mut Vec<Row>) {
-    for op in ["check_fee", "set_fee"] {
-        let mut r = Row::new(op, "-", 1);
-        r.status = "not built (vesting_fees; build with --features fees)".into();
+/// `vesting_fees`'s own messages, sent alone to a deployment whose admin key the run holds: `Init`, `SetFee`, and
+/// `CheckFee` (which `vesting` otherwise sends inside every creation).
+fn fee_program_rows(bin: Option<&[u8]>, rows: &mut Vec<Row>) -> Result<()> {
+    let ops = ["init", "set_fee", "check_fee"];
+    let Some(bytes) = bin else {
+        for op in ops {
+            let mut r = Row::new(op, "-", 1);
+            r.status = "not built (no vesting_fees.bin)".into();
+            rows.push(r);
+        }
+        return Ok(());
+    };
+    // On LEZ 0.4 the program id is the loader header account and the deployer holds its key; `Init` makes the
+    // deployer the admin. The ids file names the local deployment, whose key this tool does not hold.
+    let deployer_k = key(0x11);
+    let program = id_of(&deployer_k);
+    let guest = Program::new(Cow::Owned(bytes.to_vec())).context("vesting_fees.bin does not load")?;
+    let mut f = Chain {
+        state: V03State::new().with_named_programs(vec![(program, guest)]),
+        vesting: program,
+        fees: None,
+        token: None,
+        ata: None,
+        block: 1,
+        now: T0,
+    };
+    let config = config_actor(program);
+    let seat = Actor::new(program, program);
+    let evidence = || {
+        vec![PublicAccountEvidence::Pda {
+            program,
+            seed: CONFIG_SEED,
+        }]
+    };
+    let mut fee_row = |op: &str, r: Measured| {
+        let mut r = row(op, 1, r);
+        r.asset = "-".into();
         rows.push(r);
-    }
+    };
+    let init = f.submit(
+        seat,
+        &[seat, config],
+        &[&deployer_k],
+        evidence(),
+        &admin_op::<FeeMessage>(AdminOp::Init),
+    );
+    fee_row("init", init);
+    let set = wire(FeeMessage::SetFee {
+        rate_bps: FEE_BPS,
+        treasury: core(id_of(&key(7))),
+    });
+    let set = f.submit(seat, &[seat, config], &[&deployer_k], evidence(), &set);
+    fee_row("set_fee", set);
+    let payer_k = key(0x12);
+    let check = wire(FeeMessage::CheckFee {
+        total: TOTAL,
+        fee: vesting_core::fee_for(TOTAL, FEE_BPS).unwrap_or(0),
+        treasury: core(id_of(&key(7))),
+        asset: Asset::Native,
+    });
+    let check = f.submit(config, &[config], &[&payer_k], evidence(), &check);
+    fee_row("check_fee", check);
+    Ok(())
 }
 
 #[cfg(test)]

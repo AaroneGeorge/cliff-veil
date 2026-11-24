@@ -17,12 +17,12 @@ Logos mini-app, the end-to-end tests, and the evidence files the numbers in thes
 | Item | State |
 |---|---|
 | Create (cliff + linear, fully linear, milestones, batch), claim to a public account, cancel, make non-cancelable, signal a milestone, transfer the beneficiary, creation-fee switch | Runs on a LEZ v0.4.0-rc3 standalone sequencer in dev mode. The end-to-end suite passed 34 of 34 tests on 2026-11-24 ([evidence/e2e/local-dev/20261124T140628Z.json](evidence/e2e/local-dev/20261124T140628Z.json)). |
-| Native and token schedules | Both are covered by tests. Cost rows for token operations are not measured yet ([docs/COSTS.md](docs/COSTS.md)). |
+| Native and token schedules | Both are covered by tests. Executor cycles and transaction sizes are measured for both; the fee a sequencer charges is measured for native operations only ([docs/COSTS.md](docs/COSTS.md)). |
 | Claim to a private account | Runs in RISC Zero dev mode only (`RISC0_DEV_MODE=1`: the transaction carries no real proof). Every private-claim figure and log in this repository is a dev-mode figure. A claim with a real proof has not been run. |
 | LEZ testnet 0.4 | Not yet live. Nothing is deployed there. The suite runs on a local standalone sequencer instead; program ids of that network are in [deploy/ids-local-dev.toml](deploy/ids-local-dev.toml). |
 | Mini-app | Both packages build with Nix, the core module installs, loads and answers under `logosctl` 0.3.2, and the view renders offscreen. Loading in Basecamp is not verified, and neither is a run of the mini-app against a live sequencer ([evidence/miniapp/README.md](evidence/miniapp/README.md)). |
 | Guest builds | Reproducible: independent builds in the pinned RISC Zero builder image give identical binaries and image ids ([evidence/guests/reproducible-local-dev.log](evidence/guests/reproducible-local-dev.log)). |
-| Cost measurements | Executor cycles and standalone-sequencer fees ([docs/COSTS.md](docs/COSTS.md)). They are not testnet 0.4 measurements. |
+| Cost measurements | Executor cycles and transaction sizes of every operation (native, token, fee path, batches at the caps), standalone-sequencer fees of the native operations, and the fee of one private claim in dev mode ([docs/COSTS.md](docs/COSTS.md)). They are LEZ v0.4.0-rc3 measurements on a local sequencer, not testnet 0.4 measurements. |
 
 ## Quick start (local network)
 
@@ -139,7 +139,8 @@ One transaction holds at most 164 native schedules or 57 token schedules (`MAX_B
 `core/src/create.rs`); a longer list is split into several transactions by an estimate of the cycles each needs. The
 caps and the measurement behind them (the largest batch the chain accepts, and the next size refused) are in
 [evidence/batch/max.txt](evidence/batch/max.txt) and [docs/DECISIONS.md](docs/DECISIONS.md) (decision 8); the 164-schedule
-batch costs 8,515,387 cycles in [docs/COSTS.md](docs/COSTS.md).
+batch costs 8,515,387 cycles and is 34,690 bytes, the 57-schedule token batch 8,433,456 cycles and 12,530 bytes
+([docs/COSTS.md](docs/COSTS.md)).
 
 ### Show, claimable, list
 
@@ -308,21 +309,27 @@ deploys, runs `e2e/run.sh`).
 ## Requirement coverage and costs
 
 [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) maps every hard requirement of RFP-017 to the tests that exercise it:
-27 of its 29 rows are covered by tests and 2 by named evidence. [docs/COSTS.md](docs/COSTS.md) holds the cost of each
-operation, generated from `evidence/cost/*.json`. Executor cycles on LEZ v0.4.0-rc3, native schedules:
+of its 29 rows, 22 are tested, 6 are partial and 1 is met by named evidence (the README itself). A partial row states its
+gap: the mini-app rows (U2, U4, U5, Pr2) are tested in the mini-app's logic and loaded headless in the Logos runtime, but
+loading in Basecamp is not yet verified; the cost row (P2) and the deployment row (S1) are met on a local LEZ v0.4.0-rc3
+sequencer, and testnet 0.4 is not live yet. Tests marked (executor) run the built guests through LEZ's public execution
+without a sequencer. [docs/COSTS.md](docs/COSTS.md) holds the cost of each operation, generated from `evidence/cost/*.json` and `evidence/batch/max.txt`. Executor cycles on LEZ v0.4.0-rc3:
 
-| Operation | Cycles |
-|---|---|
-| create | 92,929 |
-| claim (reads the clock) | 99,583 |
-| cancel | 96,644 |
-| signal milestone | 49,137 |
-| transfer beneficiary | 50,679 |
-| make non-cancelable | 48,182 |
+| Operation | Native | Token |
+|---|---|---|
+| create | 92,929 | 190,078 |
+| claim (reads the clock) | 99,583 | 142,004 |
+| cancel | 96,644 | 139,063 |
+| signal milestone | 49,137 | - |
+| transfer beneficiary | 50,679 | - |
+| make non-cancelable | 48,182 | - |
+| create with a 0.5% creation fee | 95,542 | 248,245 |
 
-The chain's execution cap is 10,000,000 cycles per transaction and per block. The fees a standalone sequencer charged for
-the same operations are in the same file (for example 759,544 for a create and 795,888 for a claim). These are cycles and
-fees measured on a standalone sequencer, not on testnet 0.4.
+Signal, transfer and make non-cancelable move no funds and call no token program; they were measured on native
+schedules only. The chain's execution
+cap is 10,000,000 cycles per transaction and per block. The fees a standalone sequencer charged for the native operations
+are in the same file (for example 759,544 for a create and 795,888 for a claim), as is the fee of one private claim in
+dev mode (5,528,416). These are measured on a local LEZ v0.4.0-rc3 sequencer and its executor, not on testnet 0.4.
 
 ## Privacy model
 

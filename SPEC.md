@@ -20,16 +20,16 @@ is defined once, in `core/`, with the same field order.
 
 | Program | What it is | Id |
 |---|---|---|
-| `vesting` | The vesting program (this repository, `program/`) | Its deployment address (the program-loader header account), recorded per network in `deploy/<network>.toml` |
+| `vesting` | The vesting program (this repository, `program/`) | Its deployment address (the program-loader header account), recorded per network in `deploy/ids-<network>.toml` |
 | `vesting_fees` | The fee switch: one config account, administered through `lez-admin-authority` v0.2.0 (`program/fees/`) | As above |
-| token | The LEZ fungible token program at the pinned commit | As above. The one token program a deployment of `vesting` uses is fixed at build time (`TOKEN_PROGRAM_ID`, from `deploy/<network>.toml`). `Asset::Token` names only a definition, so no message can name another token program |
+| token | The LEZ fungible token program at the pinned commit | As above. The one token program a deployment of `vesting` uses is fixed at build time (`TOKEN_PROGRAM_ID`, from `deploy/ids-<network>.toml`). `Asset::Token` names only a definition, so no message can name another token program |
 | associated token account (ATA) | The ATA program at the pinned commit; used only to locate the treasury's holding for a token fee (section 6) | As above (`ATA_PROGRAM_ID`, build input) |
 | native token | Built into LEZ (`lee_core::native_token`, id `[0; 32]`) | Fixed |
 | clock | Built into LEZ (`clock_core::clock_actor()`) | Fixed |
 
 `vesting` embeds the ids of `vesting_fees`, the token program and the ATA program at build time (`FEES_PROGRAM_ID`,
 `TOKEN_PROGRAM_ID`, `ATA_PROGRAM_ID`). They are build inputs, so the image id of `vesting` is fixed per network;
-`deploy/<network>.toml` records the ids and the image id built for each.
+`deploy/ids-<network>.toml` records the ids and the image id built for each.
 
 ### 1.2 Actors used by `vesting`
 
@@ -403,7 +403,9 @@ SDK maps every code to the message below (`vesting_core::ERRORS`) and CI fails i
 
 When each is raised: 1 at the caller actor; 2 for an undecodable message or a hand-made `Open` with a state that is
 not fresh; 3 to 6 by role (section 3.3); 7 to 13 and 26 at `Open` and batch validation; 8 and 23 by dispatch
-(section 1.4); 14 to 20 by the rules of section 4; 21 and 22 guard the clock round trip (a synchronous reply makes
+(section 1.4); 9 guards `Open`: `vesting` itself names the creator and derives the schedule account when it sends
+`Open`, and no user message forwards to `Open`, so a well-formed transaction cannot reach 9; it stays as a guard;
+14 to 20 by the rules of section 4; 21 and 22 guard the clock round trip (a synchronous reply makes
 them unreachable in a well-formed transaction; they stay as guards); 24 and 25 by `CreateBatch`; 27 by
 `vesting_fees`; 28 by `vesting_fees` (`SetFee`) and by `vesting` (fee above the cap on the creation total); 29 only
 for a state no valid creation can produce.
@@ -489,14 +491,17 @@ A batch executes in one transaction and must fit the chain's execution budget: i
 transaction's gas limit may not exceed `MAX_GAS_EXEC`, and neither may the total of a block. A maximum-size batch
 therefore fits only an otherwise empty block. Block size (transaction bytes per block) is not the binding limit.
 
-The caps are two constants in `core/src/create.rs`, `MAX_BATCH_NATIVE` and `MAX_BATCH_TOKEN`. Each is set to the
-largest batch of the released program that the chain accepts under the real budget, with the next size up refused,
-as measured by `tools/cost` for native and token schedules; the figures, method and byte sizes are in
-`docs/COSTS.md`. Until that measurement is recorded the constants hold interim values, which the measurement
-replaces. A batch above its cap is refused with 25.
+The caps are two constants in `core/src/create.rs`: `MAX_BATCH_NATIVE = 164` and `MAX_BATCH_TOKEN = 57`. Each is
+85% of the largest batch of linear schedules the chain accepts under the real budget, measured in LEZ's executor
+with the released program (`program/tests/batch_limit.rs`, figures in `evidence/batch/max.txt`): 193 native
+schedules are accepted and 194 refused; 67 token schedules are accepted and 68 refused. Heavier items fit fewer:
+with 64 milestones per item and a creation fee, 61 native and 38 token schedules fit. A batch above its cap is
+refused with 25; a batch under the cap that exceeds the budget is refused whole by the chain (out of gas) and
+changes nothing. `docs/COSTS.md` lists the maxima, the cycles of a batch at each cap and its size in bytes.
 
-The SDK splits a longer recipient list into several transactions, each filled to an estimated 85% of the block budget
-(per-item cycles by asset, milestone count and fee, fitted to the measured batches), so a batch does not need an empty block, and sets each transaction's gas limit from a local dry run.
+The SDK splits a longer recipient list into several transactions, each filled to an estimated 85% of the budget and
+never above the program's cap (per-item cycles by asset, milestone count and fee, fitted at or above the measured
+batches), so a batch does not need an empty block. It sets each transaction's gas limit from a local dry run.
 
 ---
 
@@ -529,12 +534,12 @@ How a private claim works:
   (`PrivateWitness.address_openings`), so the credit lands on it in the same transaction. Neither the canonical id
   nor the opening appears in the transaction. An opening is never reused: two claims to the same blinded address
   would be linkable.
-- The SDK takes the destination as an owned private account (or, for a foreign destination, as its keys), never as
-  a bare id, and derives `to` itself. It refuses a public destination on the private path. The program never learns
-  whether `to` is private.
-- A destination owned by the claimant takes part in the proof and is credited in the same transaction. A foreign
-  private destination receives a pending credit at the blinded address; its owner collects it in a later
-  transaction with the opening, which the claimant hands over.
+- The SDK takes the destination as a private account the claimant's wallet owns, never as a bare id, and derives
+  `to` itself. Before building the transaction it refuses any destination that is not a private account the wallet
+  owns, public or foreign (`NotPrivateAccount`). The program never learns whether `to` is private.
+- The destination takes part in the proof and is credited in the same transaction. Claiming to a private account
+  owned by someone else (a pending credit at the blinded address, collected later by its owner with the opening) is
+  possible on the chain but is not offered by the SDK in version 1.
 
 Network fee of a private claim:
 
@@ -586,7 +591,7 @@ Everything a client shows comes from current state and the rules in `core/`:
 
 ## 12. Changelog
 
-- **Version 1 (frozen).** Changes from the review draft:
+- **Version 1 (frozen).** Changes made before the freeze:
   - State: `last_time: u64` added to `ScheduleV1` after `claimed`. Claims and cancels are computed at
     `max(t, last_time)`; `claimable` floors at 0; `vested_at_cancel = max(vested_raw(te), claimed)`. Fixes a cancel
     that could revert after a `ClaimAsOf` one block ahead of the clock in the same block, and corrects the stated
@@ -610,3 +615,8 @@ Everything a client shows comes from current state and the rules in `core/`:
     released program (`docs/COSTS.md`).
   - Added: time rules (4.1), cancel with nothing to refund, `Open` validation order, `CreateBatch` transaction
     shapes, the `MakeNonCancelable` decision, the IDL (10) and reading state (11).
+- **Version 1, editorial (no interface change).** Section 8 states the final batch caps (164 native, 57 token, 85%
+  of the measured maxima 193 and 67) and how the SDK fills a batch. Section 1.1 names the ids file
+  `deploy/ids-<network>.toml`. Section 5 states that code 9 is a guard no well-formed transaction reaches.
+  Section 9 states that the SDK claims only to private accounts the wallet owns; a claim to a foreign private
+  account is not offered in version 1.

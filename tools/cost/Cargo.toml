@@ -10,15 +10,15 @@ publish.workspace = true
 name = "vesting-cost"
 path = "src/main.rs"
 
-[features]
-# Operations of the `vesting_fees` program (fee switch). Off until that program is built: its rows are then reported
-# as "not built".
-fees = []
-
 [dependencies]
 vesting_core.workspace = true
-# The fee config a deployment holds after `Init` (executor mode).
+# The fee config a deployment holds after `Init`, and the program's messages (executor mode).
 vesting_fees.workspace = true
+lez-admin-authority.workspace = true
+# The token program's messages and state, at the pinned lez-programs commit (token rows).
+token_core = { git = "https://github.com/logos-blockchain/lez-programs", rev = "3f04cc37ec5f90358e606b0fe7d28baa6b1dbd7e" }
+# `LeeTransaction`, the form a sequencer receives (transaction size).
+common.workspace = true
 # Executor-level runs: the same `ValidatedStateDiff` execution the sequencer performs, with the cycle count.
 lee = { workspace = true, features = ["test-utils"] }
 lee_core.workspace = true

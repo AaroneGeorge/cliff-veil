@@ -50,9 +50,9 @@ So the claim names a one-time address instead:
 
 The SDK takes the destination as an owned private account (or a fresh one it creates), never a bare id, derives `to`
 itself, and refuses a public destination on the private path with an explicit error before anything is sent
-(`pr3_private_claim_to_a_public_account_is_refused_before_sending`, and the CLI line in the log below). A foreign private
-destination receives a pending credit at the one-time address and collects it later with the opening, which the claimant
-hands over.
+(`pr3_private_claim_to_a_public_account_is_refused_before_sending`, and the CLI line in the log below). It claims only to
+private accounts the wallet owns: a private account owned by someone else is refused too, and claiming to one is not
+offered by the SDK in version 1.
 
 The network fee of the transaction is paid by a private account of the claimant: a native claim into a fresh private
 account pays its own fee out of the claimed amount if the claim is larger than the fee, and a token claim needs a private

@@ -13,6 +13,10 @@
     [
       "vesting_fees.bin sha256",
       "797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69"
+    ],
+    [
+      "token.bin sha256",
+      "7b0178907ac0cfc61542d7d5585481dbbbfa88f594df37cdb3ebb2b88c9db1b5"
     ]
   ],
   "rows": [
@@ -22,6 +26,7 @@
       "n": 1,
       "cycles": 0,
       "fee": null,
+      "bytes": 480,
       "status": "ok"
     },
     {
@@ -30,6 +35,7 @@
       "n": 1,
       "cycles": 7745,
       "fee": null,
+      "bytes": 175,
       "status": "ok"
     },
     {
@@ -38,6 +44,7 @@
       "n": 1,
       "cycles": 92929,
       "fee": null,
+      "bytes": 782,
       "status": "ok"
     },
     {
@@ -46,6 +53,7 @@
       "n": 1,
       "cycles": 99583,
       "fee": null,
+      "bytes": 655,
       "status": "ok"
     },
     {
@@ -54,6 +62,7 @@
       "n": 1,
       "cycles": 57142,
       "fee": null,
+      "bytes": 599,
       "status": "ok"
     },
     {
@@ -62,6 +71,7 @@
       "n": 1,
       "cycles": 50679,
       "fee": null,
+      "bytes": 463,
       "status": "ok"
     },
     {
@@ -70,6 +80,7 @@
       "n": 1,
       "cycles": 96644,
       "fee": null,
+      "bytes": 623,
       "status": "ok"
     },
     {
@@ -78,6 +89,7 @@
       "n": 1,
       "cycles": 48182,
       "fee": null,
+      "bytes": 431,
       "status": "ok"
     },
     {
@@ -86,6 +98,7 @@
       "n": 1,
       "cycles": 49137,
       "fee": null,
+      "bytes": 432,
       "status": "ok"
     },
     {
@@ -94,6 +107,7 @@
       "n": 1,
       "cycles": 95508,
       "fee": null,
+      "bytes": 786,
       "status": "ok"
     },
     {
@@ -102,6 +116,7 @@
       "n": 8,
       "cycles": 457501,
       "fee": null,
+      "bytes": 2242,
       "status": "ok"
     },
     {
@@ -110,6 +125,7 @@
       "n": 32,
       "cycles": 1704154,
       "fee": null,
+      "bytes": 7234,
       "status": "ok"
     },
     {
@@ -118,6 +134,7 @@
       "n": 164,
       "cycles": 8515387,
       "fee": null,
+      "bytes": 34690,
       "status": "ok"
     },
     {
@@ -126,47 +143,107 @@
       "n": 165,
       "cycles": null,
       "fee": null,
+      "bytes": null,
       "status": "refused: Failed to execute program: Guest panicked: cliff-veil error 25: too many schedules in one batch"
     },
     {
       "op": "create",
       "asset": "token",
       "n": 1,
-      "cycles": null,
+      "cycles": 190078,
       "fee": null,
-      "status": "not measured yet (token setup: definition and holdings)"
+      "bytes": 878,
+      "status": "ok"
     },
     {
       "op": "claim",
       "asset": "token",
       "n": 1,
-      "cycles": null,
+      "cycles": 142004,
       "fee": null,
-      "status": "not measured yet (token setup: definition and holdings)"
+      "bytes": 655,
+      "status": "ok"
     },
     {
       "op": "cancel",
       "asset": "token",
       "n": 1,
-      "cycles": null,
+      "cycles": 139063,
       "fee": null,
-      "status": "not measured yet (token setup: definition and holdings)"
+      "bytes": 623,
+      "status": "ok"
     },
     {
-      "op": "check_fee",
-      "asset": "-",
-      "n": 1,
+      "op": "create_batch",
+      "asset": "token",
+      "n": 8,
+      "cycles": 1222369,
+      "fee": null,
+      "bytes": 2338,
+      "status": "ok"
+    },
+    {
+      "op": "create_batch (program cap)",
+      "asset": "token",
+      "n": 57,
+      "cycles": 8433456,
+      "fee": null,
+      "bytes": 12530,
+      "status": "ok"
+    },
+    {
+      "op": "create_batch (cap + 1, must be refused)",
+      "asset": "token",
+      "n": 58,
       "cycles": null,
       "fee": null,
-      "status": "not built (vesting_fees; build with --features fees)"
+      "bytes": null,
+      "status": "refused: Failed to execute program: Guest panicked: cliff-veil error 25: too many schedules in one batch"
+    },
+    {
+      "op": "create_with_fee (50 bps)",
+      "asset": "native",
+      "n": 1,
+      "cycles": 95542,
+      "fee": null,
+      "bytes": 846,
+      "status": "ok (fee 5000 received by the treasury)"
+    },
+    {
+      "op": "create_with_fee (50 bps)",
+      "asset": "token",
+      "n": 1,
+      "cycles": 248245,
+      "fee": null,
+      "bytes": 942,
+      "status": "ok (fee 5000 received by the treasury's associated token account)"
+    },
+    {
+      "op": "init",
+      "asset": "-",
+      "n": 1,
+      "cycles": 37851,
+      "fee": null,
+      "bytes": 475,
+      "status": "ok"
     },
     {
       "op": "set_fee",
       "asset": "-",
       "n": 1,
-      "cycles": null,
+      "cycles": 52078,
       "fee": null,
-      "status": "not built (vesting_fees; build with --features fees)"
+      "bytes": 498,
+      "status": "ok"
+    },
+    {
+      "op": "check_fee",
+      "asset": "-",
+      "n": 1,
+      "cycles": 19900,
+      "fee": null,
+      "bytes": 465,
+      "status": "ok"
     }
   ]
 }

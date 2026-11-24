@@ -9,7 +9,11 @@
 //!
 //! A test is a function carrying `#[test]` or `#[tokio::test]` (proptest's `#[test]` included) in any `.rs` file of
 //! the workspace. It is *pending* when it carries `#[ignore = "pending: ..."]`: written, compiled, not yet run.
-//! Mapping rules are in docs/requirements.toml.
+//! Tests in `tests/executor.rs` and `tests/batch_limit.rs` of the program crates are labelled *executor*: they run the
+//! built guests through LEZ's public execution, without a sequencer.
+//!
+//! A row with a `gap` is *partial*: its tests run, and the gap states what they do not yet show. Every path in a
+//! row's `files` must exist, or `--check` fails. Mapping rules are in docs/requirements.toml.
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
@@ -45,6 +49,12 @@ struct Requirement {
     tests: Vec<String>,
     #[serde(default)]
     evidence: Option<String>,
+    /// Files (relative to the workspace root) the evidence names; each must exist.
+    #[serde(default)]
+    files: Vec<String>,
+    /// What the tests and evidence do not yet show. A row with a gap is `partial`, never `tested`.
+    #[serde(default)]
+    gap: Option<String>,
 }
 
 impl Requirement {
@@ -97,6 +107,8 @@ impl Test {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Status {
     Tested,
+    /// Tested or met by evidence, with a stated gap.
+    Partial,
     Pending,
     Evidence,
     Missing,
@@ -106,6 +118,7 @@ impl Status {
     const fn label(self) -> &'static str {
         match self {
             Self::Tested => "tested",
+            Self::Partial => "partial",
             Self::Pending => "pending",
             Self::Evidence => "evidence",
             Self::Missing => "MISSING",
@@ -114,7 +127,7 @@ impl Status {
 }
 
 fn status(req: &Requirement, tests: &[&Test]) -> Status {
-    if tests.iter().any(|t| !matches!(t.run, Run::Pending(_))) {
+    let met = if tests.iter().any(|t| !matches!(t.run, Run::Pending(_))) {
         Status::Tested
     } else if !tests.is_empty() {
         Status::Pending
@@ -122,6 +135,10 @@ fn status(req: &Requirement, tests: &[&Test]) -> Status {
         Status::Evidence
     } else {
         Status::Missing
+    };
+    match met {
+        Status::Tested | Status::Evidence if req.gap.is_some() => Status::Partial,
+        other => other,
     }
 }
 
@@ -271,10 +288,18 @@ fn build<'a>(reqs: &'a [Requirement], tests: &'a [Test]) -> Report<'a> {
     Report { rows, unmapped }
 }
 
+/// Whether `test` runs the built guests through LEZ's executor (the program crates' executor test files).
+fn is_executor(test: &Test) -> bool {
+    test.krate.starts_with("program")
+        && (test.file.ends_with("tests/executor.rs") || test.file.ends_with("tests/batch_limit.rs"))
+}
+
 fn run_label(test: &Test) -> String {
     match &test.run {
+        Run::Unit if is_executor(test) => "executor".to_owned(),
         Run::Unit => "unit".to_owned(),
         Run::Ignored(_) if test.krate == "e2e" => "sequencer".to_owned(),
+        Run::Ignored(reason) if is_executor(test) => format!("executor, ignored ({reason})"),
         Run::Ignored(reason) => format!("ignored ({reason})"),
         Run::Pending(reason) => reason.clone(),
     }
@@ -300,14 +325,18 @@ fn render(report: &Report<'_>) -> String {
     let _ = writeln!(
         out,
         "Status: **tested** = at least one test that runs (in `cargo test`, or against a standalone sequencer in the \
-         `e2e` CI job); **pending** = tests written and compiled that wait for a program message or SDK call; \
-         **evidence** = met by the file or CI job named; **MISSING** = nothing yet.\n"
+         `e2e` CI job); **partial** = tests or evidence exist, and the row states what they do not yet show; \
+         **pending** = tests written and compiled that wait for a program message or SDK call; **evidence** = met by \
+         the file or CI job named; **MISSING** = nothing yet.\n\n\
+         How a test runs: (unit) in `cargo test`; (executor) the built guests run through LEZ v0.4.0-rc3's public \
+         execution, the code a sequencer runs, without a sequencer; (sequencer) against a standalone LEZ sequencer.\n"
     );
     let _ = writeln!(
         out,
-        "Hard requirements ({hard} rows, numbered requirements and their parts): {} tested, {} pending, {} evidence, \
-         {} missing.\n",
+        "Hard requirements ({hard} rows, numbered requirements and their parts): {} tested, {} partial, {} pending, \
+         {} evidence, {} missing.\n",
         count(Status::Tested, "hard"),
+        count(Status::Partial, "hard"),
         count(Status::Pending, "hard"),
         count(Status::Evidence, "hard"),
         count(Status::Missing, "hard"),
@@ -335,10 +364,21 @@ fn render(report: &Report<'_>) -> String {
             }
             let _ = write!(cell, "evidence: {evidence}");
         }
+        if !req.files.is_empty() {
+            if !cell.is_empty() {
+                cell.push_str("<br>");
+            }
+            let files: Vec<String> = req.files.iter().map(|f| format!("`{f}`")).collect();
+            let _ = write!(cell, "files: {}", files.join(", "));
+        }
         if cell.is_empty() {
             cell.push('-');
         }
-        let _ = writeln!(out, "| {id} | {} | {cell} | {} |", escape(&req.text), st.label());
+        let status = match (&req.gap, st) {
+            (Some(gap), Status::Partial) => format!("partial: {}", escape(gap)),
+            _ => st.label().to_owned(),
+        };
+        let _ = writeln!(out, "| {id} | {} | {cell} | {status} |", escape(&req.text));
     }
     if !report.unmapped.is_empty() {
         let _ = writeln!(out, "\n## Other tests\n");
@@ -361,9 +401,16 @@ fn escape(text: &str) -> String {
     text.replace('|', "\\|")
 }
 
-/// Problems that make `--check` fail.
-fn problems(report: &Report<'_>, strict: bool) -> Vec<String> {
+/// Problems that make `--check` fail. `root` is where the rows' `files` are looked up.
+fn problems(report: &Report<'_>, strict: bool, root: &Path) -> Vec<String> {
     let mut found = Vec::new();
+    for (req, _, _) in &report.rows {
+        for file in &req.files {
+            if !root.join(file).exists() {
+                found.push(format!("{}: evidence file {file} is missing", req.id));
+            }
+        }
+    }
     for (req, _, st) in &report.rows {
         match st {
             Status::Missing if req.kind == "hard" => found.push(format!("{}: hard requirement with no test", req.id)),
@@ -455,7 +502,7 @@ fn run() -> Result<ExitCode> {
         println!("wrote {OUTPUT}: {} requirements, {} tests", reqs.len(), tests.len());
         return Ok(ExitCode::SUCCESS);
     }
-    let mut found = problems(&report, args.strict);
+    let mut found = problems(&report, args.strict, &root);
     let current = std::fs::read_to_string(&out).unwrap_or_default();
     if current != text {
         found.push(format!(
@@ -519,6 +566,8 @@ fn prop_vested_monotone() {}
             prefixes: Vec::new(),
             tests: Vec::new(),
             evidence: None,
+            files: Vec::new(),
+            gap: None,
         }
     }
 
@@ -572,12 +621,13 @@ fn prop_vested_monotone() {}
                 ("Soft1", Status::Missing)
             ]
         );
+        let root = workspace_root();
         assert_eq!(
-            problems(&report, false),
+            problems(&report, false, &root),
             vec!["R4: hard requirement with no test".to_owned()]
         );
         assert_eq!(
-            problems(&report, true).len(),
+            problems(&report, true, &root).len(),
             2,
             "strict also refuses pending-only rows"
         );
@@ -591,6 +641,57 @@ fn prop_vested_monotone() {}
         let mut u1 = req("U1", "Usability", "hard");
         u1.evidence = Some("not enough".into());
         assert_eq!(status(&u1, &[]), Status::Missing, "a tested group needs a test");
+    }
+
+    #[test]
+    fn a_row_with_a_gap_is_partial_and_counted_as_such() {
+        let tests = scan_source("e2e", "e2e/tests/x.rs", SOURCE);
+        let mut f1a = req("F1a", "Functionality", "hard");
+        f1a.gap = Some("not shown in the GUI".into());
+        let mut s1 = req("S1", "Supportability", "hard");
+        s1.evidence = Some("a local run".into());
+        s1.gap = Some("testnet not live".into());
+        let mut f3 = req("F3", "Functionality", "hard");
+        f3.gap = Some("gap on a pending-only row".into());
+        let reqs = vec![f1a, s1, f3];
+        let report = build(&reqs, &tests);
+        let st: Vec<_> = report.rows.iter().map(|(_, _, s)| *s).collect();
+        assert_eq!(st, vec![Status::Partial, Status::Partial, Status::Pending]);
+        let text = render(&report);
+        assert!(text.contains("| partial: not shown in the GUI |"), "{text}");
+        assert!(text.contains("2 partial"), "{text}");
+    }
+
+    #[test]
+    fn a_missing_evidence_file_fails_the_check() {
+        let mut s4 = req("S4", "Supportability", "hard");
+        s4.evidence = Some("README".into());
+        s4.files = vec!["README.md".into(), "docs/no-such-file.md".into()];
+        let reqs = vec![s4];
+        let report = build(&reqs, &[]);
+        assert_eq!(
+            problems(&report, false, &workspace_root()),
+            vec!["S4: evidence file docs/no-such-file.md is missing".to_owned()]
+        );
+    }
+
+    #[test]
+    fn executor_tests_are_labelled_executor() {
+        let tests = scan_source("program", "program/tests/executor.rs", "#[test]\nfn f6_events() {}\n");
+        assert_eq!(run_label(&tests[0]), "executor");
+        let tests = scan_source("program/fees", "program/fees/src/lib.rs", "#[test]\nfn fee_x() {}\n");
+        assert_eq!(run_label(&tests[0]), "unit");
+    }
+
+    #[test]
+    fn every_evidence_file_named_in_the_table_exists() {
+        let root = workspace_root();
+        let reqs = load_table(&root).expect("table");
+        for r in &reqs {
+            for f in &r.files {
+                assert!(root.join(f).exists(), "{}: {f} is missing", r.id);
+            }
+        }
     }
 
     #[test]

@@ -93,8 +93,9 @@ credit depends on the destination:
   (`lee/state_machine/src/privacy_preserving_transaction/circuit/mod.rs`), and the wallet credits an owned private
   destination in the same transaction. The first private claim into a fresh private account was run on a dev-mode
   sequencer; the final program's run is [evidence/cli/local-dev-lifecycle.log](../evidence/cli/local-dev-lifecycle.log).
-- **Foreign private destination.** It receives a pending credit that its owner collects later with the opening of the
-  one-time address (the claimant hands it over).
+- **Foreign private destination.** On the chain it would receive a pending credit that its owner collects later with
+  the opening of the one-time address. The SDK does not offer it in version 1: it claims only to private accounts the
+  wallet owns and refuses any other destination before sending.
 
 The network fee of a privacy-preserving transaction is a native transfer run after the root call, paid by a private
 account of the claimant whose balance after the root call covers it. A native claim into a fresh private account can
@@ -172,7 +173,8 @@ and the token program is a build-time constant of `vesting`, so no message can n
 
 Evidence: `f1a_cliff_then_linear_lifecycle_token` and `f1c_milestones_lifecycle_token` in
 [program/tests/executor.rs](../program/tests/executor.rs); `f1_escrow_token_holds_exactly_the_total` in the end-to-end
-run. Cycle figures for token operations on a sequencer are not measured yet ([docs/COSTS.md](COSTS.md)).
+run. Executor cycles and transaction sizes of token create, claim, cancel and batches are in
+[docs/COSTS.md](COSTS.md); the fee a sequencer charges for token operations is not measured yet.
 
 ## 7. The sequencer does not return a program's refusal text
 

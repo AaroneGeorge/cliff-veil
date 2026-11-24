@@ -56,8 +56,9 @@ transaction. The canonical id and the opening never appear in the transaction.
 
 Changed in review. The first draft passed the private account's id as `to`. LEZ publishes the public root call of a
 privacy-preserving transaction, so that id would have been on chain next to the beneficiary, which defeats the feature.
-The SDK takes the destination as an owned private account (or, for a foreign one, as its keys), never as a bare id,
-derives `to` itself, and refuses a public destination on the private path. Evidence: the scan of a real transaction in
+The SDK takes the destination as a private account the wallet owns (or a fresh one it creates), never as a bare id,
+derives `to` itself, and refuses any other destination on the private path, public or foreign. Claiming to a private
+account owned by someone else is not offered by the SDK in version 1. Evidence: the scan of a real transaction in
 [PRIVACY.md](PRIVACY.md).
 
 ## 6. `ClaimAsOf` for private claims, with a validity window
@@ -124,7 +125,7 @@ error naming the account and the shortfall; a token claim needs a private fee pa
 
 ## 10. The token program is fixed at build time
 
-`vesting` embeds `TOKEN_PROGRAM_ID`, `FEES_PROGRAM_ID` and `ATA_PROGRAM_ID` as build inputs, from `deploy/<network>.toml`.
+`vesting` embeds `TOKEN_PROGRAM_ID`, `FEES_PROGRAM_ID` and `ATA_PROGRAM_ID` as build inputs, from `deploy/ids-<network>.toml`.
 `Asset::Token` names only a definition, so no message can name a different token program.
 
 Reason: otherwise a creator could point a schedule at a token program of its own that lets it take the escrow back or
