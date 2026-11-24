@@ -9,8 +9,8 @@
 //!
 //! A test is a function carrying `#[test]` or `#[tokio::test]` (proptest's `#[test]` included) in any `.rs` file of
 //! the workspace. It is *pending* when it carries `#[ignore = "pending: ..."]`: written, compiled, not yet run.
-//! Tests in `tests/executor.rs` and `tests/batch_limit.rs` of the program crates are labelled *executor*: they run the
-//! built guests through LEZ's public execution, without a sequencer.
+//! Tests in `tests/executor.rs`, `tests/batch_limit.rs` and `tests/compose.rs` of the program crates are labelled
+//! *executor*: they run the built guests through LEZ's public execution, without a sequencer.
 //!
 //! A row with a `gap` is *partial*: its tests run, and the gap states what they do not yet show. Every path in a
 //! row's `files` must exist, or `--check` fails. Mapping rules are in docs/requirements.toml.
@@ -291,7 +291,9 @@ fn build<'a>(reqs: &'a [Requirement], tests: &'a [Test]) -> Report<'a> {
 /// Whether `test` runs the built guests through LEZ's executor (the program crates' executor test files).
 fn is_executor(test: &Test) -> bool {
     test.krate.starts_with("program")
-        && (test.file.ends_with("tests/executor.rs") || test.file.ends_with("tests/batch_limit.rs"))
+        && ["tests/executor.rs", "tests/batch_limit.rs", "tests/compose.rs"]
+            .iter()
+            .any(|file| test.file.ends_with(file))
 }
 
 fn run_label(test: &Test) -> String {
@@ -678,6 +680,8 @@ fn prop_vested_monotone() {}
     #[test]
     fn executor_tests_are_labelled_executor() {
         let tests = scan_source("program", "program/tests/executor.rs", "#[test]\nfn f6_events() {}\n");
+        assert_eq!(run_label(&tests[0]), "executor");
+        let tests = scan_source("program", "program/tests/compose.rs", "#[test]\nfn soft2_x() {}\n");
         assert_eq!(run_label(&tests[0]), "executor");
         let tests = scan_source("program/fees", "program/fees/src/lib.rs", "#[test]\nfn fee_x() {}\n");
         assert_eq!(run_label(&tests[0]), "unit");

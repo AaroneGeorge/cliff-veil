@@ -93,6 +93,9 @@ credit depends on the destination:
   (`lee/state_machine/src/privacy_preserving_transaction/circuit/mod.rs`), and the wallet credits an owned private
   destination in the same transaction. The first private claim into a fresh private account was run on a dev-mode
   sequencer; the final program's run is [evidence/cli/local-dev-lifecycle.log](../evidence/cli/local-dev-lifecycle.log).
+  The same claim with a real proof, on a sequencer that verifies proofs, is recorded in
+  [evidence/real-proof/20261124T155037Z/](../evidence/real-proof/20261124T155037Z/): the owned destination held 300,026,771
+  afterwards and the sequencer included the transaction.
 - **Foreign private destination.** On the chain it would receive a pending credit that its owner collects later with
   the opening of the one-time address. The SDK does not offer it in version 1: it claims only to private accounts the
   wallet owns and refuses any other destination before sending.
@@ -174,7 +177,7 @@ and the token program is a build-time constant of `vesting`, so no message can n
 Evidence: `f1a_cliff_then_linear_lifecycle_token` and `f1c_milestones_lifecycle_token` in
 [program/tests/executor.rs](../program/tests/executor.rs); `f1_escrow_token_holds_exactly_the_total` in the end-to-end
 run. Executor cycles and transaction sizes of token create, claim, cancel and batches are in
-[docs/COSTS.md](COSTS.md); the fee a sequencer charges for token operations is not measured yet.
+[docs/COSTS.md](COSTS.md); the fee a sequencer charges for token operations is not measured yet. The cost of a real proof is measured for one native private claim only ([docs/COSTS.md](COSTS.md)).
 
 ## 7. The sequencer does not return a program's refusal text
 

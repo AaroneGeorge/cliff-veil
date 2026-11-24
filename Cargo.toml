@@ -23,9 +23,16 @@ members = [
   # The LEZ token program of lez-programs at the pinned commit, built from source for the executor tests.
   "program/token-guest",
   "sdk",
+  # The C ABI of the SDK (library `cliff_veil`, header `sdk/ffi/include/cliff_veil.h`) for Logos core modules.
+  "sdk/ffi",
   "cli",
   "idl",
   "e2e",
+  # Example: a launch program that holds a schedule's milestone and cancel authority as its own account
+  # (docs/COMPOSITION.md). Not part of the vesting deployment.
+  "examples/launchpad_escrow",
+  "examples/launchpad_escrow/guest",
+  "examples/launchpad_escrow/methods",
   "tools/cost",
   "tools/reqmap",
   "tools/image_id",

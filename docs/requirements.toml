@@ -228,6 +228,8 @@ group = "Soft"
 kind = "soft"
 text = "The creator can nominate a separate cancellation authority distinct from the creator wallet (useful when vesting is managed by a multisig or DAO)."
 prefixes = ["soft1_", "soft_cancel_authority"]
+evidence = "a program-owned authority: the launchpad_escrow example creates the schedule from its own account and holds both authorities (docs/COMPOSITION.md), run on a standalone sequencer"
+files = ["docs/COMPOSITION.md", "deploy/ids-local-dev-compose.toml", "evidence/e2e/compose"]
 
 [[requirement]]
 id = "Soft2"
@@ -235,6 +237,8 @@ group = "Soft"
 kind = "soft"
 text = "The creator can nominate a separate milestone authority distinct from the creator wallet."
 prefixes = ["soft2_", "soft_milestone_authority"]
+evidence = "a program-owned authority: the launchpad_escrow example creates the schedule from its own account and holds both authorities (docs/COMPOSITION.md), run on a standalone sequencer"
+files = ["docs/COMPOSITION.md", "deploy/ids-local-dev-compose.toml", "evidence/e2e/compose"]
 
 # ---------------------------------------------------------------- Fee structure (questions the proposal must answer)
 

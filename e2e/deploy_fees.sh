@@ -37,8 +37,7 @@ line() { # file section key -> the whole line
   awk -v s="[$2]" -v k="$3" '$0==s{f=1; next} /^\[/{f=0} f && $1==k {print}' "$1"
 }
 
-# scripts/deploy_local.sh builds the guests inside a command substitution, where a failed build does not stop it:
-# refuse up front when Cargo.lock is not current, the one way that build fails after the first one passed.
+# Refuse up front when Cargo.lock is not current, so a stale lock fails here rather than in the guest build.
 cargo metadata --locked --offline --format-version 1 >/dev/null \
   || { echo "Cargo.lock is not current: update it before deploying" >&2; exit 1; }
 

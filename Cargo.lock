@@ -3567,6 +3567,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "launchpad_escrow"
+version = "0.1.0"
+dependencies = [
+ "borsh",
+ "lee_core",
+ "sha2 0.10.9",
+ "vesting_core",
+ "vesting_program",
+]
+
+[[package]]
+name = "launchpad_escrow_methods"
+version = "0.1.0"
+dependencies = [
+ "risc0-build",
+]
+
+[[package]]
+name = "launchpad_escrow_program"
+version = "0.1.0"
+dependencies = [
+ "launchpad_escrow",
+ "lee_core",
+ "risc0-zkvm",
+]
+
+[[package]]
 name = "lazy-regex"
 version = "3.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8693,6 +8720,7 @@ dependencies = [
  "clock_core",
  "common",
  "hex",
+ "launchpad_escrow",
  "lee",
  "lee_core",
  "lez-admin-authority",
@@ -8762,6 +8790,8 @@ version = "0.1.0"
 dependencies = [
  "borsh",
  "clock_core",
+ "launchpad_escrow",
+ "launchpad_escrow_methods",
  "lee",
  "lee_core",
  "programs",
@@ -8796,12 +8826,27 @@ dependencies = [
  "lee_core",
  "rand 0.8.6",
  "sequencer_service_rpc",
+ "serde_json",
  "sha2 0.10.9",
  "thiserror 2.0.18",
  "tokio",
  "vesting_core",
  "vesting_fees",
  "wallet",
+]
+
+[[package]]
+name = "vesting_sdk_ffi"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "hex",
+ "lee_core",
+ "serde_json",
+ "sha2 0.10.9",
+ "tokio",
+ "vesting_core",
+ "vesting_sdk",
 ]
 
 [[package]]

@@ -14,6 +14,8 @@ vesting_sdk.workspace = true
 # fee tests.
 vesting_fees.workspace = true
 lez-admin-authority.workspace = true
+# The launchpad example's messages and launch-account derivation, for the composition tests (tests/compose.rs).
+launchpad_escrow = { path = "../examples/launchpad_escrow" }
 # The token program's messages and state, at the pinned lez-programs commit (as the program uses them).
 token_core = { git = "https://github.com/logos-blockchain/lez-programs", rev = "3f04cc37ec5f90358e606b0fe7d28baa6b1dbd7e" }
 # LEZ v0.4.0-rc3: the wallet builds, prices, simulates and signs public transactions; `lee` and `common` carry the

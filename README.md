@@ -16,17 +16,20 @@ Logos mini-app, the end-to-end tests, and the evidence files the numbers in thes
 
 | Item | State |
 |---|---|
-| Create (cliff + linear, fully linear, milestones, batch), claim to a public account, cancel, make non-cancelable, signal a milestone, transfer the beneficiary, creation-fee switch | Runs on a LEZ v0.4.0-rc3 standalone sequencer in dev mode. The end-to-end suite passed 34 of 34 tests on 2026-11-24 ([evidence/e2e/local-dev/20261124T140628Z.json](evidence/e2e/local-dev/20261124T140628Z.json)). |
+| Create (cliff + linear, fully linear, milestones, batch), claim to a public account, cancel, make non-cancelable, signal a milestone, transfer the beneficiary, creation-fee switch | Runs on a LEZ v0.4.0-rc3 standalone sequencer in dev mode. The end-to-end suite passed 41 of 41 tests on 2026-11-24 ([evidence/e2e/local-dev/20261124T160153Z.json](evidence/e2e/local-dev/20261124T160153Z.json)). |
 | Native and token schedules | Both are covered by tests. Executor cycles and transaction sizes are measured for both; the fee a sequencer charges is measured for native operations only ([docs/COSTS.md](docs/COSTS.md)). |
-| Claim to a private account | Runs in RISC Zero dev mode only (`RISC0_DEV_MODE=1`: the transaction carries no real proof). Every private-claim figure and log in this repository is a dev-mode figure. A claim with a real proof has not been run. |
+| Claim to a private account | In the end-to-end suite and the lifecycle log it runs in RISC Zero dev mode (`RISC0_DEV_MODE=1`: the transaction carries no real proof), and those figures are labelled as dev-mode figures. One native claim was also proved for real; see the next row. Token private claim: dev mode on a sequencer ([evidence/e2e/local-dev/20261124T160153Z.json](evidence/e2e/local-dev/20261124T160153Z.json)); real-proof run pending. |
+| Private claim with a real proof | One native private claim (`ClaimAsOf` to a fresh private account of the wallet) was proved with `RISC0_DEV_MODE` unset everywhere and included by a standalone LEZ v0.4.0-rc3 sequencer that verifies proofs: transaction `66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43`, block 193, 305,555,555 claimed. On a GitHub-hosted runner (4 cores, 16 GiB, an 8 GiB swap file added as a margin) the whole CLI command took 1,229 s (the prover ran for about 1,200 s of it), used 370% CPU and peaked at 9,612,576 KiB (9.17 GiB) of memory; the transaction is 251,270 bytes. The same sequencer refused the same claim made with a dev-mode receipt. The canonical id of the private destination appears 0 times in the `getBlock` and `getTransaction` answers. This is one run on one machine and an ephemeral sequencer, not a public network. Record: [evidence/real-proof/20261124T155037Z/](evidence/real-proof/20261124T155037Z/); method and limits: [tools/real_proof/README.md](tools/real_proof/README.md). |
 | LEZ testnet 0.4 | Not yet live. Nothing is deployed there. The suite runs on a local standalone sequencer instead; program ids of that network are in [deploy/ids-local-dev.toml](deploy/ids-local-dev.toml). |
 | Mini-app | Both packages build with Nix, the core module installs, loads and answers under `logosctl` 0.3.2, and the view renders offscreen. Loading in Basecamp is not verified, and neither is a run of the mini-app against a live sequencer ([evidence/miniapp/README.md](evidence/miniapp/README.md)). |
 | Guest builds | Reproducible: independent builds in the pinned RISC Zero builder image give identical binaries and image ids ([evidence/guests/reproducible-local-dev.log](evidence/guests/reproducible-local-dev.log)). |
-| Cost measurements | Executor cycles and transaction sizes of every operation (native, token, fee path, batches at the caps), standalone-sequencer fees of the native operations, and the fee of one private claim in dev mode ([docs/COSTS.md](docs/COSTS.md)). They are LEZ v0.4.0-rc3 measurements on a local sequencer, not testnet 0.4 measurements. |
+| Cost measurements | Executor cycles and transaction sizes of every operation (native, token, fee path, batches at the caps), standalone-sequencer fees of the native operations, the fee of one private claim in dev mode, and the time, memory and size of one private claim with a real proof ([docs/COSTS.md](docs/COSTS.md)). They are LEZ v0.4.0-rc3 measurements on a local sequencer, not testnet 0.4 measurements. |
 
 ## Quick start (local network)
 
-Everything below runs on one Linux x86-64 machine against a standalone LEZ v0.4.0-rc3 sequencer in dev mode.
+Everything below runs on one Linux x86-64 machine against a standalone LEZ v0.4.0-rc3 sequencer in dev mode. The one run
+with real proofs (`tools/real_proof/run.sh`, on a sequencer with dev mode unset) is described in
+[tools/real_proof/README.md](tools/real_proof/README.md).
 
 1. **Set up the machine.** `scripts/bootstrap.sh --with-sudo` installs the system packages, the RISC Zero toolchain
    (`rzup`), fetches LEZ at the pinned commit (`scripts/pins.txt`) next to the checkout, and builds the LEZ standalone
@@ -231,8 +234,10 @@ when it has to pay its own fee, and a token claim has a private fee payer holdin
 the definition. A native claim into a fresh private account pays its own network fee out of the claimed amount. In a
 dev-mode run this fee was ~5528416 against ~803320 for the public claim above, and the private balance after the claim
 was 94478251 from a claim of 100006667. In dev mode the command also prints `dev mode: RISC0_DEV_MODE=1, ...` and the
-transaction carries no real proof; on a network that verifies proofs the claim is proved locally first, which takes
-minutes.
+transaction carries no real proof. On a sequencer that verifies proofs the claim is proved locally first: one such
+claim took 1,229 s for the whole command on a 4-core hosted runner, with a peak of 9,612,576 KiB of memory
+([docs/COSTS.md](docs/COSTS.md)); its fee estimate was 5,528,784 and the private balance after the claim of 305,555,555
+was 300,026,771.
 
 ### Cancel, make non-cancelable, signal, transfer
 
@@ -329,7 +334,8 @@ Signal, transfer and make non-cancelable move no funds and call no token program
 schedules only. The chain's execution
 cap is 10,000,000 cycles per transaction and per block. The fees a standalone sequencer charged for the native operations
 are in the same file (for example 759,544 for a create and 795,888 for a claim), as is the fee of one private claim in
-dev mode (5,528,416). These are measured on a local LEZ v0.4.0-rc3 sequencer and its executor, not on testnet 0.4.
+dev mode (5,528,416). The time and memory of one private claim with a real proof (1,229 s, 9,612,576 KiB on a hosted
+runner) are in the same file. These are measured on a local LEZ v0.4.0-rc3 sequencer and its executor, not on testnet 0.4.
 
 ## Privacy model
 
@@ -378,16 +384,16 @@ A creation with a zero fee passes whatever the state of the fee configuration. D
 | `SPEC.md` | The interface specification (version 1): programs and accounts, messages, state, arithmetic, error codes, fees, events, privacy, reading state. |
 | `core/` | `vesting_core`: the vesting rules, state, messages, events and error table. Shared by the programs and the SDK; property-tested. |
 | `program/` | `vesting_methods` (embeds the guest ELFs) and `program/guest`, the `vesting` program. `program/fees/` is the `vesting_fees` program, its guest and its admin client. `program/token-guest/` builds the token program from lez-programs. `program/ata-guest/` is the upstream associated-token-account program, vendored. |
-| `sdk/` | `cliff_veil_sdk`: the whole lifecycle, public and private claims, batch splitting, block scan, in-memory backend for tests. |
+| `sdk/` | `cliff_veil_sdk`: the whole lifecycle, public and private claims, batch splitting, block scan, in-memory backend for tests. `sdk/ffi/` is its C ABI (`libcliff_veil`, header `sdk/ffi/include/cliff_veil.h`) for Logos modules in C++. See [docs/SDK.md](docs/SDK.md). |
 | `cli/` | The `cliff-veil` binary. |
 | `idl/` | `idl/vesting.json` and `idl/vesting_fees.json` in SPEL's IDL format, and the generator that keeps them equal to `core/`. See [docs/IDL.md](docs/IDL.md). |
 | `miniapp/` | The Logos mini-app: core module, QML view, and its logic crate. |
 | `e2e/` | End-to-end tests against a standalone sequencer, and `e2e/run.sh`. |
-| `tools/` | `cost` (writes docs/COSTS.md), `reqmap` (writes docs/REQUIREMENTS.md), `image_id` (image id of a guest binary), `scan_rpc` (privacy scan of RPC answers). |
+| `tools/` | `cost` (writes docs/COSTS.md), `reqmap` (writes docs/REQUIREMENTS.md), `image_id` (image id of a guest binary), `scan_rpc` (privacy scan of RPC answers), `real_proof` (the private claim with a real proof, run by `.github/workflows/real-proof.yml`). |
 | `scripts/` | Bootstrap, local sequencers, deployment, reproducible guest build and image-id check. |
 | `deploy/` | Program ids and image ids per network. |
 | `evidence/` | Logs and measurement files that the documents quote. |
-| `docs/` | [REQUIREMENTS](docs/REQUIREMENTS.md), [COSTS](docs/COSTS.md), [IDL](docs/IDL.md), [PLATFORM-FINDINGS](docs/PLATFORM-FINDINGS.md), [DECISIONS](docs/DECISIONS.md), [PRIVACY](docs/PRIVACY.md), [EVENTS](docs/EVENTS.md), [REUSE](docs/REUSE.md). |
+| `docs/` | [SDK](docs/SDK.md), [REQUIREMENTS](docs/REQUIREMENTS.md), [COSTS](docs/COSTS.md), [IDL](docs/IDL.md), [PLATFORM-FINDINGS](docs/PLATFORM-FINDINGS.md), [DECISIONS](docs/DECISIONS.md), [PRIVACY](docs/PRIVACY.md), [EVENTS](docs/EVENTS.md), [REUSE](docs/REUSE.md). |
 
 ## Licence
 

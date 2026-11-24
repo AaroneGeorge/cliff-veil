@@ -6,11 +6,13 @@
 #   CV_SEQ_RPC              sequencer RPC (default http://127.0.0.1:3050, `scripts/seq.sh dev start`)
 #   CV_IDS                  program ids file (default deploy/ids-local-dev.toml, `scripts/deploy_local.sh dev`)
 #   CV_IDS_FEES             ids of the fee-enabled pair (default deploy/ids-local-dev-fees.toml, `e2e/deploy_fees.sh`)
+#   CV_IDS_COMPOSE          ids of the launchpad example (default deploy/ids-local-dev-compose.toml, `e2e/deploy_compose.sh`)
 #   CV_E2E_INCLUDE_PENDING  1: also run the tests marked `#[ignore = "pending: ..."]`
 #   CV_E2E_RECORD           a file the tests append measured figures to (batch byte sizes, fees, transaction hashes)
 #
 # tests/fees_on.rs runs against the fee-enabled pair: deploy it with e2e/deploy_fees.sh first. Its admin test
 # renounces that pair's admin, so each run of it needs a fresh pair (run e2e/deploy_fees.sh again).
+# tests/compose.rs runs against the launchpad example: deploy it with e2e/deploy_compose.sh first.
 #
 # Every test opens its own funded accounts, so the tests run concurrently against one sequencer (CV_E2E_THREADS,
 # default 8). Pending tests (written against SPEC.md, waiting for a program message) are listed by

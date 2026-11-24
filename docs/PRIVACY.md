@@ -3,11 +3,12 @@
 What a cliff-veil claim to a private account does and does not put into public on-chain state, how that was checked on a
 real transaction, and what the check does not show. The binding statement is [SPEC.md](../SPEC.md) section 9.
 
-**Dev-mode caveat.** Every private claim in this repository was made with `RISC0_DEV_MODE=1`: the privacy-preserving
-transaction is built and accepted but carries no real proof. The structure of the transaction, and therefore which
-identifiers appear in it, is the same as with a proof; what dev mode does not show is a proof's cost or a verifier's
-acceptance of it. A claim with a real proof has not been run, and nothing here measures its time or memory. The CLI says
-so on every private claim (`dev mode: RISC0_DEV_MODE=1, ...`).
+**Dev-mode caveat.** The private claims of the lifecycle log and the end-to-end suite were made with
+`RISC0_DEV_MODE=1`: the privacy-preserving transaction is built and accepted but carries no real proof. The CLI says so
+on every such claim (`dev mode: RISC0_DEV_MODE=1, ...`). One native private claim was also made with a real proof, with
+`RISC0_DEV_MODE` unset everywhere, and included by a standalone sequencer that verifies proofs; its scan is
+[below](#the-scan-of-a-private-claim-with-a-real-proof). A token private claim has so far run in dev mode on a sequencer
+only; its real-proof run is pending.
 
 ## What is visible, and what is not
 
@@ -86,15 +87,45 @@ The end-to-end suite asserts related properties of state (`f2_claim_private_to_a
 `f2_destination_is_not_in_schedule_state`, which looks for a public claim's destination in the schedule's stored state);
 the scan is the check of a whole transaction as the RPC serves it.
 
+## The scan of a private claim with a real proof
+
+The same scan was run on a private claim proved for real: `RISC0_DEV_MODE` unset in the client and in the sequencer's
+environment, a standalone LEZ v0.4.0-rc3 sequencer that verifies proofs, on a GitHub-hosted runner. The record is
+[evidence/real-proof/20261124T155037Z/](../evidence/real-proof/20261124T155037Z/) (`summary.json`, `scan.txt`,
+`private-claim-transaction.json`, `private-claim-block.json`); how the run is made and what it does not show is in
+[tools/real_proof/README.md](../tools/real_proof/README.md).
+
+| What | Value |
+|---|---|
+| Transaction hash | `66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43` |
+| Block | 193 |
+| Canonical private account (the destination) | `EeCek4utt1ARP7VeGwS5nbXCrw41csYaYUaZwd3joFN7` |
+| One-time address named in the transaction | `7ja3oycQ17GnQrHXcYCUJhDCyjbTV5yzVwD7QYxuZ7NE` |
+| `getBlock`, canonical id: base58 / hex / raw bytes | 0 / 0 / 0 |
+| `getTransaction`, canonical id: base58 / hex / raw bytes | 0 / 0 / 0 |
+| `getBlock`, one-time address, raw bytes in decoded base64 | 4 |
+| `getTransaction`, one-time address, raw bytes in decoded base64 | 4 |
+| Total, canonical id / one-time address | 0 / 8 |
+| Size of the transaction (the proof is in it) | 251,270 bytes |
+
+The result is the same as for the dev-mode claim: the canonical id of the destination is nowhere in the block or the
+transaction, and the one-time address is, 8 times. The claim amount (305,555,555) is public in the same way. The run also
+sent the same claim once with a dev-mode receipt; the sequencer refused it with `Invalid privacy preserving execution
+circuit proof` (`sequencer.log` of the record), so the sequencer was checking proofs, and the claim in the table is one
+it verified.
+
 ## What the scan does not show
 
 - It looks for identifiers. It says nothing about linking a claim to a destination by **amount or timing**: the claim's
   amount and time are public, and a later private movement of the same amount shortly afterwards is a pattern an
   observer could look for. The property is that the destination is not recorded, not that it cannot be guessed.
-- It covers one transaction on a local dev-mode chain, not a population of transactions on a live network.
-- It covers a native claim into a fresh private account. A token private claim (a private holding of the definition and
-  a separate private fee payer) has not been run on a sequencer.
-- It does not cover a claim with a real proof (dev-mode caveat above).
+- Each scan covers one transaction on a local chain (the first in dev mode, the second with proofs verified by the
+  sequencer), not a population of transactions on a live network. The real-proof sequencer was ephemeral and is gone;
+  the record keeps the RPC answers that were scanned.
+- Both scans cover a native claim into a fresh private account. A token private claim (a private holding of the
+  definition and a separate private fee payer) has run in dev mode on a sequencer
+  ([evidence/e2e/local-dev/20261124T160153Z.json](../evidence/e2e/local-dev/20261124T160153Z.json)); a scan of one with
+  real proofs is pending.
 
 ## What a user is shown
 
@@ -123,3 +154,7 @@ shown, with a stand-in command line, in [evidence/miniapp/load-logosctl.log](../
 On the local dev-mode chain the estimated network fee of the claim in the lifecycle log was 5,528,416 for the private
 claim and 803,320 for the public one (the CLI prints both as estimates). The private path also needs a wallet that holds
 the private accounts and syncs private state. These are dev-mode figures from one run.
+
+The claimant also proves the transaction locally. For the real-proof claim above that took 1,229 s for the whole CLI
+command on a 4-core hosted runner, with a peak of 9,612,576 KiB (9.17 GiB) of memory; the fee estimate of that claim was
+5,528,784. This is one run on one machine; the figures and how they were taken are in [COSTS.md](COSTS.md).

@@ -53,7 +53,7 @@ All runs are on LEZ v0.4.0-rc3 (a local standalone sequencer and its executor). 
 
 | Operation | Asset | Schedules | Cycles | Bytes | Fee | Status |
 |---|---|---|---|---|---|---|
-| claim_private | native | 1 | - | - | 5528416 | ok (dev mode: the proof is a dev-mode receipt, a real proof is not measured; the fresh private account received 100006667 and holds 94478251 after paying the fee) |
+| claim_private | native | 1 | - | - | 5528416 | ok (dev mode: the proof is a dev-mode receipt, so no proving cost is shown; a real proof is in the section below; the fresh private account received 100006667 and holds 94478251 after paying the fee) |
 
 ## sequencer run (LEZ v0.4.0-rc3)
 
@@ -80,3 +80,40 @@ From `evidence/batch/max.txt` (executor, budget of one transaction). A batch ove
 | token | 67 | 68 | 10000000 |
 | native-64-milestones-with-fee | 61 | 62 | 10000000 |
 | token-64-milestones-with-fee | 38 | 39 | 10000000 |
+
+## private claim with a real proof (LEZ v0.4.0-rc3)
+
+One run, on one machine. The figures come from `evidence/real-proof/20261124T155037Z/` (`summary.json`,
+`private-claim.time`, `memory.tsv`, `scan.txt`, `sequencer.log`); the method and its limits are in
+[tools/real_proof/README.md](../tools/real_proof/README.md). This section is not written by `vesting_cost`.
+
+- source: `evidence/real-proof/20261124T155037Z/`, repository commit `5b1101d1dd66225df17af089a4a69a82a547ea82`
+- transaction: `66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43` in block 193
+- RISC0_DEV_MODE: unset in the client and in the sequencer's environment (`risc0_dev_mode_in_its_environment: false`)
+- sequencer: standalone LEZ v0.4.0-rc3 that verifies proofs, started for the run on the same machine and discarded with it
+- machine: GitHub-hosted runner, 4 cores (AMD EPYC 9V45), 15,983 MiB of memory, a swap file of 8 GiB added as a margin
+  (11,263 MiB of swap in total), prover `risc0-r0vm 3.0.5`
+
+| Measure | Value |
+|---|---|
+| Claimed | 305,555,555 (the private balance after the claim: 300,026,771) |
+| Network fee estimate | 5,528,784 |
+| Cycles (the CLI's estimate before sending) | 57,271 |
+| Wall time of the whole CLI command | 1,229 s (20:29.49 by `/usr/bin/time -v`) |
+| Time `r0vm` was seen running | about 1,200 s (sampled every 5 s) |
+| CPU use | 370% (user 4,541.95 s, system 15.95 s) |
+| Peak memory of the command (maximum resident set size) | 9,612,576 KiB (9.17 GiB) |
+| Peak sampled memory of `r0vm` / of the CLI | 9,445,464 KiB / 37,352 KiB |
+| Peak swap in use (sampled) | 1,737,444 KiB |
+| Lowest available memory (sampled) | 5,874,316 KiB |
+| Size of the transaction (`getTransaction`) | 251,270 bytes |
+
+The wall time covers the whole command: local checks, the dry run, the proof, sending, and waiting for the transaction
+to be included. Public transactions carry no proof on LEZ, so the public claim (`ee6ac767...`, block 194, 1,138,893,519)
+and the cancel (`7246a352...`, block 195) of the same run were not proved. The same claim made with a dev-mode receipt
+was not included, and the sequencer's log names the reason: `Invalid privacy preserving execution circuit proof`.
+The privacy scan of this transaction is in [PRIVACY.md](PRIVACY.md).
+
+What the run does not show: how the time scales with other machines (a different runner, a laptop), a second run on the
+same machine, or a token claim (which needs three more proofs). A token private claim is so far measured in dev mode on a
+sequencer only; its real-proof run is pending.

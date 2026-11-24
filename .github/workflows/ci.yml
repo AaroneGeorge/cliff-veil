@@ -189,6 +189,10 @@ jobs:
         run: |
           e2e/deploy_fees.sh
           cat deploy/ids-local-dev-fees.toml
+      - name: Deploy the launchpad example against that vesting (e2e/deploy_compose.sh, for tests/compose.rs)
+        run: |
+          e2e/deploy_compose.sh
+          cat deploy/ids-local-dev-compose.toml
       - name: End-to-end tests (every test opens its own funded accounts; pending tests are listed and skipped)
         env:
           CV_SEQ_RPC: http://127.0.0.1:3050
