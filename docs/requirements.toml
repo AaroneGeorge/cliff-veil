@@ -160,8 +160,8 @@ id = "P2"
 group = "Performance"
 kind = "hard"
 text = "Document the compute unit (CU) cost of each operation: create schedule, claim, cancel, signal milestone, transfer beneficiary. Measurements are taken on LEZ testnet 0.4."
-evidence = "docs/COSTS.md, written by tools/cost from evidence/cost/*.json and evidence/batch/max.txt"
-files = ["docs/COSTS.md", "evidence/cost/executor.json", "evidence/cost/sequencer.json", "evidence/cost/private-claim.json", "evidence/batch/max.txt"]
+evidence = "docs/COSTS.md, written by tools/cost from evidence/cost/*.json, evidence/batch/max.txt and the real-proof records in evidence/real-proof/"
+files = ["docs/COSTS.md", "evidence/cost/executor.json", "evidence/cost/sequencer.json", "evidence/cost/private-claim.json", "evidence/batch/max.txt", "evidence/real-proof"]
 gap = "costs measured on a local LEZ v0.4.0-rc3 standalone sequencer and its executor; LEZ testnet 0.4 is not live yet"
 
 # ---------------------------------------------------------------- Supportability
@@ -188,7 +188,7 @@ id = "S3"
 group = "Supportability"
 kind = "hard"
 text = "Every hard requirement in Functionality, Usability, Reliability, and Performance has at least one corresponding test."
-evidence = "this file and `cargo run -p reqmap -- --check`, a step of job `e2e` of .github/workflows/ci.yml"
+evidence = "this file and `cargo run -p reqmap -- --check`, a step of job `rust` of .github/workflows/ci.yml"
 
 [[requirement]]
 id = "S4"
@@ -197,6 +197,7 @@ kind = "hard"
 text = "A README documents end-to-end usage: deployment steps, program addresses, and step-by-step instructions for creating a schedule, claiming, and cancelling via CLI and mini-app."
 evidence = "README.md"
 files = ["README.md"]
+gap = "the program addresses given are those of a local LEZ v0.4.0-rc3 deployment (deploy/ids-local-dev.toml); there are no LEZ testnet 0.4 addresses yet (no public endpoint), and the mini-app steps for Basecamp are written but not yet verified in Basecamp"
 
 # ---------------------------------------------------------------- Privacy
 
@@ -205,6 +206,8 @@ id = "Pr1"
 group = "Privacy"
 kind = "hard"
 text = "The mini-app and SDK must support claiming to both public and private accounts."
+gap = "the SDK claims to public and private accounts on a sequencer; the mini-app's public and private claim paths are tested in its logic and its core module loads headless in the Logos runtime, but a private claim made from the mini-app in Basecamp is not yet shown"
+files = ["evidence/miniapp/README.md", "evidence/miniapp/load-logosctl.log"]
 
 [[requirement]]
 id = "Pr2"

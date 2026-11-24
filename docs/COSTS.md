@@ -1,6 +1,6 @@
 # Cost of each operation
 
-Written by `cargo run -p vesting_cost` from the files in `evidence/cost/` and `evidence/batch/max.txt`; every number below is copied from those files. Do not edit by hand.
+Written by `cargo run -p vesting_cost` from the files in `evidence/cost/`, `evidence/batch/max.txt` and `evidence/real-proof/*/` (`summary.json`, `private-claim.time`); every number below is copied from those files. Do not edit by hand.
 
 All runs are on LEZ v0.4.0-rc3 (a local standalone sequencer and its executor). LEZ testnet 0.4 has no public endpoint yet; the same commands will be run there when it has.
 
@@ -83,16 +83,15 @@ From `evidence/batch/max.txt` (executor, budget of one transaction). A batch ove
 
 ## private claim with a real proof (LEZ v0.4.0-rc3)
 
-One run, on one machine. The figures come from `evidence/real-proof/20261124T155037Z/` (`summary.json`,
-`private-claim.time`, `memory.tsv`, `scan.txt`, `sequencer.log`); the method and its limits are in
-[tools/real_proof/README.md](../tools/real_proof/README.md). This section is not written by `vesting_cost`.
+Every record under `evidence/real-proof/`, newest first: one run. The figures come from each record's `summary.json` and `private-claim.time` (and `token.time` for the token part); the memory samples are in `memory.tsv`, the privacy scan in `scan.txt`, the sequencer's log in `sequencer.log`. The method and its limits are in [tools/real_proof/README.md](../tools/real_proof/README.md).
 
-- source: `evidence/real-proof/20261124T155037Z/`, repository commit `5b1101d1dd66225df17af089a4a69a82a547ea82`
+### 20261124T155037Z: one run on a hosted runner
+
+- source: `evidence/real-proof/20261124T155037Z/`, repository commit `5b1101d1dd66225df17af089a4a69a82a547ea82`, workflow run [45422127636](https://github.com/AaroneGeorge/cliff-veil/actions/runs/45422127636)
 - transaction: `66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43` in block 193
 - RISC0_DEV_MODE: unset in the client and in the sequencer's environment (`risc0_dev_mode_in_its_environment: false`)
-- sequencer: standalone LEZ v0.4.0-rc3 that verifies proofs, started for the run on the same machine and discarded with it
-- machine: GitHub-hosted runner, 4 cores (AMD EPYC 9V45), 15,983 MiB of memory, a swap file of 8 GiB added as a margin
-  (11,263 MiB of swap in total), prover `risc0-r0vm 3.0.5`
+- sequencer: standalone LEZ v0.4.0-rc3 that verifies proofs, started for this run on the same machine and discarded with it
+- machine: GitHub-hosted runner, 4 CPUs (AMD EPYC 9V45 96-Core Processor), 15,983 MiB of memory, 11,263 MiB of swap in total (including any swap file the workflow added as a margin), image `ubuntu24 20261116.376.1`, prover `risc0-r0vm 3.0.5`
 
 | Measure | Value |
 |---|---|
@@ -107,13 +106,10 @@ One run, on one machine. The figures come from `evidence/real-proof/20261124T155
 | Peak swap in use (sampled) | 1,737,444 KiB |
 | Lowest available memory (sampled) | 5,874,316 KiB |
 | Size of the transaction (`getTransaction`) | 251,270 bytes |
+| Privacy scan of `getBlock` and `getTransaction` | canonical private account found 0 times, one-time address 8 times |
 
-The wall time covers the whole command: local checks, the dry run, the proof, sending, and waiting for the transaction
-to be included. Public transactions carry no proof on LEZ, so the public claim (`ee6ac767...`, block 194, 1,138,893,519)
-and the cancel (`7246a352...`, block 195) of the same run were not proved. The same claim made with a dev-mode receipt
-was not included, and the sequencer's log names the reason: `Invalid privacy preserving execution circuit proof`.
-The privacy scan of this transaction is in [PRIVACY.md](PRIVACY.md).
+The wall time covers the whole command: local checks, the dry run, the proof, sending, and waiting for the transaction to be included. Public transactions carry no proof on LEZ, so the public claim (`ee6ac767...`, block 194, 1,138,893,519) and the cancel (`7246a352...`, block 195) of the same run were not proved. The same claim made with a dev-mode receipt was not included, and the sequencer's log names the reason: `State transition failed at transaction 0: Invalid privacy preserving execution circuit proof, skipping it`. The privacy scan of this transaction is in [PRIVACY.md](PRIVACY.md).
 
-What the run does not show: how the time scales with other machines (a different runner, a laptop), a second run on the
-same machine, or a token claim (which needs three more proofs). A token private claim is so far measured in dev mode on a
-sequencer only; its real-proof run is pending.
+This run predates the token part of `run.sh`.
+
+What the run does not show: how the time scales on other machines (a different runner, a laptop), or a second run on the same kind of machine. Nor a token claim with real proofs (which needs three more proofs): a token private claim is so far measured in dev mode on a sequencer only.

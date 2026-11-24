@@ -26,11 +26,13 @@
 //! number, so the table always shows what was and was not measured; the recorded evidence must have a number in
 //! every row (test `p2_every_rfp_operation_has_a_measured_cost`).
 //!
-//! Output: one JSON file per mode under `evidence/cost/` and `docs/COSTS.md`, rendered from every JSON file there
-//! and from the batch limits in `evidence/batch/max.txt`.
+//! Output: one JSON file per mode under `evidence/cost/` and `docs/COSTS.md`, rendered from every JSON file there,
+//! from the batch limits in `evidence/batch/max.txt`, and from every real-proof record under `evidence/real-proof/`
+//! (`summary.json`, `private-claim.time`; see `real_proof`).
 
 mod executor;
 mod private;
+mod real_proof;
 mod sequencer;
 
 use std::path::{Path, PathBuf};
@@ -142,8 +144,9 @@ fn main() -> Result<()> {
     }
     let runs = load_runs(&evidence)?;
     let maxima = load_batch_maxima(&root.join(BATCH_MAX))?;
+    let proofs = real_proof::load(&root.join(real_proof::DIR))?;
     std::fs::create_dir_all(doc.parent().unwrap_or(&root))?;
-    std::fs::write(&doc, render(&runs, &maxima)).with_context(|| format!("write {}", doc.display()))?;
+    std::fs::write(&doc, render(&runs, &maxima, &proofs)).with_context(|| format!("write {}", doc.display()))?;
     println!("wrote {}", doc.display());
     Ok(())
 }
@@ -213,11 +216,13 @@ fn load_batch_maxima(path: &Path) -> Result<Vec<BatchMax>> {
     }
 }
 
-/// `docs/COSTS.md` from every recorded run and the batch limits. Numbers come only from those files.
-fn render(runs: &[Run], maxima: &[BatchMax]) -> String {
+/// `docs/COSTS.md` from every recorded run, the batch limits and the real-proof records. Numbers come only from those
+/// files.
+fn render(runs: &[Run], maxima: &[BatchMax], proofs: &[real_proof::Record]) -> String {
     let mut out = String::from(
-        "# Cost of each operation\n\nWritten by `cargo run -p vesting_cost` from the files in `evidence/cost/` and \
-         `evidence/batch/max.txt`; every number below is copied from those files. Do not edit by hand.\n\n\
+        "# Cost of each operation\n\nWritten by `cargo run -p vesting_cost` from the files in `evidence/cost/`, \
+         `evidence/batch/max.txt` and `evidence/real-proof/*/` (`summary.json`, `private-claim.time`); every number \
+         below is copied from those files. Do not edit by hand.\n\n\
          All runs are on LEZ v0.4.0-rc3 (a local standalone sequencer and its executor). LEZ testnet 0.4 has no \
          public endpoint yet; the same commands will be run there when it has.\n\n\
          - **Cycles**: the transaction run through LEZ v0.4.0-rc3's public execution (`ValidatedStateDiff`, \
@@ -274,6 +279,7 @@ fn render(runs: &[Run], maxima: &[BatchMax]) -> String {
             ));
         }
     }
+    out.push_str(&real_proof::render(proofs));
     out
 }
 
@@ -294,7 +300,7 @@ mod tests {
             inputs: vec![("vesting.bin".into(), "ab".into())],
             rows: vec![row, missing],
         };
-        let doc = render(&[run], &[]);
+        let doc = render(&[run], &[], &[]);
         assert!(doc.contains("| claim | native | 1 | 57332 | - | - | ok |"));
         assert!(doc.contains("| cancel | native | 1 | - | - | - | not built |"));
     }
@@ -314,7 +320,7 @@ mod tests {
                 budget: 10_000_000
             }
         );
-        assert!(render(&[], &maxima).contains("| native | 193 | 194 | 10000000 |"));
+        assert!(render(&[], &maxima, &[]).contains("| native | 193 | 194 | 10000000 |"));
     }
 
     /// Operations (and assets) that docs/COSTS.md must show with a measured number: the five the RFP names
@@ -379,10 +385,19 @@ mod tests {
                 "{BATCH_MAX}: no maximum for {shape}"
             );
         }
+        let proofs = real_proof::load(&root.join(real_proof::DIR)).expect("evidence/real-proof parses");
+        for p in &proofs {
+            assert_eq!(
+                p.summary["private_claim"]["dev_mode"],
+                serde_json::Value::Bool(false),
+                "{}: a real-proof record must not be in dev mode",
+                p.name
+            );
+        }
         let doc = std::fs::read_to_string(root.join("docs/COSTS.md")).expect("docs/COSTS.md");
         assert_eq!(
             doc,
-            render(&runs, &maxima),
+            render(&runs, &maxima, &proofs),
             "docs/COSTS.md is out of date: run `cargo run -p vesting_cost -- --render-only`"
         );
     }

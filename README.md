@@ -16,7 +16,7 @@ Logos mini-app, the end-to-end tests, and the evidence files the numbers in thes
 
 | Item | State |
 |---|---|
-| Create (cliff + linear, fully linear, milestones, batch), claim to a public account, cancel, make non-cancelable, signal a milestone, transfer the beneficiary, creation-fee switch | Runs on a LEZ v0.4.0-rc3 standalone sequencer in dev mode. The end-to-end suite passed 41 of 41 tests on 2026-11-24 ([evidence/e2e/local-dev/20261124T160153Z.json](evidence/e2e/local-dev/20261124T160153Z.json)). |
+| Create (cliff + linear, fully linear, milestones, batch), claim to a public account, cancel, make non-cancelable, signal a milestone, transfer the beneficiary, creation-fee switch | Runs on a LEZ v0.4.0-rc3 standalone sequencer in dev mode. The end-to-end suite has 43 tests (34 + 4 + 3 + 2 in `e2e/tests/`, counted with `cargo test -p vesting_e2e -- --list --ignored`). The recorded local run of 2026-11-24 passed 41 of 41, before the two composition tests were added ([evidence/e2e/local-dev/20261124T160153Z.json](evidence/e2e/local-dev/20261124T160153Z.json)); those two passed 2 of 2 in their own run ([evidence/e2e/compose/20261124T163557Z.json](evidence/e2e/compose/20261124T163557Z.json)). |
 | Native and token schedules | Both are covered by tests. Executor cycles and transaction sizes are measured for both; the fee a sequencer charges is measured for native operations only ([docs/COSTS.md](docs/COSTS.md)). |
 | Claim to a private account | In the end-to-end suite and the lifecycle log it runs in RISC Zero dev mode (`RISC0_DEV_MODE=1`: the transaction carries no real proof), and those figures are labelled as dev-mode figures. One native claim was also proved for real; see the next row. Token private claim: dev mode on a sequencer ([evidence/e2e/local-dev/20261124T160153Z.json](evidence/e2e/local-dev/20261124T160153Z.json)); real-proof run pending. |
 | Private claim with a real proof | One native private claim (`ClaimAsOf` to a fresh private account of the wallet) was proved with `RISC0_DEV_MODE` unset everywhere and included by a standalone LEZ v0.4.0-rc3 sequencer that verifies proofs: transaction `66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43`, block 193, 305,555,555 claimed. On a GitHub-hosted runner (4 cores, 16 GiB, an 8 GiB swap file added as a margin) the whole CLI command took 1,229 s (the prover ran for about 1,200 s of it), used 370% CPU and peaked at 9,612,576 KiB (9.17 GiB) of memory; the transaction is 251,270 bytes. The same sequencer refused the same claim made with a dev-mode receipt. The canonical id of the private destination appears 0 times in the `getBlock` and `getTransaction` answers. This is one run on one machine and an ephemeral sequencer, not a public network. Record: [evidence/real-proof/20261124T155037Z/](evidence/real-proof/20261124T155037Z/); method and limits: [tools/real_proof/README.md](tools/real_proof/README.md). |
@@ -52,6 +52,8 @@ with real proofs (`tools/real_proof/run.sh`, on a sequencer with dev mode unset)
    and writes every id to `deploy/ids-local-dev.toml`. `scripts/deploy_local.sh dev --build release` builds the guests in
    the pinned Docker image instead, so the image ids can be rebuilt and checked by anyone (`scripts/check_image_ids.sh`),
    and also deploys `ata`, which only the release build produces; without it a token creation fee stays at rate 0.
+   The end-to-end suite needs this release build and two more deployments; the commands are under
+   [Tests and CI](#tests-and-ci).
 4. **Build the command line.**
    ```bash
    source scripts/env.sh
@@ -299,26 +301,43 @@ that exists is in [evidence/miniapp/](evidence/miniapp/README.md).
 | What | Command | Notes |
 |---|---|---|
 | Format, clippy | `make lint` | clippy with warnings as errors on every crate and target |
-| Unit and property tests | `make test` | runs with the guest build skipped; tests that execute the real guests (`program/tests`, `program/fees/tests`: events, batch caps, authorisation attacks, the fee program) report that they are skipped. To run them: `make test-executor`, which builds the guests and fails if they are missing (`CV_REQUIRE_GUESTS=1`) |
-| End-to-end tests | `scripts/seq.sh dev start && make deploy-local && make e2e` | `e2e/run.sh` runs the `vesting_e2e` suite against the running sequencer (`CV_SEQ_RPC` moves it); every test opens its own funded accounts |
+| Unit and property tests | `make test` | runs with the guest build skipped; tests that execute the real guests (`program/tests`, `program/fees/tests`: events, batch caps, authorisation attacks, the fee program, the composition example) return early there, so they count as passed without running. `make test-executor` runs them |
+| Executor tests | `make test-executor` | builds the guests with the local RISC Zero toolchain and runs the 62 executor tests against them (45 in `program/tests/executor.rs`, 7 in `program/tests/compose.rs`, 10 in `program/fees/tests/executor.rs`, counted with `cargo test -p vesting_methods -p vesting_fees -- --list`; the 4 ignored measurements of `program/tests/batch_limit.rs` are not among them). A missing guest fails (`CV_REQUIRE_GUESTS=1`) |
+| C example | `make c-example` | builds `libcliff_veil` (`sdk/ffi`), compiles `sdk/ffi/examples/c/claim.c` as C11 and the header as C++17, and runs the example against the in-memory chain |
+| End-to-end tests | see below | `e2e/run.sh` runs the 43 tests of the `vesting_e2e` suite against the running sequencer (`CV_SEQ_RPC` moves it); every test opens its own funded accounts |
 | Requirement coverage | `cargo run -p reqmap -- --check` | fails when a hard requirement has no test or when [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) is out of date |
 | Reproducible guests | `make guests-release` | builds every guest in the pinned image and compares the image ids with `program/IMAGE_IDS.expected` |
 | Mini-app logic | `cargo test --manifest-path miniapp/rust-lib/logic/Cargo.toml` | |
 | IDL | `cargo run -p vesting_idl -- --check` | fails when `idl/*.json` differs from a fresh generation |
 
-`.github/workflows/ci.yml` has four jobs: `rust` (format, clippy, tests, mini-app logic, `reqmap --check --strict`),
-`executor` (builds the guests and runs every executor test against them; a missing guest fails the job), `guests` (guest
-build in the pinned image and the image-id check) and `e2e` (builds the standalone sequencer at the pinned LEZ commit,
-deploys, runs `e2e/run.sh`).
+The end-to-end suite needs three deployments on the dev sequencer before it runs: the programs built in the pinned
+image (which also deploys the associated-token-account program that token creation fees use), the fee-enabled pair
+for `e2e/tests/fees_on.rs`, and the launchpad example for `e2e/tests/compose.rs`. Without the last two, the five tests
+of those files fail on a missing ids file. Docker is needed for the first step.
+
+```bash
+scripts/seq.sh dev start
+scripts/deploy_local.sh dev --build release   # deploy/ids-local-dev.toml
+e2e/deploy_fees.sh                            # deploy/ids-local-dev-fees.toml (run again before each rerun of fees_on.rs)
+e2e/deploy_compose.sh                         # deploy/ids-local-dev-compose.toml
+make e2e
+```
+
+`.github/workflows/ci.yml` has four jobs: `rust` (format, clippy, tests, the C example, mini-app logic,
+`reqmap --check --strict`), `executor` (builds the guests and runs every executor test against them; a missing guest
+fails the job), `guests` (guest build in the pinned image and the image-id check) and `e2e` (builds the standalone
+sequencer at the pinned LEZ commit, runs the three deployments above, runs `e2e/run.sh`).
 
 ## Requirement coverage and costs
 
 [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) maps every hard requirement of RFP-017 to the tests that exercise it:
-of its 29 rows, 22 are tested, 6 are partial and 1 is met by named evidence (the README itself). A partial row states its
-gap: the mini-app rows (U2, U4, U5, Pr2) are tested in the mini-app's logic and loaded headless in the Logos runtime, but
-loading in Basecamp is not yet verified; the cost row (P2) and the deployment row (S1) are met on a local LEZ v0.4.0-rc3
-sequencer, and testnet 0.4 is not live yet. Tests marked (executor) run the built guests through LEZ's public execution
-without a sequencer. [docs/COSTS.md](docs/COSTS.md) holds the cost of each operation, generated from `evidence/cost/*.json` and `evidence/batch/max.txt`. Executor cycles on LEZ v0.4.0-rc3:
+of its 29 rows, 21 are tested and 8 are partial. A partial row states its gap: the mini-app rows (U2, U4, U5, Pr2) are
+tested in the mini-app's logic and loaded headless in the Logos runtime, but loading in Basecamp is not yet verified;
+Pr1 (claims to public and private accounts) is shown for the SDK on a sequencer, but a private claim made from the
+mini-app in Basecamp is not yet shown; the cost row (P2) and the deployment row (S1) are met on a local LEZ v0.4.0-rc3
+sequencer, and testnet 0.4 is not live yet; the README row (S4) gives local program addresses only, since testnet 0.4
+has none yet, and its Basecamp steps are not yet verified there. Tests marked (executor) run the built guests through LEZ's public execution
+without a sequencer. [docs/COSTS.md](docs/COSTS.md) holds the cost of each operation, generated from `evidence/cost/*.json`, `evidence/batch/max.txt` and the real-proof records in `evidence/real-proof/`. Executor cycles on LEZ v0.4.0-rc3:
 
 | Operation | Native | Token |
 |---|---|---|
@@ -384,16 +403,18 @@ A creation with a zero fee passes whatever the state of the fee configuration. D
 | `SPEC.md` | The interface specification (version 1): programs and accounts, messages, state, arithmetic, error codes, fees, events, privacy, reading state. |
 | `core/` | `vesting_core`: the vesting rules, state, messages, events and error table. Shared by the programs and the SDK; property-tested. |
 | `program/` | `vesting_methods` (embeds the guest ELFs) and `program/guest`, the `vesting` program. `program/fees/` is the `vesting_fees` program, its guest and its admin client. `program/token-guest/` builds the token program from lez-programs. `program/ata-guest/` is the upstream associated-token-account program, vendored. |
-| `sdk/` | `cliff_veil_sdk`: the whole lifecycle, public and private claims, batch splitting, block scan, in-memory backend for tests. `sdk/ffi/` is its C ABI (`libcliff_veil`, header `sdk/ffi/include/cliff_veil.h`) for Logos modules in C++. See [docs/SDK.md](docs/SDK.md). |
+| `sdk/` | `cliff_veil_sdk`: the whole lifecycle, public and private claims, batch splitting, block scan, in-memory backend for tests. See [docs/SDK.md](docs/SDK.md). |
+| `sdk/ffi/` | The SDK's C ABI: `libcliff_veil`, header `sdk/ffi/include/cliff_veil.h`, for Logos modules in C++; a C example in `sdk/ffi/examples/c/` (`make c-example`). See [docs/SDK.md](docs/SDK.md). |
 | `cli/` | The `cliff-veil` binary. |
 | `idl/` | `idl/vesting.json` and `idl/vesting_fees.json` in SPEL's IDL format, and the generator that keeps them equal to `core/`. See [docs/IDL.md](docs/IDL.md). |
 | `miniapp/` | The Logos mini-app: core module, QML view, and its logic crate. |
-| `e2e/` | End-to-end tests against a standalone sequencer, and `e2e/run.sh`. |
+| `e2e/` | End-to-end tests against a standalone sequencer, `e2e/run.sh`, and the deploy scripts of the fee-enabled pair (`deploy_fees.sh`) and the launchpad example (`deploy_compose.sh`). |
+| `examples/` | `launchpad_escrow`: a launch program that creates a schedule from its own account and holds its milestone and cancel authority, signalling or cancelling when `M` of `N` approvers agree (RFP-015/016 composition). See [docs/COMPOSITION.md](docs/COMPOSITION.md). |
 | `tools/` | `cost` (writes docs/COSTS.md), `reqmap` (writes docs/REQUIREMENTS.md), `image_id` (image id of a guest binary), `scan_rpc` (privacy scan of RPC answers), `real_proof` (the private claim with a real proof, run by `.github/workflows/real-proof.yml`). |
 | `scripts/` | Bootstrap, local sequencers, deployment, reproducible guest build and image-id check. |
 | `deploy/` | Program ids and image ids per network. |
 | `evidence/` | Logs and measurement files that the documents quote. |
-| `docs/` | [SDK](docs/SDK.md), [REQUIREMENTS](docs/REQUIREMENTS.md), [COSTS](docs/COSTS.md), [IDL](docs/IDL.md), [PLATFORM-FINDINGS](docs/PLATFORM-FINDINGS.md), [DECISIONS](docs/DECISIONS.md), [PRIVACY](docs/PRIVACY.md), [EVENTS](docs/EVENTS.md), [REUSE](docs/REUSE.md). |
+| `docs/` | [SDK](docs/SDK.md), [REQUIREMENTS](docs/REQUIREMENTS.md), [COSTS](docs/COSTS.md), [IDL](docs/IDL.md), [PLATFORM-FINDINGS](docs/PLATFORM-FINDINGS.md), [DECISIONS](docs/DECISIONS.md), [PRIVACY](docs/PRIVACY.md), [EVENTS](docs/EVENTS.md), [REUSE](docs/REUSE.md), [COMPOSITION](docs/COMPOSITION.md). |
 
 ## Licence
 

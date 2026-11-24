@@ -80,7 +80,7 @@ pub fn run(root: &Path, log: &Path) -> Result<Run> {
         format!(
             "ok ({}; the fresh private account received {amount} and holds {after} after paying the fee)",
             if dev_mode {
-                "dev mode: the proof is a dev-mode receipt, a real proof is not measured"
+                "dev mode: the proof is a dev-mode receipt, so no proving cost is shown; a real proof is in the section below"
             } else {
                 "real proof"
             }

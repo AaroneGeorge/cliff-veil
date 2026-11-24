@@ -60,6 +60,9 @@ jobs:
       - name: tests (guest build skipped; the executor job runs the guests)
         if: success() || failure()
         run: make test
+      - name: C example (builds libcliff_veil from sdk/ffi, compiles examples/c/claim.c and the header as C++, runs it)
+        if: success() || failure()
+        run: make c-example
       # The mini-app logic is a standalone crate (the Logos module builder compiles it outside the workspace).
       - name: mini-app logic (fmt, clippy, tests)
         if: success() || failure()

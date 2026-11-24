@@ -23,7 +23,7 @@
       "cycles": null,
       "fee": 5528416,
       "bytes": null,
-      "status": "ok (dev mode: the proof is a dev-mode receipt, a real proof is not measured; the fresh private account received 100006667 and holds 94478251 after paying the fee)"
+      "status": "ok (dev mode: the proof is a dev-mode receipt, so no proving cost is shown; a real proof is in the section below; the fresh private account received 100006667 and holds 94478251 after paying the fee)"
     }
   ]
 }

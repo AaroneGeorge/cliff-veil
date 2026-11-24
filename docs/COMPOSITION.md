@@ -100,6 +100,18 @@ Not enforced, and why:
   end, check the set (it is public in the launch state) before buying. A production launchpad takes the set from
   its own governance configuration instead (for example an RFP-001 admin or a council account fixed at
   deployment); only `LaunchState::new` changes.
+- **What an approver's signature covers.** The platform property of SPEC 1.3 applies to approvers too: a
+  signature authorises every actor of the signer's account declared in the transaction, so any program inside a
+  transaction an approver signs can send messages as `(approver, launchpad)` and cast that approver's approval or
+  cancel vote. An approver signs only transactions whose root call and declared actors it has checked.
+- **Whether `refund_to` can be paid.** The program checks only that `refund_to` is not the project. LEZ pays only an
+  account that exists or that the transaction admits (SPEC 1.2, admission of new accounts; the client adds the
+  account's key as evidence). A `refund_to` that does not exist and that no client can admit (an id with no known key
+  or PDA derivation behind it), or, with token collateral (below), one without a holding of the token until its owner
+  initialises one (SPEC 3.1, payout destinations), cannot be paid: the vote that reaches the threshold reverts with
+  the refund, so the launch cannot be cancelled and the unvested collateral stays in the schedule. It is never paid to
+  the project (executor test `soft1_compose_a_cancel_reverts_while_the_refund_account_cannot_be_paid`). Buyers check
+  `refund_to`, which is public in the launch state, as they check the approvers.
 - **What happens to a refund.** Refunds go to `refund_to`, named at `Open`. Distributing it to buyers pro rata is
   the launchpad's own logic and is out of scope here.
 - **Native collateral only.** The example locks the native token. A token launch adds the token actors of

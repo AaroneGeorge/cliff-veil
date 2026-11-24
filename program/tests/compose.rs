@@ -322,6 +322,39 @@ fn soft1_compose_cancel_only_by_the_launch_rule_refunds_the_unvested_collateral(
     );
 }
 
+/// docs/COMPOSITION.md, "Not enforced": the program checks nothing about `refund_to` beyond "not the project". LEZ
+/// pays only an account that exists or that the transaction admits (SPEC 1.2), so a `refund_to` that does not exist
+/// and has no known key or PDA derivation can never be paid: the vote that reaches the threshold reverts, the launch
+/// cannot be cancelled, and the collateral stays in the schedule, never paid to the project.
+#[test]
+fn soft1_compose_a_cancel_reverts_while_the_refund_account_cannot_be_paid() {
+    let Some(mut chain) = chain() else { return };
+    let p = parties();
+    // An id with no key and no PDA derivation behind it: no client can admit it.
+    let unpayable = AccountId::new(*b"cliff-veil/test/unseen-refund/00");
+    let (l, sent) = Launch::open_with(&mut chain, &p.creator, [0x2b; 32], ids(&approvers(&p)), 2, unpayable);
+    sent.expect("Open does not touch the refund account");
+    let [a, b, _] = approvers(&p);
+    l.vote_cancel(&mut chain, a).expect("first vote, below the threshold");
+    let sent = l.vote_cancel(&mut chain, b);
+    let err = format!(
+        "{:?}",
+        sent.expect_err("the vote that reaches the threshold must revert")
+    );
+    assert!(err.contains("UnadmittedPublicActor"), "{err}");
+
+    // Nothing changed: the schedule and the launch are not cancelled, the collateral stays in the schedule, and the
+    // project has nothing to claim.
+    assert!(chain.schedule(l.schedule).expect("schedule").cancelled.is_none());
+    assert!(!l.state(&chain).cancelled);
+    assert_eq!(chain.native(l.schedule), TOTAL);
+    assert_eq!(chain.native(unpayable), 0);
+    assert_eq!(
+        code(&chain.claim(&p.creator, l.schedule, id(&p.recipient))),
+        NOTHING_CLAIMABLE
+    );
+}
+
 #[test]
 fn compose_open_refusals_carry_their_codes() {
     let Some(mut chain) = chain() else { return };
