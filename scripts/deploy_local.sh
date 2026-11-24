@@ -24,7 +24,14 @@
 #
 # Payer: the wallet account labelled cv-payer. On a fresh wallet it is LEZ's local genesis test account, imported
 # with the key the LEZ Justfile publishes for the local network (`wallet-import-test-accounts`), read at run time.
+#
+# Every failure stops the script, including one inside a function whose output is captured (`$(build_guests)`), so
+# a failed guest build can never be followed by the deployment of an older binary. Functions are called as plain
+# commands or plain assignments only: on the left of `||`/`&&` or in an `if` condition, bash turns `set -e` off
+# inside them. A Cargo.lock that does not match the manifests is refused before anything is built.
 set -euo pipefail
+# Command substitutions inherit `set -e` (bash 4.4+); without it a failing step inside `$(...)` is ignored.
+shopt -s inherit_errexit
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/env.sh
@@ -52,6 +59,9 @@ export LEE_WALLET_HOME_DIR="$CV_RUN_DIR/wallet-$network"
 "$here/seq.sh" "$which_seq" status >/dev/null || { echo "$network is not running: scripts/seq.sh $which_seq start" >&2; exit 1; }
 command -v wallet >/dev/null || { echo "wallet binary not on PATH (scripts/bootstrap.sh)" >&2; exit 1; }
 export LEE_WALLET_PASSWORD="${LEE_WALLET_PASSWORD:-}"
+# Every build below uses --locked; refuse a stale lock file up front with a clear message.
+(cd "$CV_REPO" && cargo metadata --locked --format-version 1 >/dev/null 2>&1) \
+  || { echo "Cargo.lock does not match the manifests (cargo metadata --locked fails): update and commit it first" >&2; exit 1; }
 
 mkdir -p "$(dirname "$out")"
 exec 9>"$out.lock"
@@ -70,8 +80,13 @@ payer_id="$(wallet account list | sed -n "s#^Public/\([1-9A-HJ-NP-Za-km-z]\{32,4
 [ -n "$payer_id" ] || { echo "no account labelled $payer in the wallet" >&2; exit 1; }
 
 # Host tools: the image id of a .bin, and the vesting_fees admin client (Init).
-(cd "$CV_REPO" && RISC0_SKIP_BUILD=1 nice -n 10 cargo build -q --locked -p image_id -p vesting_fees_admin)
-image_id() { "$CARGO_TARGET_DIR/debug/image-id" "$1" | sed -n 's/.*image id \([0-9a-f]\{64\}\)$/\1/p'; }
+(cd "$CV_REPO" && RISC0_SKIP_BUILD=1 nice -n 10 cargo build -q --locked -p image_id -p vesting_fees_admin) \
+  || { echo "host tools (image_id, vesting_fees_admin) failed to build" >&2; exit 1; }
+image_id() { # .bin -> image id; fails when none is printed
+  local id; id="$("$CARGO_TARGET_DIR/debug/image-id" "$1" | sed -n 's/.*image id \([0-9a-f]\{64\}\)$/\1/p')"
+  [ -n "$id" ] || { echo "no image id for $1" >&2; return 1; }
+  echo "$id"
+}
 
 # ------------------------------------------------------------------ ids file
 # Values kept between steps; written out after every deployment so a failure leaves a consistent file.
@@ -126,11 +141,13 @@ write_ids() {
 # build_guests [--ids FILE] -> prints the directory holding <program>.bin
 build_guests() {
   if [ "$build" = release ]; then
-    local log; log="$(mktemp)"
-    "$here/guests_release.sh" "$@" "$rev" > "$log" 2>&1 || { cat "$log" >&2; exit 1; }
+    local log dir; log="$(mktemp)"
+    "$here/guests_release.sh" "$@" "$rev" > "$log" 2>&1 || { cat "$log" >&2; echo "release guest build failed" >&2; exit 1; }
     cat "$log" >&2
-    sed -n 's/^release set: //p; s/ already complete$//p' "$log" | tail -1
+    dir="$(sed -n 's/^release set: //p; s/ already complete$//p' "$log" | tail -1)"
     rm -f "$log"
+    [ -n "$dir" ] && [ -f "$dir/SHA256SUMS" ] || { echo "release guest build gave no complete release set" >&2; exit 1; }
+    echo "$dir"
   else
     local inputs=()
     if [ "${1:-}" = --ids ]; then
@@ -138,8 +155,8 @@ build_guests() {
       [ -n "${prog[ata]:-}" ] && inputs+=(CV_ATA_PROGRAM_ID="${prog[ata]}")
     fi
     (cd "$CV_REPO" && env -u CV_TOKEN_PROGRAM_ID -u CV_FEES_PROGRAM_ID -u CV_ATA_PROGRAM_ID "${inputs[@]}" \
-      nice -n 10 cargo build --locked -q -p vesting_methods >&2)
-    "$here/collect_guests.sh" vesting vesting_fees token >&2
+      nice -n 10 cargo build --locked -q -p vesting_methods >&2) || { echo "guest build failed" >&2; exit 1; }
+    "$here/collect_guests.sh" vesting vesting_fees token >&2 || { echo "collecting the guests failed" >&2; exit 1; }
     echo "$CARGO_TARGET_DIR/guests"
   fi
 }
@@ -160,11 +177,16 @@ deploy() { # program bin_dir
   size=$(stat -c %s "$bin"); user=$(user_elf_len "$bin"); n=$(( (user + 98303) / 98304 ))
   [ "$n" -le 20 ] || { echo "$p user ELF is $user bytes: $n segments, above the 20-segment cap" >&2; exit 1; }
   header="$(new_public "cv-$p-header-$stamp")"
-  for i in $(seq 1 "$n"); do segs+=("Public/$(new_public "cv-$p-seg$i-$stamp")"); done
+  [ -n "$header" ] || { echo "could not open the header account of $p" >&2; exit 1; }
+  for i in $(seq 1 "$n"); do
+    segs+=("Public/$(new_public "cv-$p-seg$i-$stamp")")
+    [ "${segs[-1]}" != Public/ ] || { echo "could not open segment account $i of $p" >&2; exit 1; }
+  done
   echo "deploying $p ($size bytes, user ELF $user bytes, $n segments) header $header"
   # The wallet prints every transaction in full; keep its hash and inclusion lines.
   wallet program-loader deploy --elf "$bin" --header "Public/$header" --segments "${segs[@]}" --immutable --payer "$payer" \
-    | grep -v '^Transaction data is'
+    | { grep -v '^Transaction data is' || true; } \
+    || { echo "deploying $p failed" >&2; exit 1; }
   prog[$p]="$header"
   img[$p]="$(image_id "$bin")"
   note[$p]="sha256 $(sha256sum "$bin" | cut -c1-64), $size bytes, $build build, $stamp"
@@ -173,12 +195,15 @@ deploy() { # program bin_dir
 
 kept() { [ "$resume" = 1 ] && [ -n "${prog[$1]:-}" ]; }
 if [ "$only_vesting" = 0 ]; then
+  # A plain assignment: with `|| ...` after it, bash would ignore `set -e` inside build_guests.
   base="$(build_guests)"
-  kept token || deploy token "$base"
+  # deploy runs as a plain command (never on the right of `||`), so `set -e` holds inside it.
+  if ! kept token; then deploy token "$base"; fi
   if ! kept vesting_fees || [ -z "$accounts_fees_config" ]; then
-    kept vesting_fees || deploy vesting_fees "$base"
+    if ! kept vesting_fees; then deploy vesting_fees "$base"; fi
     echo "vesting_fees Init by the deployer"
-    "$CARGO_TARGET_DIR/debug/vesting-fees-admin" --program "${prog[vesting_fees]}" --payer "$payer_id" init
+    "$CARGO_TARGET_DIR/debug/vesting-fees-admin" --program "${prog[vesting_fees]}" --payer "$payer_id" init \
+      || { echo "vesting_fees Init failed" >&2; exit 1; }
     accounts_fees_config="$("$CARGO_TARGET_DIR/debug/vesting-fees-admin" --program "${prog[vesting_fees]}" show \
       | sed -n 's/^config \([1-9A-HJ-NP-Za-km-z]\{32,44\}\): rate_bps.*/\1/p')"
     [ -n "$accounts_fees_config" ] || { echo "vesting_fees config is still empty after Init" >&2; exit 1; }

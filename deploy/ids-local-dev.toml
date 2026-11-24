@@ -23,8 +23,10 @@ vesting_fees = "7e5b5539f82c19d8e4dd502852d5a35673fac4ccefba438bc101099f341cc147
 ata = "339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110"
 vesting = "908567e3c178ded0e25a14cf9b99026797f37437864b439bc6a2e23f4c77171d"
 
+# The deployed binaries (sha256 in [programs]) are byte-identical to the release set built from this public commit
+# with `scripts/guests_release.sh --ids deploy/ids-local-dev.toml` (evidence/guests/reproducible-local-dev.log).
 [build]
 builder = "risczero/risc0-guest-builder:r0.1.91.1@sha256:fafb377a44e1cfca415577c48d2f7012bda99ed36f2fae27f9a663b9fe6048f0"
-commit = "298a1dedb59932281f92b3ecd604d4cee12e7554"
-tree = "c783323e585e009378abaaea9aa0d681bb2a3063"
+commit = "5b1101d1dd66225df17af089a4a69a82a547ea82"
+tree = "6d94f5fa8d59c55c4bf6cb4e79f241a1d49800aa"
 vesting_inputs = "CV_TOKEN_PROGRAM_ID=3uSMsxaS8RE6eLbLg3xwvLedXWmRp88LnJUhJ9xLKGtY CV_FEES_PROGRAM_ID=D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5 CV_ATA_PROGRAM_ID=4AwKPBQecPM5pFpGQ1DNny8U7vefMgTpJZQrpTacrLDU"

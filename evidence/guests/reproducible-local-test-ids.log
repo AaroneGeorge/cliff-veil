@@ -1,11 +1,18 @@
-# Two independent release builds (scripts/guests_release.sh, no --ids: local test ids) of the same guest sources,
-# from two snapshot commits of the working tree. Expected: identical SHA256SUMS and image ids.
+# Release builds (scripts/guests_release.sh, no --ids: local test ids) of public commits. Expected: the same
+# SHA256SUMS and image ids every time, equal to program/IMAGE_IDS.expected.
+#
+# Local build below (Linux x86_64, pinned builder image, CARGO_BUILD_JOBS=2, 2500 MiB container limit).
+# The same check runs in CI on a GitHub runner (job "guest build (docker r0.1.91.1) + image-id check" of
+# .github/workflows/ci.yml), green on:
+#   8f7e8eb   https://github.com/AaroneGeorge/cliff-veil/actions/runs/45416912295
+#   5b62259   https://github.com/AaroneGeorge/cliff-veil/actions/runs/45418718155
+#   5b1101d   https://github.com/AaroneGeorge/cliff-veil/actions/runs/45422127766
 
-== build f5fe1d90880db0dd5962c4b9c87d92776d1abb33
-commit=f5fe1d90880db0dd5962c4b9c87d92776d1abb33
+== build 5b1101d1dd66225df17af089a4a69a82a547ea82
+commit=5b1101d1dd66225df17af089a4a69a82a547ea82
 image=risczero/risc0-guest-builder:r0.1.91.1@sha256:fafb377a44e1cfca415577c48d2f7012bda99ed36f2fae27f9a663b9fe6048f0
-built_utc=2026-11-24T13:16:51Z
-tree=796333c040d19721c3c7b8206afb02d4aef5d72a
+built_utc=2026-11-24T15:18:40Z
+tree=6d94f5fa8d59c55c4bf6cb4e79f241a1d49800aa
 machine=Linux 7.0.0-43-generic x86_64
 inputs=none (local test ids)
 -- IMAGE_IDS
@@ -28,32 +35,3 @@ OK       vesting_fees 7e5b5539f82c19d8e4dd502852d5a35673fac4ccefba438bc101099f34
 OK       token aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c
 OK       ata 339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110
 
-== build 298a1dedb59932281f92b3ecd604d4cee12e7554
-commit=298a1dedb59932281f92b3ecd604d4cee12e7554
-image=risczero/risc0-guest-builder:r0.1.91.1@sha256:fafb377a44e1cfca415577c48d2f7012bda99ed36f2fae27f9a663b9fe6048f0
-built_utc=2026-11-24T13:26:43Z
-tree=c783323e585e009378abaaea9aa0d681bb2a3063
-machine=Linux 7.0.0-43-generic x86_64
-inputs=none (local test ids)
--- IMAGE_IDS
-vesting.bin: user ELF 323784 bytes, bin 356208 bytes, image id a8a9a283bc1e4da12f3441095cd9bda524b247e70434575bd60f7de524389b62
-vesting_fees.bin: user ELF 269184 bytes, bin 301608 bytes, image id 7e5b5539f82c19d8e4dd502852d5a35673fac4ccefba438bc101099f341cc147
-token.bin: user ELF 260564 bytes, bin 292988 bytes, image id aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c
-ata.bin: user ELF 234348 bytes, bin 266772 bytes, image id 339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110
--- SHA256SUMS
-97188dfddd46b7b0f75308c54c3b518f887cb4ce32b5758cc8d8b1196e23ec73  ./ata.bin
-7b0178907ac0cfc61542d7d5585481dbbbfa88f594df37cdb3ebb2b88c9db1b5  ./token.bin
-9ff3b0cd1f2eacfa38693b2d51859d704549a00c60b8970d2b86ba2a2035f0f0  ./vesting.bin
-797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69  ./vesting_fees.bin
-09cd8813dd3754c5dcee1b320009569c2db5be19768472ad6ba2b652fc5e57a1  elf/ata
-b3ca63d4200efa3d9c6f5849b56fef2bb089e3a2362977c3d781f8ec1664cc0e  elf/token
-46a14bbd0abbebf345bb6975a8a81c6588cc28397e2b9533ca78f6313ca17972  elf/vesting
-d405aed5d43ec7e121496fe4a84fd0e9195bfb6e1f9710af97ff19794296c67f  elf/vesting_fees
--- scripts/check_image_ids.sh <dir> (program/IMAGE_IDS.expected)
-OK       vesting a8a9a283bc1e4da12f3441095cd9bda524b247e70434575bd60f7de524389b62
-OK       vesting_fees 7e5b5539f82c19d8e4dd502852d5a35673fac4ccefba438bc101099f341cc147
-OK       token aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c
-OK       ata 339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110
-
--- diff of the two SHA256SUMS
-identical

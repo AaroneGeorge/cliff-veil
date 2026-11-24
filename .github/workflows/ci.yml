@@ -35,8 +35,18 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: System packages and host toolchain (scripts/bootstrap.sh, without LEZ and rzup)
-        run: scripts/bootstrap.sh --with-sudo --no-lez --no-rzup
+      - name: RISC Zero toolchains (cache)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.risc0
+          key: ${{ env.RISC0_CACHE_KEY }}
+      # Host tests execute LEZ's builtin programs (tools/cost measures the clock program), which runs r0vm even with
+      # the guest build skipped, so this job installs the rzup components as well.
+      - name: System packages, host toolchain and rzup components (scripts/bootstrap.sh, no LEZ)
+        env:
+          # rzup resolves versions through the GitHub API; the workflow token avoids the anonymous rate limit.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/bootstrap.sh --with-sudo --no-lez
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           # scripts/env.sh puts the target dir next to the checkout.
@@ -175,6 +185,10 @@ jobs:
         run: |
           scripts/deploy_local.sh dev --build release
           cat deploy/ids-local-dev.toml
+      - name: Deploy the fee-enabled pair, fee switched on at 50 basis points (e2e/deploy_fees.sh, for tests/fees_on.rs)
+        run: |
+          e2e/deploy_fees.sh
+          cat deploy/ids-local-dev-fees.toml
       - name: End-to-end tests (every test opens its own funded accounts; pending tests are listed and skipped)
         env:
           CV_SEQ_RPC: http://127.0.0.1:3050
