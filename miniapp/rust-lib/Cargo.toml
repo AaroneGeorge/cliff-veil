@@ -1,0 +1,34 @@
+[package]
+name = "cliff_veil_module"
+description = "Logos core module of the cliff-veil mini-app: the view's API over the cliff-veil command line"
+version = "0.1.0"
+# The module builder compiles this crate with its nixpkgs rustc (1.89).
+edition = "2021"
+rust-version = "1.89"
+license = "MIT OR Apache-2.0"
+publish = false
+
+# Standalone crate, outside the repo workspace: the builder compiles it with its own toolchain from Cargo.lock.
+# `logic/` is a path dependency kept out of this workspace, so it also builds and tests on its own.
+[workspace]
+exclude = ["logic"]
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[features]
+default = ["logos"]
+# Off for `cargo check --no-default-features`: the crate without the Logos runtime (the logic and its tests live in
+# `logic/`).
+logos = ["dep:logos-rust-sdk"]
+
+[dependencies]
+# The mini-app logic. Inside rust-lib/ because the builder stages only this directory for the crate build.
+cliff_veil_miniapp = { path = "logic" }
+# The generated scaffold (generated/provider_gen.rs) encodes and decodes calls with serde_json.
+serde_json = "1"
+# Staged by the builder (same revision as its code generator); see the mini-app README to stage it by hand.
+logos-rust-sdk = { path = "../logos-rust-sdk-src", optional = true }
+
+[lints.rust]
+unsafe_code = "deny"

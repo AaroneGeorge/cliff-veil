@@ -1,0 +1,6 @@
+# Staged by hand to resolve Cargo.lock (see README); the builder stages its own copy.
+/logos-rust-sdk-src
+/rust-lib/generated/
+/rust-lib/target/
+/rust-lib/logic/target/
+result*
