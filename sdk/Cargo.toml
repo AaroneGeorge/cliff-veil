@@ -1,0 +1,34 @@
+[package]
+name = "vesting_sdk"
+description = "Client SDK for the vesting program: schedule reads, pre-flight checks, transaction building, public and private claims"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[lib]
+# Imported as `cliff_veil_sdk`; the package keeps the workspace's `vesting_*` naming.
+name = "cliff_veil_sdk"
+
+[dependencies]
+vesting_core.workspace = true
+# `config_account` and `read_config` of the fee switch (SPEC 3.4); no guest is built for it.
+vesting_fees.workspace = true
+# LEZ v0.4.0-rc3: the wallet builds, prices, simulates, proves and signs; `lee` and `common` carry the transaction
+# types; the RPC client type is the wallet's transport.
+wallet.workspace = true
+lee.workspace = true
+lee_core.workspace = true
+common.workspace = true
+sequencer_service_rpc = { workspace = true, features = ["client"] }
+clock_core = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3" }
+anyhow.workspace = true
+borsh.workspace = true
+thiserror.workspace = true
+sha2 = { workspace = true, features = ["std"] }
+tokio.workspace = true
+rand = { version = "0.8.5", default-features = false, features = ["std", "std_rng", "getrandom"] }
+
