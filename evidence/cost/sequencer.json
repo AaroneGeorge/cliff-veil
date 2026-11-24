@@ -1,0 +1,72 @@
+{
+  "mode": "sequencer",
+  "lez": "v0.4.0-rc3",
+  "inputs": [
+    [
+      "rpc",
+      "http://127.0.0.1:3050"
+    ],
+    [
+      "RISC0_DEV_MODE of this client",
+      "1"
+    ]
+  ],
+  "rows": [
+    {
+      "op": "native_transfer",
+      "asset": "-",
+      "n": 1,
+      "cycles": null,
+      "fee": 4088,
+      "status": "ok"
+    },
+    {
+      "op": "create",
+      "asset": "native",
+      "n": 1,
+      "cycles": null,
+      "fee": 759544,
+      "status": "ok"
+    },
+    {
+      "op": "claim",
+      "asset": "native",
+      "n": 1,
+      "cycles": null,
+      "fee": 795888,
+      "status": "ok"
+    },
+    {
+      "op": "make_non_cancelable",
+      "asset": "native",
+      "n": 1,
+      "cycles": null,
+      "fee": 389416,
+      "status": "ok"
+    },
+    {
+      "op": "cancel",
+      "asset": "native",
+      "n": 1,
+      "cycles": null,
+      "fee": 778248,
+      "status": "ok"
+    },
+    {
+      "op": "signal_milestone",
+      "asset": "native",
+      "n": 1,
+      "cycles": null,
+      "fee": 394512,
+      "status": "ok"
+    },
+    {
+      "op": "transfer_beneficiary",
+      "asset": "native",
+      "n": 1,
+      "cycles": null,
+      "fee": 409648,
+      "status": "ok"
+    }
+  ]
+}

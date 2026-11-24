@@ -1,0 +1,287 @@
+# cliff-veil CLI lifecycle on local-dev (RISC0_DEV_MODE=1: the private claim's proof is a dev-mode receipt)
+# 2026-11-24T14:00:17Z  LEZ v0.4.0-rc3  run cli-20261124T140017
+# program ids (deploy/ids-local-dev.toml):
+[programs]
+token = "3uSMsxaS8RE6eLbLg3xwvLedXWmRp88LnJUhJ9xLKGtY"   # sha256 7b0178907ac0cfc61542d7d5585481dbbbfa88f594df37cdb3ebb2b88c9db1b5, 292988 bytes, release build, 20261124T131724Z
+vesting_fees = "D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5"   # sha256 797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69, 301608 bytes, release build, 20261124T131724Z
+ata = "4AwKPBQecPM5pFpGQ1DNny8U7vefMgTpJZQrpTacrLDU"   # sha256 97188dfddd46b7b0f75308c54c3b518f887cb4ce32b5758cc8d8b1196e23ec73, 266772 bytes, release build, 20261124T132238Z
+vesting = "5nCVf47kVHKC9RwgfyokEgYM1n2wdjEhS3D9z7RkJFsZ"   # sha256 de7e1c0da03961c724683c0b70fa44ca069e4f96d38056361957661ee235f1ee, 356208 bytes, release build, 20261124T132238Z
+
+[accounts]
+fees_config = "5aH6Z3GiECyNPUrUJTYQ1sgh67z8MpA4LQsNUfxa84jb"   # vesting_fees config (PDA), Init by the deployer
+
+# RISC Zero image ids of the deployed binaries (scripts/check_image_ids.sh <release dir> <this file>).
+[image_ids]
+
+== accounts (fresh public accounts, funded from the local genesis test account cv-payer)
+creator Public/GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+beneficiary Public/H75zu1PGkQmek6WesxQ4LPomWrVKXztcK1xz4EuYXTCz
+Transaction hash is adec223673584de8c8b135ece75bc7101288c58c95c5a25e89a4cd01abb908b4
+Transaction is included in block 847
+Transaction hash is 1464ff2bb91b0c24e22919393e2eec92c86dbcb9cdcc65747301e48625149eb2
+Transaction is included in block 849
+
+$ cliff-veil fee-show
+creation fee rate   0 bps (hard cap 100 bps = 1%)
+treasury            not set
+charged             at creation only, from the funding account, in the schedule's asset
+config account      5aH6Z3GiECyNPUrUJTYQ1sgh67z8MpA4LQsNUfxa84jb
+[exit 0]
+
+$ cliff-veil create --from cli-20261124T140017-creator --beneficiary cli-20261124T140017-alice --total 1000000000 --start now --cliff +30s --end +150s --label cli-20261124T140017
+create: 1 schedule(s), escrow 1000000000, creation fee 0
+  schedule 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+network fee         ~760984 (estimated), paid by GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+schedule id         a84a29538cc7870c118ca6bb5fb969d55713a417663a7623b13b19be65bed4bc
+sent: tx 9da7c53f3f701a7720d0fc4731c6ea7ffc56a55efe4b548c9dc31fc59e84d3bc in block 851
+[exit 0]
+schedule: 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+
+$ cliff-veil show 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+schedule            9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+standing            active
+creator             GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+beneficiary         H75zu1PGkQmek6WesxQ4LPomWrVKXztcK1xz4EuYXTCz
+asset               native
+kind                linear: start 2026-11-24T14:01:12.294Z, cliff 2026-11-24T14:01:42.294Z, end 2026-11-24T14:03:42.294Z
+total               1000000000
+vested              0
+claimed             0
+claimable now       0
+locked              1000000000
+next unlock         2026-11-24T14:01:42.294Z
+escrow              1000000000
+cancelable          yes
+transferable        no
+cancel authority    GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+milestone authority GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+refund to           GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+clock               2026-11-24T14:01:27.294Z (1795528887294 ms)
+[exit 0]
+
+== before the cliff: the claim is refused locally with the next unlock (nothing sent)
+
+$ cliff-veil claim 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16 --as cli-20261124T140017-alice
+error: cliff-veil error 14: nothing claimable yet; next unlock at 2026-11-24T14:01:42.294Z (1795528902294 ms)
+[exit 1]
+
+== waiting 45 s for the cliff
+
+$ cliff-veil claimable 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+claimable now 399993333 (clock 2026-11-24T14:02:12.293Z); next unlock 2026-11-24T14:02:12.294Z
+[exit 0]
+
+$ cliff-veil claim 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16 --as cli-20261124T140017-alice
+Claim summary (public claim)
+  schedule:       9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+  beneficiary:    H75zu1PGkQmek6WesxQ4LPomWrVKXztcK1xz4EuYXTCz
+  claimable now:  at least 399993333 (computed at the clock time of the including block)
+  destination:    H75zu1PGkQmek6WesxQ4LPomWrVKXztcK1xz4EuYXTCz (public account)
+  claimed after:  399993333
+  still to come:  600006667
+  network fee:    ~803320 (estimated), paid by H75zu1PGkQmek6WesxQ4LPomWrVKXztcK1xz4EuYXTCz which will hold 100000000
+sent: tx f610b7432554b4895d323f1716c31ed66a3aa8f188c3ef4475c2585b51bb3f56 in block 855
+[exit 0]
+
+$ cliff-veil show 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+schedule            9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+standing            active
+creator             GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+beneficiary         H75zu1PGkQmek6WesxQ4LPomWrVKXztcK1xz4EuYXTCz
+asset               native
+kind                linear: start 2026-11-24T14:01:12.294Z, cliff 2026-11-24T14:01:42.294Z, end 2026-11-24T14:03:42.294Z
+total               1000000000
+vested              500000000
+claimed             399993333
+claimable now       100006667
+locked              500000000
+next unlock         2026-11-24T14:02:27.295Z
+escrow              600006667
+cancelable          yes
+transferable        no
+cancel authority    GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+milestone authority GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+refund to           GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+clock               2026-11-24T14:02:27.294Z (1795528947294 ms)
+[exit 0]
+
+== private claim without --yes and without a terminal: refused before sending
+
+$ cliff-veil claim 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16 --as cli-20261124T140017-alice --private
+Claim summary (private claim)
+  schedule:       9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+  beneficiary:    H75zu1PGkQmek6WesxQ4LPomWrVKXztcK1xz4EuYXTCz
+  claimable now:  100006667 (computed at 2026-11-24T14:02:27.294Z)
+  destination:    CdBDvmigGzJUZiLE6MR75iDUQcUa3p9TjxAMD1FsS5Gs (new private account of this wallet; the transaction names only the one-time address HiursZEpnbk84eGJSDNdSkuMGFTfzAtwbxYHYruYBRQy)
+  claimed after:  500000000
+  still to come:  500000000
+  network fee:    ~5528416 (estimated), paid by CdBDvmigGzJUZiLE6MR75iDUQcUa3p9TjxAMD1FsS5Gs which will hold 100006667
+  new private account CdBDvmigGzJUZiLE6MR75iDUQcUa3p9TjxAMD1FsS5Gs is saved in this wallet (also on a dry run); a later claim can name it with --private-to CdBDvmigGzJUZiLE6MR75iDUQcUa3p9TjxAMD1FsS5Gs
+
+Privacy of this claim (claim to a private account)
+  Visible on-chain, to everyone:
+    - the claim amount
+    - the beneficiary address
+    - the vesting schedule address
+    - the time of the claim
+  Not recorded in public on-chain state:
+    - the destination private account
+    - later movements of the claimed tokens
+  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim
+  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them.
+
+dev mode: RISC0_DEV_MODE=1, the privacy-preserving transaction carries no real proof; on a network that verifies proofs the claim is proved locally first, which takes minutes
+error: confirmation needed and stdin is not a terminal: read the summary and disclosure above, then rerun with --yes
+[exit 1]
+
+== private claim (dev mode), fresh private account, one-time blinded address
+$ cliff-veil --json claim 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16 --as cli-20261124T140017-alice --private --yes
+WARNING: proving in dev mode. This will not generate valid, secure proofs.
+WARNING: Proving in dev mode does not generate a valid receipt. Receipts generated from this process are invalid and should never be used in production.
+Latest block is 856
+Syncing to block 856. Blocks to sync: 10
+Synced to block 856 in 151.465778ms
+{
+  "ok": true,
+  "private_balance_after": {
+    "account": "3we5si5b84rUK7BTLkoSkKBUwcFnDHR9GeNPXTgDnBNL",
+    "native": "94478251"
+  },
+  "sent": [
+    {
+      "block": 856,
+      "declared_fee": "5528416",
+      "hash": "8ea2818816b3eab753f2f194c00a54e529a2d30ba1fcabc682e07dba63dff345"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "100006667",
+      "at": "2026-11-24T14:02:27.294Z",
+      "at_ms": 1795528947294,
+      "beneficiary": "H75zu1PGkQmek6WesxQ4LPomWrVKXztcK1xz4EuYXTCz",
+      "claimed_after": "500000000",
+      "destination": {
+        "account": "3we5si5b84rUK7BTLkoSkKBUwcFnDHR9GeNPXTgDnBNL",
+        "fresh": true,
+        "kind": "private",
+        "one_time_address": "GTuGrxh9sArtpnx9NUft6iZ2Kx1FA2gGke4ACRGpRPXB",
+        "saved_in_wallet": true
+      },
+      "dev_mode": true,
+      "estimate": {
+        "cycles": 57225,
+        "network_fee": "5528416",
+        "payer": "3we5si5b84rUK7BTLkoSkKBUwcFnDHR9GeNPXTgDnBNL",
+        "private": true,
+        "reserve": "5528416"
+      },
+      "fee_payer_holds": "100006667",
+      "operation": "claim",
+      "privacy_disclosure": "Privacy of this claim (claim to a private account)\n  Visible on-chain, to everyone:\n    - the claim amount\n    - the beneficiary address\n    - the vesting schedule address\n    - the time of the claim\n  Not recorded in public on-chain state:\n    - the destination private account\n    - later movements of the claimed tokens\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them.",
+      "schedule": "9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16",
+      "still_to_come": "500000000"
+    }
+  ]
+}
+[exit 0]
+private claim: tx 8ea2818816b3eab753f2f194c00a54e529a2d30ba1fcabc682e07dba63dff345 in block 856; canonical private account 3we5si5b84rUK7BTLkoSkKBUwcFnDHR9GeNPXTgDnBNL; one-time address GTuGrxh9sArtpnx9NUft6iZ2Kx1FA2gGke4ACRGpRPXB
+
+== privacy scan of the RPC answers for that transaction (tools/scan_rpc/scan_rpc.py)
+  rpc getBlock: 38660 chars of JSON, 1 base64 blob(s) of 28968 bytes; error=False
+    3we5si5b84rUK7BTLkoSkKBUwcFnDHR9GeNPXTgDnBNL: base58 0, hex 0, raw bytes in decoded base64 0
+    GTuGrxh9sArtpnx9NUft6iZ2Kx1FA2gGke4ACRGpRPXB: base58 0, hex 0, raw bytes in decoded base64 4
+  rpc getTransaction: 37718 chars of JSON, 1 base64 blob(s) of 28257 bytes; error=False
+    3we5si5b84rUK7BTLkoSkKBUwcFnDHR9GeNPXTgDnBNL: base58 0, hex 0, raw bytes in decoded base64 0
+    GTuGrxh9sArtpnx9NUft6iZ2Kx1FA2gGke4ACRGpRPXB: base58 0, hex 0, raw bytes in decoded base64 4
+  RPC_TOTAL 3we5si5b84rUK7BTLkoSkKBUwcFnDHR9GeNPXTgDnBNL 0
+  RPC_TOTAL GTuGrxh9sArtpnx9NUft6iZ2Kx1FA2gGke4ACRGpRPXB 8
+expected: RPC_TOTAL of the canonical account = 0; of the one-time address > 0
+
+$ cliff-veil show 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+schedule            9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+standing            active
+creator             GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+beneficiary         H75zu1PGkQmek6WesxQ4LPomWrVKXztcK1xz4EuYXTCz
+asset               native
+kind                linear: start 2026-11-24T14:01:12.294Z, cliff 2026-11-24T14:01:42.294Z, end 2026-11-24T14:03:42.294Z
+total               1000000000
+vested              600000000
+claimed             500000000
+claimable now       100000000
+locked              400000000
+next unlock         2026-11-24T14:02:42.295Z
+escrow              500000000
+cancelable          yes
+transferable        no
+cancel authority    GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+milestone authority GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+refund to           GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+clock               2026-11-24T14:02:42.294Z (1795528962294 ms)
+[exit 0]
+
+== private claim to a public account: rejected (Privacy 3)
+
+$ cliff-veil claim 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16 --as cli-20261124T140017-alice --private --private-to cli-20261124T140017-alice --yes
+error: the claim target H75zu1PGkQmek6WesxQ4LPomWrVKXztcK1xz4EuYXTCz is not a private account of this wallet (the wallet records it as a public account); a private claim pays only to a private (shielded) account. What to do: name a private account this wallet owns, or let the SDK create a fresh one
+[exit 1]
+
+== cancel
+
+$ cliff-veil cancel 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16 --as cli-20261124T140017-creator
+cancel: refunds 400000000 to GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi; vested 600000000 (of it 100000000 unclaimed, stays claimable); computed at 2026-11-24T14:02:42.294Z or the later clock time of inclusion
+network fee         ~779304 (estimated), paid by GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi
+sent: tx 364b3e0c2fbea122a04273c935736a5069c2ee732216aced2cf5d95407b2ef79 in block 857
+[exit 0]
+
+$ cliff-veil --json show 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16
+{
+  "ok": true,
+  "schedule": {
+    "account": "9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16",
+    "asset": "native",
+    "beneficiary": "H75zu1PGkQmek6WesxQ4LPomWrVKXztcK1xz4EuYXTCz",
+    "cancel_authority": "GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi",
+    "cancelable": true,
+    "cancelled": {
+      "at": "2026-11-24T14:02:42.294Z",
+      "at_ms": 1795528962294,
+      "refunded": "400000000",
+      "vested_at_cancel": "600000000"
+    },
+    "claimable_now": "100000000",
+    "claimed": "500000000",
+    "clock": "2026-11-24T14:02:57.294Z",
+    "clock_ms": 1795528977294,
+    "creator": "GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi",
+    "escrow": "100000000",
+    "kind": "linear: start 2026-11-24T14:01:12.294Z, cliff 2026-11-24T14:01:42.294Z, end 2026-11-24T14:03:42.294Z",
+    "kind_detail": {
+      "linear": {
+        "cliff": 1795528902294,
+        "end": 1795529022294,
+        "start": 1795528872294
+      }
+    },
+    "last_time_ms": 1795528962294,
+    "locked": "0",
+    "milestone_authority": "GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi",
+    "next_unlock": "none (nothing more vests)",
+    "next_unlock_kind": "never",
+    "next_unlock_ms": null,
+    "refund_to": "GjiVMc1rnSnbECCib7ofkhNwN2tBbujwszCC4kgAhyUi",
+    "schedule_id": "a84a29538cc7870c118ca6bb5fb969d55713a417663a7623b13b19be65bed4bc",
+    "standing": "cancelled",
+    "token_definition": null,
+    "total": "1000000000",
+    "transferable": false,
+    "vested": "600000000"
+  }
+}
+[exit 0]
+
+== cancel again: refused locally with code 16
+
+$ cliff-veil cancel 9n9eEzUE6zENnQyPoynXaka7EMxDREqWquyd7iMSWv16 --as cli-20261124T140017-creator
+error: cliff-veil error 16: the schedule is cancelled. What to do: the schedule is cancelled: nothing more vests; the vested remainder stays claimable
+[exit 1]

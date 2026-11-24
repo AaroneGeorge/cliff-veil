@@ -1,0 +1,172 @@
+{
+  "mode": "executor",
+  "lez": "v0.4.0-rc3",
+  "inputs": [
+    [
+      "ids",
+      "deploy ids file"
+    ],
+    [
+      "vesting.bin sha256",
+      "de7e1c0da03961c724683c0b70fa44ca069e4f96d38056361957661ee235f1ee"
+    ],
+    [
+      "vesting_fees.bin sha256",
+      "797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69"
+    ]
+  ],
+  "rows": [
+    {
+      "op": "native_transfer",
+      "asset": "-",
+      "n": 1,
+      "cycles": 0,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "clock_tick",
+      "asset": "-",
+      "n": 1,
+      "cycles": 7745,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "create",
+      "asset": "native",
+      "n": 1,
+      "cycles": 92929,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "claim",
+      "asset": "native",
+      "n": 1,
+      "cycles": 99583,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "claim_as_of",
+      "asset": "native",
+      "n": 1,
+      "cycles": 57142,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "transfer_beneficiary",
+      "asset": "native",
+      "n": 1,
+      "cycles": 50679,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "cancel",
+      "asset": "native",
+      "n": 1,
+      "cycles": 96644,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "make_non_cancelable",
+      "asset": "native",
+      "n": 1,
+      "cycles": 48182,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "signal_milestone",
+      "asset": "native",
+      "n": 1,
+      "cycles": 49137,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "create_batch",
+      "asset": "native",
+      "n": 1,
+      "cycles": 95508,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "create_batch",
+      "asset": "native",
+      "n": 8,
+      "cycles": 457501,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "create_batch",
+      "asset": "native",
+      "n": 32,
+      "cycles": 1704154,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "create_batch (program cap)",
+      "asset": "native",
+      "n": 164,
+      "cycles": 8515387,
+      "fee": null,
+      "status": "ok"
+    },
+    {
+      "op": "create_batch (cap + 1, must be refused)",
+      "asset": "native",
+      "n": 165,
+      "cycles": null,
+      "fee": null,
+      "status": "refused: Failed to execute program: Guest panicked: cliff-veil error 25: too many schedules in one batch"
+    },
+    {
+      "op": "create",
+      "asset": "token",
+      "n": 1,
+      "cycles": null,
+      "fee": null,
+      "status": "not measured yet (token setup: definition and holdings)"
+    },
+    {
+      "op": "claim",
+      "asset": "token",
+      "n": 1,
+      "cycles": null,
+      "fee": null,
+      "status": "not measured yet (token setup: definition and holdings)"
+    },
+    {
+      "op": "cancel",
+      "asset": "token",
+      "n": 1,
+      "cycles": null,
+      "fee": null,
+      "status": "not measured yet (token setup: definition and holdings)"
+    },
+    {
+      "op": "check_fee",
+      "asset": "-",
+      "n": 1,
+      "cycles": null,
+      "fee": null,
+      "status": "not built (vesting_fees; build with --features fees)"
+    },
+    {
+      "op": "set_fee",
+      "asset": "-",
+      "n": 1,
+      "cycles": null,
+      "fee": null,
+      "status": "not built (vesting_fees; build with --features fees)"
+    }
+  ]
+}

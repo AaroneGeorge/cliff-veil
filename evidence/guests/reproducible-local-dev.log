@@ -1,0 +1,49 @@
+# local-dev release set: vesting built with the token, vesting_fees and ata ids of deploy/ids-local-dev.toml.
+# Build A is the one deployed; build B is an independent rebuild (later snapshot commit, fresh output dir).
+
+== 298a1dedb59932281f92b3ecd604d4cee12e7554-local-dev-d53ca376
+commit=298a1dedb59932281f92b3ecd604d4cee12e7554
+image=risczero/risc0-guest-builder:r0.1.91.1@sha256:fafb377a44e1cfca415577c48d2f7012bda99ed36f2fae27f9a663b9fe6048f0
+built_utc=2026-11-24T13:32:48Z
+tree=c783323e585e009378abaaea9aa0d681bb2a3063
+machine=Linux 7.0.0-43-generic x86_64
+inputs=CV_TOKEN_PROGRAM_ID=3uSMsxaS8RE6eLbLg3xwvLedXWmRp88LnJUhJ9xLKGtY CV_FEES_PROGRAM_ID=D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5 CV_ATA_PROGRAM_ID=4AwKPBQecPM5pFpGQ1DNny8U7vefMgTpJZQrpTacrLDU
+-- SHA256SUMS
+97188dfddd46b7b0f75308c54c3b518f887cb4ce32b5758cc8d8b1196e23ec73  ./ata.bin
+7b0178907ac0cfc61542d7d5585481dbbbfa88f594df37cdb3ebb2b88c9db1b5  ./token.bin
+de7e1c0da03961c724683c0b70fa44ca069e4f96d38056361957661ee235f1ee  ./vesting.bin
+797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69  ./vesting_fees.bin
+09cd8813dd3754c5dcee1b320009569c2db5be19768472ad6ba2b652fc5e57a1  elf/ata
+b3ca63d4200efa3d9c6f5849b56fef2bb089e3a2362977c3d781f8ec1664cc0e  elf/token
+50ff550edbdaa53359a0ed83cc774742584369fedcc3fc05d8d635723b126ce7  elf/vesting
+d405aed5d43ec7e121496fe4a84fd0e9195bfb6e1f9710af97ff19794296c67f  elf/vesting_fees
+-- scripts/check_image_ids.sh <dir> deploy/ids-local-dev.toml
+OK       token aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c
+OK       vesting_fees 7e5b5539f82c19d8e4dd502852d5a35673fac4ccefba438bc101099f341cc147
+OK       ata 339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110
+OK       vesting 908567e3c178ded0e25a14cf9b99026797f37437864b439bc6a2e23f4c77171d
+
+== rel-net2
+commit=ed99e0665dd517735d1a1ccfcc9120fba7f7bd49
+image=risczero/risc0-guest-builder:r0.1.91.1@sha256:fafb377a44e1cfca415577c48d2f7012bda99ed36f2fae27f9a663b9fe6048f0
+built_utc=2026-11-24T14:39:25Z
+tree=44f6f87523973f3aa5e39908e038ae50ae5c5a1d
+machine=Linux 7.0.0-43-generic x86_64
+inputs=CV_TOKEN_PROGRAM_ID=3uSMsxaS8RE6eLbLg3xwvLedXWmRp88LnJUhJ9xLKGtY CV_FEES_PROGRAM_ID=D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5 CV_ATA_PROGRAM_ID=4AwKPBQecPM5pFpGQ1DNny8U7vefMgTpJZQrpTacrLDU
+-- SHA256SUMS
+97188dfddd46b7b0f75308c54c3b518f887cb4ce32b5758cc8d8b1196e23ec73  ./ata.bin
+7b0178907ac0cfc61542d7d5585481dbbbfa88f594df37cdb3ebb2b88c9db1b5  ./token.bin
+de7e1c0da03961c724683c0b70fa44ca069e4f96d38056361957661ee235f1ee  ./vesting.bin
+797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69  ./vesting_fees.bin
+09cd8813dd3754c5dcee1b320009569c2db5be19768472ad6ba2b652fc5e57a1  elf/ata
+b3ca63d4200efa3d9c6f5849b56fef2bb089e3a2362977c3d781f8ec1664cc0e  elf/token
+50ff550edbdaa53359a0ed83cc774742584369fedcc3fc05d8d635723b126ce7  elf/vesting
+d405aed5d43ec7e121496fe4a84fd0e9195bfb6e1f9710af97ff19794296c67f  elf/vesting_fees
+-- scripts/check_image_ids.sh <dir> deploy/ids-local-dev.toml
+OK       token aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c
+OK       vesting_fees 7e5b5539f82c19d8e4dd502852d5a35673fac4ccefba438bc101099f341cc147
+OK       ata 339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110
+OK       vesting 908567e3c178ded0e25a14cf9b99026797f37437864b439bc6a2e23f4c77171d
+
+-- diff of the two SHA256SUMS
+identical
