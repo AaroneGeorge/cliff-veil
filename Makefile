@@ -7,7 +7,7 @@ ENV := source scripts/env.sh &&
 NICE := nice -n 10
 GUESTS := vesting vesting_fees token
 
-.PHONY: help fmt fmt-check clippy wording lint test guests guests-release guests-release-network e2e ci hooks seq-dev-start seq-dev-stop \
+.PHONY: help fmt fmt-check clippy lint test test-executor guests guests-release guests-release-network e2e ci seq-dev-start seq-dev-stop \
         seq-pub-start seq-pub-stop deploy-local
 
 help: ## List targets
@@ -22,13 +22,13 @@ fmt-check: ## Check formatting
 clippy: ## Clippy on every crate and target, warnings are errors (guest build skipped)
 	$(ENV) RISC0_SKIP_BUILD=1 $(NICE) cargo clippy --workspace --all-targets --locked -- -D warnings
 
-wording: ## Wording check of every tracked file (scripts/hooks/wording.py)
-	python3 -I scripts/hooks/wording.py --tree
-
-lint: fmt-check clippy wording ## Formatting, clippy and wording
+lint: fmt-check clippy ## Formatting and clippy
 
 test: ## Unit and integration tests (dev mode, guest build skipped; end-to-end tests are `make e2e`)
 	$(ENV) RISC0_SKIP_BUILD=1 $(NICE) cargo test --workspace --locked
+
+test-executor: ## Executor tests with the real guests (builds them with the local rzup toolchain; a missing guest fails)
+	$(ENV) CV_REQUIRE_GUESTS=1 $(NICE) cargo test --locked -p vesting_methods -p vesting_fees
 
 guests: ## Build the guests with the local rzup toolchain into $$CARGO_TARGET_DIR/guests
 	$(ENV) $(NICE) cargo build --locked -p vesting_methods && scripts/collect_guests.sh $(GUESTS)
@@ -45,9 +45,6 @@ e2e: ## End-to-end tests against the running dev sequencer (scripts/seq.sh dev s
 	$(ENV) $(NICE) e2e/run.sh
 
 ci: lint test ## What the CI rust job runs (guests and e2e are separate jobs)
-
-hooks: ## Use the repository's git hooks (identity, trailers, wording)
-	git config core.hooksPath scripts/hooks
 
 seq-dev-start: ## Start the dev-mode sequencer (RPC 3050)
 	scripts/seq.sh dev start

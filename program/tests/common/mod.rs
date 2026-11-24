@@ -150,7 +150,7 @@ pub struct Chain {
 impl Chain {
     /// `vesting` at [`VESTING`], `vesting_fees` and the token program at the ids `vesting` was built with, the clock
     /// at `now`, and an initialised fee config at rate 0. `None` when the guests were not built
-    /// (`RISC0_SKIP_BUILD=1`): the caller skips the test.
+    /// (`RISC0_SKIP_BUILD=1`): the caller skips the test, unless `CV_REQUIRE_GUESTS=1` (CI), which fails it instead.
     #[must_use]
     pub fn new(now: u64) -> Option<Self> {
         Self::with_programs(now, &[(VESTING, vesting_methods::VESTING_ELF)])
@@ -160,6 +160,11 @@ impl Chain {
     #[must_use]
     pub fn with_programs(now: u64, vestings: &[(AccountId, &'static [u8])]) -> Option<Self> {
         if vesting_methods::VESTING_ELF.is_empty() {
+            assert_ne!(
+                std::env::var("CV_REQUIRE_GUESTS").as_deref(),
+                Ok("1"),
+                "CV_REQUIRE_GUESTS=1 but the guests were not built (unset RISC0_SKIP_BUILD)"
+            );
             assert_eq!(
                 std::env::var("RISC0_SKIP_BUILD").as_deref(),
                 Ok("1"),

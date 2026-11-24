@@ -58,9 +58,14 @@ struct Outcome {
 }
 
 impl Fees {
-    /// `None` when the guest was not built (`RISC0_SKIP_BUILD=1`).
+    /// `None` when the guest was not built (`RISC0_SKIP_BUILD=1`); with `CV_REQUIRE_GUESTS=1` (CI) that fails instead.
     fn deploy() -> Option<Self> {
         if vesting_methods::VESTING_FEES_ELF.is_empty() {
+            assert_ne!(
+                std::env::var("CV_REQUIRE_GUESTS").as_deref(),
+                Ok("1"),
+                "CV_REQUIRE_GUESTS=1 but the vesting_fees guest was not built (unset RISC0_SKIP_BUILD)"
+            );
             assert_eq!(
                 std::env::var("RISC0_SKIP_BUILD").as_deref(),
                 Ok("1"),

@@ -1117,7 +1117,7 @@ fn fee_mismatch_refused_by_the_fee_program() {
 }
 
 #[test]
-fn fee_native_paid_to_the_treasury() {
+fn fee1_fee2_fee4_native_fee_paid_by_the_creator_at_creation_to_the_treasury() {
     let mut chain = chain!();
     let p = parties();
     chain.set_fee_config(100, treasury(&p));
@@ -1151,7 +1151,7 @@ fn fee_native_paid_to_the_treasury() {
 }
 
 #[test]
-fn fee_token_paid_to_the_treasury_ata() {
+fn fee1_fee2_fee4_token_fee_paid_by_the_creator_at_creation_to_the_treasury_ata() {
     let mut chain = chain!();
     let p = parties();
     let asset = token_asset(&mut chain, &p, 2 * TOTAL);

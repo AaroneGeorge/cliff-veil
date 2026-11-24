@@ -292,17 +292,18 @@ that exists is in [evidence/miniapp/](evidence/miniapp/README.md).
 
 | What | Command | Notes |
 |---|---|---|
-| Format, clippy, wording | `make lint` | clippy with warnings as errors on every crate and target |
-| Unit and property tests | `make test` | runs with the guest build skipped; tests that execute the real guests (`program/tests`, `program/fees/tests`: events, batch caps, authorisation attacks, the fee program) report that they are skipped. To run them: `source scripts/env.sh && cargo test --workspace --locked`, which builds the guests |
+| Format, clippy | `make lint` | clippy with warnings as errors on every crate and target |
+| Unit and property tests | `make test` | runs with the guest build skipped; tests that execute the real guests (`program/tests`, `program/fees/tests`: events, batch caps, authorisation attacks, the fee program) report that they are skipped. To run them: `make test-executor`, which builds the guests and fails if they are missing (`CV_REQUIRE_GUESTS=1`) |
 | End-to-end tests | `scripts/seq.sh dev start && make deploy-local && make e2e` | `e2e/run.sh` runs the `vesting_e2e` suite against the running sequencer (`CV_SEQ_RPC` moves it); every test opens its own funded accounts |
 | Requirement coverage | `cargo run -p reqmap -- --check` | fails when a hard requirement has no test or when [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) is out of date |
 | Reproducible guests | `make guests-release` | builds every guest in the pinned image and compares the image ids with `program/IMAGE_IDS.expected` |
 | Mini-app logic | `cargo test --manifest-path miniapp/rust-lib/logic/Cargo.toml` | |
 | IDL | `cargo run -p vesting_idl -- --check` | fails when `idl/*.json` differs from a fresh generation |
 
-`.github/workflows/ci.yml` has four jobs: `rust` (format, clippy, wording, tests, mini-app logic), `history` (commit
-identity and wording of every commit), `guests` (guest build in the pinned image and the image-id check) and `e2e` (builds
-the standalone sequencer at the pinned LEZ commit, deploys, runs `e2e/run.sh`, then `reqmap --check`).
+`.github/workflows/ci.yml` has four jobs: `rust` (format, clippy, tests, mini-app logic, `reqmap --check --strict`),
+`executor` (builds the guests and runs every executor test against them; a missing guest fails the job), `guests` (guest
+build in the pinned image and the image-id check) and `e2e` (builds the standalone sequencer at the pinned LEZ commit,
+deploys, runs `e2e/run.sh`).
 
 ## Requirement coverage and costs
 
@@ -376,7 +377,7 @@ A creation with a zero fee passes whatever the state of the fee configuration. D
 | `miniapp/` | The Logos mini-app: core module, QML view, and its logic crate. |
 | `e2e/` | End-to-end tests against a standalone sequencer, and `e2e/run.sh`. |
 | `tools/` | `cost` (writes docs/COSTS.md), `reqmap` (writes docs/REQUIREMENTS.md), `image_id` (image id of a guest binary), `scan_rpc` (privacy scan of RPC answers). |
-| `scripts/` | Bootstrap, local sequencers, deployment, reproducible guest build, wording and history checks. |
+| `scripts/` | Bootstrap, local sequencers, deployment, reproducible guest build and image-id check. |
 | `deploy/` | Program ids and image ids per network. |
 | `evidence/` | Logs and measurement files that the documents quote. |
 | `docs/` | [REQUIREMENTS](docs/REQUIREMENTS.md), [COSTS](docs/COSTS.md), [IDL](docs/IDL.md), [PLATFORM-FINDINGS](docs/PLATFORM-FINDINGS.md), [DECISIONS](docs/DECISIONS.md), [PRIVACY](docs/PRIVACY.md), [EVENTS](docs/EVENTS.md), [REUSE](docs/REUSE.md). |

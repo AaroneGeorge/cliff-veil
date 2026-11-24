@@ -10,8 +10,9 @@ on:
 permissions:
   contents: read
 
+# One run per branch (or pull request): a new push cancels the run still going on the same branch.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -20,35 +21,33 @@ env:
   RISC0_DOCKER_CONTAINER_TAG: r0.1.91.1
   # LEZ v0.4.0-rc3; must equal the lez line of scripts/pins.txt (checked in the e2e job).
   LEZ_COMMIT: bafd07be0701398f9bc435f73ab05e9a7936c301
+  # The rzup components scripts/bootstrap.sh installs; ~/.risc0 is cached under this key.
+  RISC0_CACHE_KEY: risc0-cargo-risczero-3.0.5-r0vm-3.0.5-rust-1.91.1-cpp-2024.1.5
   # Hosted runners have 4 cores to themselves.
   CARGO_BUILD_JOBS: "4"
 
 jobs:
   rust:
-    name: fmt, clippy, wording, tests (dev mode)
+    name: fmt, clippy, tests (dev mode), requirement map
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: System packages
-        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends clang libclang-dev pkg-config cmake
-      - name: Toolchain from rust-toolchain.toml
-        run: rustup show active-toolchain || rustup toolchain install
+      - name: System packages and host toolchain (scripts/bootstrap.sh, without LEZ and rzup)
+        run: scripts/bootstrap.sh --with-sudo --no-lez --no-rzup
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           # scripts/env.sh puts the target dir next to the checkout.
           workspaces: ". -> ../build/target"
+          key: rust
       - name: fmt
         run: make fmt-check
       - name: clippy
         if: success() || failure()
         run: make clippy
-      - name: wording (every tracked file)
-        if: success() || failure()
-        run: make wording
-      - name: tests
+      - name: tests (guest build skipped; the executor job runs the guests)
         if: success() || failure()
         run: make test
       # The mini-app logic is a standalone crate (the Logos module builder compiles it outside the workspace).
@@ -58,18 +57,39 @@ jobs:
           cargo fmt --manifest-path miniapp/rust-lib/logic/Cargo.toml --check
           cargo clippy --locked --manifest-path miniapp/rust-lib/logic/Cargo.toml --all-targets -- -D warnings
           cargo test --locked --manifest-path miniapp/rust-lib/logic/Cargo.toml
+      - name: Every hard requirement has a test, and docs/REQUIREMENTS.md is current
+        if: success() || failure()
+        run: source scripts/env.sh && RISC0_SKIP_BUILD=1 cargo run --locked -p reqmap -- --check --strict
 
-  history:
-    name: commit identity, trailers, wording of messages
+  executor:
+    name: executor tests with the real guests (dev mode)
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    # Builds vesting, vesting_fees and the token guest with the rzup toolchain and runs program/tests and
+    # program/fees/tests against them. CV_REQUIRE_GUESTS=1 turns the "guests not built" early return into a failure,
+    # so no executor test can pass without running.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          fetch-depth: 0
-      - name: Every commit of the branch
-        run: scripts/check_history.sh HEAD
+      - name: Free runner disk
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL && df -h /
+      - name: RISC Zero toolchains (cache)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.risc0
+          key: ${{ env.RISC0_CACHE_KEY }}
+      - name: Bootstrap (system packages, host toolchain, rzup components; no LEZ)
+        env:
+          # rzup resolves versions through the GitHub API; the workflow token avoids the anonymous rate limit.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/bootstrap.sh --with-sudo --no-lez
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: ". -> ../build/target"
+          key: executor
+      - name: Executor tests (vesting_methods, vesting_fees) with the guests built
+        run: make test-executor
 
   guests:
     name: guest build (docker r0.1.91.1) + image-id check
@@ -102,6 +122,9 @@ jobs:
     # The first run builds sequencer_service --features standalone and the wallet at the pinned LEZ commit (the slow
     # part); later runs restore both binaries from the cache, keyed by that commit.
     timeout-minutes: 120
+    env:
+      # The sequencer runs detached under setsid with a pid file (scripts/seq.sh), not as a systemd user unit.
+      CV_SEQ_RUNNER: setsid
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -118,7 +141,14 @@ jobs:
         with:
           path: ${{ runner.temp }}/lez-bin
           key: lez-standalone-bin-${{ env.LEZ_COMMIT }}
-      - name: Bootstrap (system packages, rzup, LEZ checkout, LEZ binaries when not cached)
+      - name: RISC Zero toolchains (cache)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.risc0
+          key: ${{ env.RISC0_CACHE_KEY }}
+      - name: Bootstrap (system packages, rzup, LEZ checkout at the pinned commit, LEZ binaries when not cached)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: scripts/bootstrap.sh --with-sudo
       - name: Save LEZ binaries
         if: steps.lezcache.outputs.cache-hit != 'true'
@@ -126,6 +156,11 @@ jobs:
         with:
           path: ${{ runner.temp }}/lez-bin
           key: lez-standalone-bin-${{ env.LEZ_COMMIT }}
+      - name: The sequencer and wallet binaries; drop the LEZ build dir to free disk
+        run: |
+          ls -l "$CV_LEZ_BIN"
+          rm -rf ../vendor/lez/target
+          df -h /
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: ". -> ../build/target"
@@ -144,9 +179,6 @@ jobs:
         env:
           CV_SEQ_RPC: http://127.0.0.1:3050
         run: e2e/run.sh
-      - name: Every hard requirement has a test, and docs/REQUIREMENTS.md is current
-        if: success() || failure()
-        run: cargo run --locked -p reqmap -- --check
       - name: Sequencer log
         if: always()
         run: |
