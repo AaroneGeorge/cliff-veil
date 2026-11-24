@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Rejects a commit whose author or committer is not the repository identity, or whose staged changes add a term on
+# the wording list or a local home path (scripts/hooks/wording.py). Installed with:
+#   git config core.hooksPath scripts/hooks
+set -euo pipefail
+hooks="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/hooks/identity.sh
+source "$hooks/identity.sh"
+fail=0
+for who in AUTHOR COMMITTER; do
+  ident="$(git var "GIT_${who}_IDENT" | sed 's/ [0-9]\{1,\} [-+][0-9]\{4\}$//')"
+  if [ "$ident" != "$CV_IDENTITY" ]; then
+    echo "pre-commit: ${who,,} is '$ident', expected '$CV_IDENTITY'" >&2; fail=1
+  fi
+done
+if ! report="$(python3 -I "$hooks/wording.py" --staged)"; then
+  echo "pre-commit: staged changes fail the wording check:" >&2
+  printf '%s\n' "$report" | sed 's/^/  /' >&2; fail=1
+fi
+exit "$fail"

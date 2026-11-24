@@ -1,0 +1,120 @@
+# cliff-veil: privacy-preserving token vesting on the Logos Execution Zone (LEZ v0.4.0-rc3).
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/AaroneGeorge/cliff-veil"
+publish = false
+
+[workspace]
+resolver = "3"
+members = [
+  # Pure vesting rules, shared by the program and the SDK.
+  "core",
+  # The `vesting` program: `program/guest` is the guest (riscv32im-risc0-zkvm-elf; it also compiles natively so fmt,
+  # clippy and unit tests cover it), `program` embeds its ELF and image id (same layout as LEZ's `methods/guest`).
+  "program",
+  "program/guest",
+  # The `vesting_fees` program (the creation-fee switch): its rules and handler, its guest, and its admin client.
+  "program/fees",
+  "program/fees/guest",
+  "program/fees/admin",
+  # The LEZ token program of lez-programs at the pinned commit, built from source for the executor tests.
+  "program/token-guest",
+  "sdk",
+  "cli",
+  "idl",
+  "e2e",
+  "tools/cost",
+  "tools/reqmap",
+  "tools/image_id",
+]
+# The ATA program of lez-programs, vendored with its own workspace (program/ata-guest/README.md).
+exclude = ["program/ata-guest"]
+
+[workspace.dependencies]
+# ---- our crates ----
+vesting_core = { path = "core" }
+vesting_methods = { path = "program" }
+vesting_fees = { path = "program/fees" }
+vesting_sdk = { path = "sdk" }
+
+# ---- LEZ v0.4.0-rc3 (tag v0.4.0-rc3, commit bafd07be0701398f9bc435f73ab05e9a7936c301; scripts/pins.txt) ----
+# Spelt as the tag, exactly as lez-admin-authority spells it: cargo treats a tag and a rev as two sources even at the
+# same commit, and two copies of lee_core do not compile together. Cargo.lock records the commit.
+lee_core = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3" }
+lee = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3" }
+wallet = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3" }
+common = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3" }
+sequencer_service_rpc = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3" }
+program_loader_core = { git = "https://github.com/logos-blockchain/logos-execution-zone", tag = "v0.4.0-rc3" }
+
+# ---- RFP-001 admin authority (MIT OR Apache-2.0), pinned to LEZ v0.4.0-rc3; tag v0.2.0 = commit e98471067f41 ----
+lez-admin-authority = { git = "https://github.com/mmlado/lez-admin-authority", tag = "v0.2.0" }
+
+# ---- RISC Zero 3.0.5 (exact: 3.1.x is semver-compatible and must not be picked up) ----
+risc0-zkvm = { version = "=3.0.5", default-features = false, features = ["std"] }
+risc0-build = "=3.0.5"
+# Same versions as LEZ rc3's lock file: wrap a user ELF with the v1compat kernel and compute its image id.
+risc0-binfmt = "=3.0.4"
+risc0-zkos-v1compat = "=2.2.2"
+
+# ---- general (versions as LEZ rc3 where LEZ uses them) ----
+anyhow = "1.0.98"
+borsh = { version = "1.5.7", features = ["derive"] }
+clap = { version = "4.5.42", features = ["derive", "env"] }
+hex = "0.4.3"
+serde = { version = "1.0.60", default-features = false, features = ["derive"] }
+serde_json = "1.0.81"
+sha2 = { version = "0.10.8", default-features = false }
+thiserror = "2.0"
+tokio = { version = "1.50", features = ["macros", "rt-multi-thread", "time"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+# Same keccak patch as LEZ rc3 (its Cargo.toml [patch.crates-io]); required for the LEZ crates to resolve as LEZ does.
+[patch.crates-io]
+keccak = { git = "https://github.com/logos-blockchain/sponges", rev = "3a56e99771beedf04946eab21a4a62adc2951377" }
+
+# ---- Profiles ----
+# `release` is the GUEST profile: risc0-build builds guests with `--release` against this workspace root.
+# Small ELF (deployed-ELF cap 1,966,080 bytes: 20 segments of 96 KiB).
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+
+# Host binaries for long runs (CLI, cost tool): `cargo build --profile host`.
+[profile.host]
+inherits = "release"
+opt-level = 3
+lto = false
+codegen-units = 16
+
+# Dev and tests: keep link memory low (as LEZ does) and make the RISC Zero executor fast in dev mode.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.test]
+debug = "line-tables-only"
+
+[profile.dev.package.risc0-zkvm]
+opt-level = 3
+[profile.dev.package.risc0-circuit-rv32im]
+opt-level = 3
+[profile.dev.package.risc0-zkp]
+opt-level = 3
+[profile.dev.package.risc0-binfmt]
+opt-level = 3
+[profile.dev.package.risc0-core]
+opt-level = 3
+# The wallet's storage key derivation (argon2) is slow unoptimised.
+[profile.dev.package.argon2]
+opt-level = 3
+[profile.dev.package.blake2]
+opt-level = 3

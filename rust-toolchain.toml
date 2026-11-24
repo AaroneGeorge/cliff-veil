@@ -1,0 +1,4 @@
+# Same host toolchain as LEZ v0.4.0-rc3 (its rust-toolchain.toml). Guests use the rzup `risc0` toolchain (rust 1.91.1).
+[toolchain]
+channel = "1.98.1"
+profile = "default"
