@@ -1,0 +1,1663 @@
+# cliff_veil_module under logosctl 0.3.2 (Logos Core runtime, headless) against the LIVE local-dev sequencer
+# 2026-11-24T18:32:04Z  run mlive-20261124T183204Z  repo commit 1367a1935109be406dae59b5378f095969275107
+# core module: miniapp#lgx-portable built from this commit, sha256 70214e2b2795fb8625673e202ecc82a35402106d456911975aef1a1d82751af5
+# command line: cliff-veil (cli/, debug build of this commit), run by the module once per request
+# network: local-dev, RPC http://127.0.0.1:3050, LEZ v0.4.0-rc3, RISC0_DEV_MODE=1 (private claims carry a
+# dev-mode receipt, not a real proof)
+logosctl version 0.3.2
+# program ids (deploy/ids-local-dev.toml):
+[programs]
+token = "3uSMsxaS8RE6eLbLg3xwvLedXWmRp88LnJUhJ9xLKGtY"
+vesting_fees = "D19cmwnGteSuS1i5aBtuvEdpRS9yeFM3UYk9pN87Uex5"
+ata = "4AwKPBQecPM5pFpGQ1DNny8U7vefMgTpJZQrpTacrLDU"
+vesting = "5nCVf47kVHKC9RwgfyokEgYM1n2wdjEhS3D9z7RkJFsZ"
+
+## Accounts: a fresh wallet; the payer is LEZ's SECOND published local test key (the one the end-to-end
+## tests fund from; deployment uses the first), read from the LEZ Justfile at run time.
+funder (local test key 2) Public/2RHZhw9h534Zr3eq2RGhQete2Hh667foECzXPmSkGni2: Label: funder
+Balance 19376895191640, nonce 628
+creator      Public/NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3
+beneficiary  Public/HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ
+$ wallet auth-transfer send --from funder --to Public/NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 --amount 3000000000
+Transaction hash is c94c62b82c5b35b435eca4a83fa9ce968930e2c11d5dac286bcf9332575ece38
+Transaction is included in block 1934
+$ wallet auth-transfer send --from funder --to Public/HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ --amount 100000000
+Transaction hash is d618f610c6839375c45225088864b66fba2d564be223775b2f127abe8b289def
+Transaction is included in block 1936
+$ wallet account new private --label mlive-20261124T183204Z-empty
+Generated new account with account_id Private/Es73F2GHSMk88ZpQbC6qaYjcWq7kx2MHw4E1KzUdB4sc at path /0
+empty private account (fee payer of the insufficient-gas case): Private/Es73F2GHSMk88ZpQbC6qaYjcWq7kx2MHw4E1KzUdB4sc
+
+## Core module installed and loaded in a fresh logosctl session; Settings applied as the view's Settings tab does
+$ logosctl install <build>/core-lgx-portable/logos-cliff_veil_module-module-lib.lgx -y
+{"affected_loaded":[],"changes":[{"action":"install","file":"<workdir>/build/t6live/core-lgx-portable/logos-cliff_veil_module-module-lib.lgx","fromVersion":"","name":"cliff_veil_module","signature":"unsigned","toVersion":"0.1.0"}],"installed":["cliff_veil_module"],"op":"install","reloaded":[],"status":"ok","stopped_dependents":[]}
+$ logosctl module load cliff_veil_module
+{"dependencies_loaded":[],"module":"cliff_veil_module","status":"ok","version":"0.1.0"}
+$ logosctl call cliff_veil_module configure str:{"cli": "<workdir>/build/target/debug/cliff-veil", "env": {"LEE_WALLET_HOME_DIR": "<workdir>/run/wallet-miniapp-live", "LEE_WALLET_PASSWORD": "", "CV_IDS": "<workdir>/repo/deploy/ids-local-dev.toml", "RISC0_DEV_MODE": "1", "RUST_LOG": "warn", "RISC0_SERVER_PATH": "~/.risc0/extensions/v3.0.5-cargo-risczero-x86_64-unknown-linux-gnu/r0vm"}}
+{"method":"configure","module":"cliff_veil_module","result":"{\"cli\":\"<workdir>/build/target/debug/cliff-veil\",\"env\":[\"CV_IDS\",\"LEE_WALLET_HOME_DIR\",\"LEE_WALLET_PASSWORD\",\"RISC0_DEV_MODE\",\"RISC0_SERVER_PATH\",\"RUST_LOG\"],\"ok\":true}","status":"ok"}
+# result: {
+#  "cli": "<workdir>/build/target/debug/cliff-veil",
+#  "env": [
+#   "CV_IDS",
+#   "LEE_WALLET_HOME_DIR",
+#   "LEE_WALLET_PASSWORD",
+#   "RISC0_DEV_MODE",
+#   "RISC0_SERVER_PATH",
+#   "RUST_LOG"
+#  ],
+#  "ok": true
+# }
+# (0.0 s)
+$ logosctl call cliff_veil_module disclosure 
+{"method":"disclosure","module":"cliff_veil_module","result":"{\"digest\":\"25ea741b4df389c5\",\"ok\":true,\"text\":\"Privacy of this claim (claim to a private account)\\n  Visible on-chain, to everyone:\\n    - the claim amount\\n    - the beneficiary address\\n    - the vesting schedule address\\n    - the time of the claim\\n  Not recorded in public on-chain state:\\n    - the destination private account\\n    - later movements of the claimed tokens\\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them.\"}","status":"ok"}
+# result: {
+#  "digest": "25ea741b4df389c5",
+#  "ok": true,
+#  "text": "Privacy of this claim (claim to a private account)\n  Visible on-chain, to everyone:\n    - the claim amount\n    - the beneficiary address\n    - the vesting schedule address\n    - the time of the claim\n  Not recorded in public on-chain state:\n    - the destination private account\n    - later movements of the claimed tokens\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them."
+# }
+# (0.1 s)
+# CHECK PASS: disclosure read through the module
+
+## Creator view: create (linear with cliff), create (for the cancel), create (milestones); list; cancel; signal
+$ logosctl call cliff_veil_module validate_create str:{"creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3", "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ", "asset": "native", "kind": "linear", "total": "1000000000", "start": "1795545191326", "cliff": "1795545341326", "end": "1795545791326", "label": "mlive-20261124T183204Z-linear"}
+{"method":"validate_create","module":"cliff_veil_module","result":"{\"lines\":[[\"Creator\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"],[\"Beneficiary\",\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\"],[\"Asset\",\"native\"],[\"Total\",\"1,000,000,000\"],[\"Start\",\"2026-11-24T18:33:11.326Z\"],[\"Cliff\",\"2026-11-24T18:35:41.326Z\"],[\"End\",\"2026-11-24T18:43:11.326Z\"],[\"Cancelable\",\"yes\"],[\"Transferable\",\"no\"],[\"Cancel authority\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Milestone authority\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Refund account\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Schedule id\",\"SHA-256 of label `mlive-20261124T183204Z-linear`\"]],\"ok\":true}","status":"ok"}
+# result: {
+#  "lines": [
+#   [
+#    "Creator",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ],
+#   [
+#    "Beneficiary",
+#    "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ"
+#   ],
+#   [
+#    "Asset",
+#    "native"
+#   ],
+#   [
+#    "Total",
+#    "1,000,000,000"
+#   ],
+#   [
+#    "Start",
+#    "2026-11-24T18:33:11.326Z"
+#   ],
+#   [
+#    "Cliff",
+#    "2026-11-24T18:35:41.326Z"
+#   ],
+#   [
+#    "End",
+#    "2026-11-24T18:43:11.326Z"
+#   ],
+#   [
+#    "Cancelable",
+#    "yes"
+#   ],
+#   [
+#    "Transferable",
+#    "no"
+#   ],
+#   [
+#    "Cancel authority",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Milestone authority",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Refund account",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Schedule id",
+#    "SHA-256 of label `mlive-20261124T183204Z-linear`"
+#   ]
+#  ],
+#  "ok": true
+# }
+# (0.0 s)
+# CHECK PASS: create form validated
+$ logosctl call cliff_veil_module validate_create str:{"creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3", "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ", "asset": "native", "kind": "linear", "total": "1000000000", "start": "1795545191326", "cliff": "1795546091326", "end": "1795545791326", "label": "mlive-20261124T183204Z-linear"}
+{"method":"validate_create","module":"cliff_veil_module","result":"{\"errors\":[{\"field\":\"cliff\",\"message\":\"times must satisfy start <= cliff <= end and start < end\",\"program_code\":11}],\"ok\":false}","status":"ok"}
+# result: {
+#  "errors": [
+#   {
+#    "field": "cliff",
+#    "message": "times must satisfy start <= cliff <= end and start < end",
+#    "program_code": 11
+#   }
+#  ],
+#  "ok": false
+# }
+# (0.0 s)
+# CHECK PASS: form with cliff after end refused with field errors
+$ logosctl call cliff_veil_module prepare_create str:{"creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3", "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ", "asset": "native", "kind": "linear", "total": "1000000000", "start": "1795545191326", "cliff": "1795545341326", "end": "1795545791326", "label": "mlive-20261124T183204Z-linear"}
+{"method":"prepare_create","module":"cliff_veil_module","result":"{\"fee\":\"760,984\",\"fee_payer\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"lines\":[[\"Creator\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"],[\"Beneficiary\",\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\"],[\"Asset\",\"native\"],[\"Total\",\"1,000,000,000\"],[\"Start\",\"2026-11-24T18:33:11.326Z\"],[\"Cliff\",\"2026-11-24T18:35:41.326Z\"],[\"End\",\"2026-11-24T18:43:11.326Z\"],[\"Cancelable\",\"yes\"],[\"Transferable\",\"no\"],[\"Cancel authority\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Milestone authority\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Refund account\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Schedule id\",\"SHA-256 of label `mlive-20261124T183204Z-linear`\"]],\"ok\":true,\"op\":1,\"outcome\":{\"created\":{\"protocol_fee\":\"0\",\"schedules\":[\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\"],\"total\":\"1000000000\",\"treasury\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"}},\"outcome_lines\":[[\"Schedules created\",\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\"],[\"Escrowed\",\"1,000,000,000\"],[\"Creation fee\",\"0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"]]}","status":"ok"}
+# result: {
+#  "fee": "760,984",
+#  "fee_payer": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#  "lines": [
+#   [
+#    "Creator",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ],
+#   [
+#    "Beneficiary",
+#    "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ"
+#   ],
+#   [
+#    "Asset",
+#    "native"
+#   ],
+#   [
+#    "Total",
+#    "1,000,000,000"
+#   ],
+#   [
+#    "Start",
+#    "2026-11-24T18:33:11.326Z"
+#   ],
+#   [
+#    "Cliff",
+#    "2026-11-24T18:35:41.326Z"
+#   ],
+#   [
+#    "End",
+#    "2026-11-24T18:43:11.326Z"
+#   ],
+#   [
+#    "Cancelable",
+#    "yes"
+#   ],
+#   [
+#    "Transferable",
+#    "no"
+#   ],
+#   [
+#    "Cancel authority",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Milestone authority",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Refund account",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Schedule id",
+#    "SHA-256 of label `mlive-20261124T183204Z-linear`"
+#   ]
+#  ],
+#  "ok": true,
+#  "op": 1,
+#  "outcome": {
+#   "created": {
+#    "protocol_fee": "0",
+#    "schedules": [
+#     "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy"
+#    ],
+#    "total": "1000000000",
+#    "treasury": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   }
+#  },
+#  "outcome_lines": [
+#   [
+#    "Schedules created",
+#    "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy"
+#   ],
+#   [
+#    "Escrowed",
+#    "1,000,000,000"
+#   ],
+#   [
+#    "Creation fee",
+#    "0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ]
+#  ]
+# }
+# (0.7 s)
+# CHECK PASS: create review priced by a dry run (fee 760,984)
+$ logosctl call cliff_veil_module confirm_op 1
+{"method":"confirm_op","module":"cliff_veil_module","result":"{\"ok\":true,\"outcome_lines\":[[\"Schedules created\",\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\"],[\"Escrowed\",\"1,000,000,000\"],[\"Creation fee\",\"0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"]],\"receipt\":{\"block\":1939,\"hash\":\"05f23d29dbfd31f95aaca97bab76f153f88a98054f02679859e0d52638d413ef\"}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "outcome_lines": [
+#   [
+#    "Schedules created",
+#    "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy"
+#   ],
+#   [
+#    "Escrowed",
+#    "1,000,000,000"
+#   ],
+#   [
+#    "Creation fee",
+#    "0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ]
+#  ],
+#  "receipt": {
+#   "block": 1939,
+#   "hash": "05f23d29dbfd31f95aaca97bab76f153f88a98054f02679859e0d52638d413ef"
+#  }
+# }
+# (16.1 s)
+# CHECK PASS: linear schedule created on-chain
+# schedule (linear): 7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy
+$ logosctl call cliff_veil_module prepare_create str:{"creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3", "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ", "asset": "native", "kind": "linear", "total": "400000000", "start": "1795545191326", "cliff": "1795545341326", "end": "1795545791326", "label": "mlive-20261124T183204Z-cancel"}
+{"method":"prepare_create","module":"cliff_veil_module","result":"{\"fee\":\"760,848\",\"fee_payer\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"lines\":[[\"Creator\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"],[\"Beneficiary\",\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\"],[\"Asset\",\"native\"],[\"Total\",\"400,000,000\"],[\"Start\",\"2026-11-24T18:33:11.326Z\"],[\"Cliff\",\"2026-11-24T18:35:41.326Z\"],[\"End\",\"2026-11-24T18:43:11.326Z\"],[\"Cancelable\",\"yes\"],[\"Transferable\",\"no\"],[\"Cancel authority\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Milestone authority\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Refund account\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Schedule id\",\"SHA-256 of label `mlive-20261124T183204Z-cancel`\"]],\"ok\":true,\"op\":2,\"outcome\":{\"created\":{\"protocol_fee\":\"0\",\"schedules\":[\"EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR\"],\"total\":\"400000000\",\"treasury\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"}},\"outcome_lines\":[[\"Schedules created\",\"EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR\"],[\"Escrowed\",\"400,000,000\"],[\"Creation fee\",\"0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"]]}","status":"ok"}
+# result: {
+#  "fee": "760,848",
+#  "fee_payer": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#  "lines": [
+#   [
+#    "Creator",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ],
+#   [
+#    "Beneficiary",
+#    "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ"
+#   ],
+#   [
+#    "Asset",
+#    "native"
+#   ],
+#   [
+#    "Total",
+#    "400,000,000"
+#   ],
+#   [
+#    "Start",
+#    "2026-11-24T18:33:11.326Z"
+#   ],
+#   [
+#    "Cliff",
+#    "2026-11-24T18:35:41.326Z"
+#   ],
+#   [
+#    "End",
+#    "2026-11-24T18:43:11.326Z"
+#   ],
+#   [
+#    "Cancelable",
+#    "yes"
+#   ],
+#   [
+#    "Transferable",
+#    "no"
+#   ],
+#   [
+#    "Cancel authority",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Milestone authority",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Refund account",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Schedule id",
+#    "SHA-256 of label `mlive-20261124T183204Z-cancel`"
+#   ]
+#  ],
+#  "ok": true,
+#  "op": 2,
+#  "outcome": {
+#   "created": {
+#    "protocol_fee": "0",
+#    "schedules": [
+#     "EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR"
+#    ],
+#    "total": "400000000",
+#    "treasury": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   }
+#  },
+#  "outcome_lines": [
+#   [
+#    "Schedules created",
+#    "EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR"
+#   ],
+#   [
+#    "Escrowed",
+#    "400,000,000"
+#   ],
+#   [
+#    "Creation fee",
+#    "0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ]
+#  ]
+# }
+# (0.6 s)
+$ logosctl call cliff_veil_module confirm_op 2
+{"method":"confirm_op","module":"cliff_veil_module","result":"{\"ok\":true,\"outcome_lines\":[[\"Schedules created\",\"EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR\"],[\"Escrowed\",\"400,000,000\"],[\"Creation fee\",\"0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"]],\"receipt\":{\"block\":1940,\"hash\":\"36caad6db6944c9fccf7ea80fcdaac3c0f8231ac5469a1d1e3ba0ec52354fba6\"}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "outcome_lines": [
+#   [
+#    "Schedules created",
+#    "EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR"
+#   ],
+#   [
+#    "Escrowed",
+#    "400,000,000"
+#   ],
+#   [
+#    "Creation fee",
+#    "0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ]
+#  ],
+#  "receipt": {
+#   "block": 1940,
+#   "hash": "36caad6db6944c9fccf7ea80fcdaac3c0f8231ac5469a1d1e3ba0ec52354fba6"
+#  }
+# }
+# (14.4 s)
+# CHECK PASS: second schedule created on-chain
+# schedule (to cancel): EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR
+$ logosctl call cliff_veil_module prepare_create str:{"creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3", "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ", "asset": "native", "kind": "milestones", "milestones": "300000000;200000000", "label": "mlive-20261124T183204Z-milestones"}
+{"method":"prepare_create","module":"cliff_veil_module","result":"{\"fee\":\"778,256\",\"fee_payer\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"lines\":[[\"Creator\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"],[\"Beneficiary\",\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\"],[\"Asset\",\"native\"],[\"Total\",\"500,000,000\"],[\"Milestones\",\"300,000,000; 200,000,000\"],[\"Cancelable\",\"yes\"],[\"Transferable\",\"no\"],[\"Cancel authority\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Milestone authority\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Refund account\",\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)\"],[\"Schedule id\",\"SHA-256 of label `mlive-20261124T183204Z-milestones`\"]],\"ok\":true,\"op\":3,\"outcome\":{\"created\":{\"protocol_fee\":\"0\",\"schedules\":[\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\"],\"total\":\"500000000\",\"treasury\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"}},\"outcome_lines\":[[\"Schedules created\",\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\"],[\"Escrowed\",\"500,000,000\"],[\"Creation fee\",\"0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"]]}","status":"ok"}
+# result: {
+#  "fee": "778,256",
+#  "fee_payer": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#  "lines": [
+#   [
+#    "Creator",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ],
+#   [
+#    "Beneficiary",
+#    "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ"
+#   ],
+#   [
+#    "Asset",
+#    "native"
+#   ],
+#   [
+#    "Total",
+#    "500,000,000"
+#   ],
+#   [
+#    "Milestones",
+#    "300,000,000; 200,000,000"
+#   ],
+#   [
+#    "Cancelable",
+#    "yes"
+#   ],
+#   [
+#    "Transferable",
+#    "no"
+#   ],
+#   [
+#    "Cancel authority",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Milestone authority",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Refund account",
+#    "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 (the creator)"
+#   ],
+#   [
+#    "Schedule id",
+#    "SHA-256 of label `mlive-20261124T183204Z-milestones`"
+#   ]
+#  ],
+#  "ok": true,
+#  "op": 3,
+#  "outcome": {
+#   "created": {
+#    "protocol_fee": "0",
+#    "schedules": [
+#     "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv"
+#    ],
+#    "total": "500000000",
+#    "treasury": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   }
+#  },
+#  "outcome_lines": [
+#   [
+#    "Schedules created",
+#    "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv"
+#   ],
+#   [
+#    "Escrowed",
+#    "500,000,000"
+#   ],
+#   [
+#    "Creation fee",
+#    "0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ]
+#  ]
+# }
+# (0.6 s)
+$ logosctl call cliff_veil_module confirm_op 3
+{"method":"confirm_op","module":"cliff_veil_module","result":"{\"ok\":true,\"outcome_lines\":[[\"Schedules created\",\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\"],[\"Escrowed\",\"500,000,000\"],[\"Creation fee\",\"0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"]],\"receipt\":{\"block\":1941,\"hash\":\"e5c1f1efe0b83c932e8a0f7965889096eeb8c6b6f5f663622adfb86501702cd4\"}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "outcome_lines": [
+#   [
+#    "Schedules created",
+#    "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv"
+#   ],
+#   [
+#    "Escrowed",
+#    "500,000,000"
+#   ],
+#   [
+#    "Creation fee",
+#    "0 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ]
+#  ],
+#  "receipt": {
+#   "block": 1941,
+#   "hash": "e5c1f1efe0b83c932e8a0f7965889096eeb8c6b6f5f663622adfb86501702cd4"
+#  }
+# }
+# (14.4 s)
+# CHECK PASS: milestone schedule created on-chain
+# schedule (milestones): 259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv
+$ logosctl call cliff_veil_module creator_view str:NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 str:
+{"method":"creator_view","module":"cliff_veil_module","result":"{\"ok\":true,\"schedules\":[{\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_cancel\":true,\"cancel_hint\":null,\"claimable_now\":\"0\",\"claimed\":\"0\",\"locked\":\"500,000,000\",\"schedule\":\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\",\"signal_hint\":null,\"signal_indices\":[0,1],\"standing\":\"active\",\"terms\":[\"Milestones (0 of 2 signalled)\",\"#0: 300,000,000 pending\",\"#1: 200,000,000 pending\"],\"total\":\"500,000,000\"},{\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_cancel\":true,\"cancel_hint\":null,\"claimable_now\":\"0\",\"claimed\":\"0\",\"locked\":\"1,000,000,000\",\"schedule\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\",\"signal_hint\":\"linear schedule: no milestones\",\"signal_indices\":[],\"standing\":\"active\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\"],\"total\":\"1,000,000,000\"},{\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_cancel\":true,\"cancel_hint\":null,\"claimable_now\":\"0\",\"claimed\":\"0\",\"locked\":\"400,000,000\",\"schedule\":\"EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR\",\"signal_hint\":\"linear schedule: no milestones\",\"signal_indices\":[],\"standing\":\"active\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\"],\"total\":\"400,000,000\"}],\"skipped\":[]}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "schedules": [
+#   {
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_cancel": true,
+#    "cancel_hint": null,
+#    "claimable_now": "0",
+#    "claimed": "0",
+#    "locked": "500,000,000",
+#    "schedule": "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv",
+#    "signal_hint": null,
+#    "signal_indices": [
+#     0,
+#     1
+#    ],
+#    "standing": "active",
+#    "terms": [
+#     "Milestones (0 of 2 signalled)",
+#     "#0: 300,000,000 pending",
+#     "#1: 200,000,000 pending"
+#    ],
+#    "total": "500,000,000"
+#   },
+#   {
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_cancel": true,
+#    "cancel_hint": null,
+#    "claimable_now": "0",
+#    "claimed": "0",
+#    "locked": "1,000,000,000",
+#    "schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy",
+#    "signal_hint": "linear schedule: no milestones",
+#    "signal_indices": [],
+#    "standing": "active",
+#    "terms": [
+#     "Linear (cliff, then linear)",
+#     "start 2026-11-24T18:33:11.326Z",
+#     "cliff 2026-11-24T18:35:41.326Z",
+#     "end   2026-11-24T18:43:11.326Z"
+#    ],
+#    "total": "1,000,000,000"
+#   },
+#   {
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_cancel": true,
+#    "cancel_hint": null,
+#    "claimable_now": "0",
+#    "claimed": "0",
+#    "locked": "400,000,000",
+#    "schedule": "EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR",
+#    "signal_hint": "linear schedule: no milestones",
+#    "signal_indices": [],
+#    "standing": "active",
+#    "terms": [
+#     "Linear (cliff, then linear)",
+#     "start 2026-11-24T18:33:11.326Z",
+#     "cliff 2026-11-24T18:35:41.326Z",
+#     "end   2026-11-24T18:43:11.326Z"
+#    ],
+#    "total": "400,000,000"
+#   }
+#  ],
+#  "skipped": []
+# }
+# (1.5 s)
+# CHECK PASS: list --creator through the module finds the three schedules (3 listed)
+$ logosctl call cliff_veil_module prepare_cancel str:EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR str:NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3
+{"method":"prepare_cancel","module":"cliff_veil_module","result":"{\"fee\":\"772,144\",\"fee_payer\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"lines\":null,\"ok\":true,\"op\":4,\"outcome\":{\"cancelled\":{\"at\":1795545237310,\"refund_to\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"refunded\":\"400000000\",\"still_claimable\":\"0\",\"vested_at_cancel\":\"0\"}},\"outcome_lines\":[[\"Effective at (at least)\",\"2026-11-24T18:33:57.310Z\"],[\"Vested, frozen by the cancel\",\"0\"],[\"Refunded\",\"400,000,000 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"],[\"Stays claimable by the beneficiary\",\"0\"]]}","status":"ok"}
+# result: {
+#  "fee": "772,144",
+#  "fee_payer": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#  "lines": null,
+#  "ok": true,
+#  "op": 4,
+#  "outcome": {
+#   "cancelled": {
+#    "at": 1795545237310,
+#    "refund_to": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#    "refunded": "400000000",
+#    "still_claimable": "0",
+#    "vested_at_cancel": "0"
+#   }
+#  },
+#  "outcome_lines": [
+#   [
+#    "Effective at (at least)",
+#    "2026-11-24T18:33:57.310Z"
+#   ],
+#   [
+#    "Vested, frozen by the cancel",
+#    "0"
+#   ],
+#   [
+#    "Refunded",
+#    "400,000,000 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ],
+#   [
+#    "Stays claimable by the beneficiary",
+#    "0"
+#   ]
+#  ]
+# }
+# (0.8 s)
+# CHECK PASS: cancel review priced (fee 772,144)
+$ logosctl call cliff_veil_module confirm_op 4
+{"method":"confirm_op","module":"cliff_veil_module","result":"{\"ok\":true,\"outcome_lines\":[[\"Effective at (at least)\",\"2026-11-24T18:33:57.310Z\"],[\"Vested, frozen by the cancel\",\"0\"],[\"Refunded\",\"400,000,000 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\"],[\"Stays claimable by the beneficiary\",\"0\"]],\"receipt\":{\"block\":1942,\"hash\":\"d87a3b65e6cbebbed2fc1d89ae51dda94c3005c6e53ceca73178889a7ab20d98\"}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "outcome_lines": [
+#   [
+#    "Effective at (at least)",
+#    "2026-11-24T18:33:57.310Z"
+#   ],
+#   [
+#    "Vested, frozen by the cancel",
+#    "0"
+#   ],
+#   [
+#    "Refunded",
+#    "400,000,000 to NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+#   ],
+#   [
+#    "Stays claimable by the beneficiary",
+#    "0"
+#   ]
+#  ],
+#  "receipt": {
+#   "block": 1942,
+#   "hash": "d87a3b65e6cbebbed2fc1d89ae51dda94c3005c6e53ceca73178889a7ab20d98"
+#  }
+# }
+# (12.8 s)
+# CHECK PASS: schedule cancelled on-chain
+$ logosctl call cliff_veil_module confirm_op 4
+{"method":"confirm_op","module":"cliff_veil_module","result":"{\"error\":{\"action\":\"review it again\",\"code\":\"unknown_flow\",\"message\":\"no prepared operation with this id (already confirmed, or the module restarted)\"},\"ok\":false}","status":"ok"}
+# result: {
+#  "error": {
+#   "action": "review it again",
+#   "code": "unknown_flow",
+#   "message": "no prepared operation with this id (already confirmed, or the module restarted)"
+#  },
+#  "ok": false
+# }
+# (0.0 s)
+# CHECK PASS: a sent operation cannot be sent twice
+$ logosctl call cliff_veil_module prepare_signal str:259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv str:NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 0
+{"method":"prepare_signal","module":"cliff_veil_module","result":"{\"fee\":\"397,064\",\"fee_payer\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"lines\":null,\"ok\":true,\"op\":5,\"outcome\":{\"signalled\":{\"amount\":\"300000000\",\"index\":0}},\"outcome_lines\":[[\"Milestone signalled\",\"#0\"],[\"Unlocks\",\"300,000,000\"]]}","status":"ok"}
+# result: {
+#  "fee": "397,064",
+#  "fee_payer": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#  "lines": null,
+#  "ok": true,
+#  "op": 5,
+#  "outcome": {
+#   "signalled": {
+#    "amount": "300000000",
+#    "index": 0
+#   }
+#  },
+#  "outcome_lines": [
+#   [
+#    "Milestone signalled",
+#    "#0"
+#   ],
+#   [
+#    "Unlocks",
+#    "300,000,000"
+#   ]
+#  ]
+# }
+# (0.3 s)
+# CHECK PASS: signal review priced (fee 397,064)
+$ logosctl call cliff_veil_module confirm_op 5
+{"method":"confirm_op","module":"cliff_veil_module","result":"{\"ok\":true,\"outcome_lines\":[[\"Milestone signalled\",\"#0\"],[\"Unlocks\",\"300,000,000\"]],\"receipt\":{\"block\":1943,\"hash\":\"30a611ccd23dc6e4ef18c16b254205e1b8162098c1cd6312975e6a923f1289cc\"}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "outcome_lines": [
+#   [
+#    "Milestone signalled",
+#    "#0"
+#   ],
+#   [
+#    "Unlocks",
+#    "300,000,000"
+#   ]
+#  ],
+#  "receipt": {
+#   "block": 1943,
+#   "hash": "30a611ccd23dc6e4ef18c16b254205e1b8162098c1cd6312975e6a923f1289cc"
+#  }
+# }
+# (14.5 s)
+# CHECK PASS: milestone 0 signalled on-chain
+$ logosctl call cliff_veil_module prepare_signal str:259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv str:HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ 1
+{"method":"prepare_signal","module":"cliff_veil_module","result":"{\"error\":{\"action\":\"send from the schedule's milestone authority (see `show`)\",\"code\":\"not_milestone_authority\",\"message\":\"cliff-veil error 6: only the milestone authority may signal a milestone\",\"program_code\":6},\"ok\":false}","status":"ok"}
+# result: {
+#  "error": {
+#   "action": "send from the schedule's milestone authority (see `show`)",
+#   "code": "not_milestone_authority",
+#   "message": "cliff-veil error 6: only the milestone authority may signal a milestone",
+#   "program_code": 6
+#  },
+#  "ok": false
+# }
+# (0.0 s)
+# CHECK PASS: signal by a non-authority refused before sending
+$ logosctl call cliff_veil_module creator_view str:NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 str:
+{"method":"creator_view","module":"cliff_veil_module","result":"{\"ok\":true,\"schedules\":[{\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_cancel\":true,\"cancel_hint\":null,\"claimable_now\":\"300,000,000\",\"claimed\":\"0\",\"locked\":\"200,000,000\",\"schedule\":\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\",\"signal_hint\":null,\"signal_indices\":[1],\"standing\":\"active\",\"terms\":[\"Milestones (1 of 2 signalled)\",\"#0: 300,000,000 signalled\",\"#1: 200,000,000 pending\"],\"total\":\"500,000,000\"},{\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_cancel\":true,\"cancel_hint\":null,\"claimable_now\":\"0\",\"claimed\":\"0\",\"locked\":\"1,000,000,000\",\"schedule\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\",\"signal_hint\":\"linear schedule: no milestones\",\"signal_indices\":[],\"standing\":\"active\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\"],\"total\":\"1,000,000,000\"}],\"skipped\":[]}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "schedules": [
+#   {
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_cancel": true,
+#    "cancel_hint": null,
+#    "claimable_now": "300,000,000",
+#    "claimed": "0",
+#    "locked": "200,000,000",
+#    "schedule": "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv",
+#    "signal_hint": null,
+#    "signal_indices": [
+#     1
+#    ],
+#    "standing": "active",
+#    "terms": [
+#     "Milestones (1 of 2 signalled)",
+#     "#0: 300,000,000 signalled",
+#     "#1: 200,000,000 pending"
+#    ],
+#    "total": "500,000,000"
+#   },
+#   {
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_cancel": true,
+#    "cancel_hint": null,
+#    "claimable_now": "0",
+#    "claimed": "0",
+#    "locked": "1,000,000,000",
+#    "schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy",
+#    "signal_hint": "linear schedule: no milestones",
+#    "signal_indices": [],
+#    "standing": "active",
+#    "terms": [
+#     "Linear (cliff, then linear)",
+#     "start 2026-11-24T18:33:11.326Z",
+#     "cliff 2026-11-24T18:35:41.326Z",
+#     "end   2026-11-24T18:43:11.326Z"
+#    ],
+#    "total": "1,000,000,000"
+#   }
+#  ],
+#  "skipped": []
+# }
+# (0.9 s)
+$ logosctl call cliff_veil_module creator_view str:NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3 str:7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy
+EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR
+259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv
+{"method":"creator_view","module":"cliff_veil_module","result":"{\"ok\":true,\"schedules\":[{\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_cancel\":true,\"cancel_hint\":null,\"claimable_now\":\"0\",\"claimed\":\"0\",\"locked\":\"1,000,000,000\",\"schedule\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\",\"signal_hint\":\"linear schedule: no milestones\",\"signal_indices\":[],\"standing\":\"active\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\"],\"total\":\"1,000,000,000\"},{\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_cancel\":true,\"cancel_hint\":null,\"claimable_now\":\"300,000,000\",\"claimed\":\"0\",\"locked\":\"200,000,000\",\"schedule\":\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\",\"signal_hint\":null,\"signal_indices\":[1],\"standing\":\"active\",\"terms\":[\"Milestones (1 of 2 signalled)\",\"#0: 300,000,000 signalled\",\"#1: 200,000,000 pending\"],\"total\":\"500,000,000\"}],\"skipped\":[]}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "schedules": [
+#   {
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_cancel": true,
+#    "cancel_hint": null,
+#    "claimable_now": "0",
+#    "claimed": "0",
+#    "locked": "1,000,000,000",
+#    "schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy",
+#    "signal_hint": "linear schedule: no milestones",
+#    "signal_indices": [],
+#    "standing": "active",
+#    "terms": [
+#     "Linear (cliff, then linear)",
+#     "start 2026-11-24T18:33:11.326Z",
+#     "cliff 2026-11-24T18:35:41.326Z",
+#     "end   2026-11-24T18:43:11.326Z"
+#    ],
+#    "total": "1,000,000,000"
+#   },
+#   {
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_cancel": true,
+#    "cancel_hint": null,
+#    "claimable_now": "300,000,000",
+#    "claimed": "0",
+#    "locked": "200,000,000",
+#    "schedule": "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv",
+#    "signal_hint": null,
+#    "signal_indices": [
+#     1
+#    ],
+#    "standing": "active",
+#    "terms": [
+#     "Milestones (1 of 2 signalled)",
+#     "#0: 300,000,000 signalled",
+#     "#1: 200,000,000 pending"
+#    ],
+#    "total": "500,000,000"
+#   }
+#  ],
+#  "skipped": []
+# }
+# (0.1 s)
+
+## Recipient view: position, claimable, next unlock; pre-claim summary with fee; public claim; private claim
+$ logosctl call cliff_veil_module position str:7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy
+{"method":"position","module":"cliff_veil_module","result":"{\"ok\":true,\"position\":{\"as_of\":\"2026-11-24T18:34:27.310Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":false,\"claim_hint\":\"nothing is claimable now; next unlock: 2026-11-24T18:35:41.326Z (in 1m 14s)\",\"claimable_now\":\"0\",\"claimed\":\"0\",\"claimed_bps\":0,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"cancelable, not transferable\",\"locked\":\"1,000,000,000\",\"next_unlock\":\"2026-11-24T18:35:41.326Z (in 1m 14s)\",\"schedule\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\",\"standing\":\"active\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\"],\"total\":\"1,000,000,000\",\"vested\":\"0\",\"vested_bps\":0,\"vested_share\":\"0.00%\"}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "position": {
+#   "as_of": "2026-11-24T18:34:27.310Z",
+#   "asset": "native",
+#   "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#   "can_claim": false,
+#   "claim_hint": "nothing is claimable now; next unlock: 2026-11-24T18:35:41.326Z (in 1m 14s)",
+#   "claimable_now": "0",
+#   "claimed": "0",
+#   "claimed_bps": 0,
+#   "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#   "flags": "cancelable, not transferable",
+#   "locked": "1,000,000,000",
+#   "next_unlock": "2026-11-24T18:35:41.326Z (in 1m 14s)",
+#   "schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy",
+#   "standing": "active",
+#   "terms": [
+#    "Linear (cliff, then linear)",
+#    "start 2026-11-24T18:33:11.326Z",
+#    "cliff 2026-11-24T18:35:41.326Z",
+#    "end   2026-11-24T18:43:11.326Z"
+#   ],
+#   "total": "1,000,000,000",
+#   "vested": "0",
+#   "vested_bps": 0,
+#   "vested_share": "0.00%"
+#  }
+# }
+# (0.0 s)
+# CHECK PASS: position shows total, vested, claimed, locked, claimable and the next unlock (claimable 0, next unlock 2026-11-24T18:35:41.326Z (in 1m 14s))
+$ logosctl call cliff_veil_module prepare_claim str:{"schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy", "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ", "path": "public"}
+{"method":"prepare_claim","module":"cliff_veil_module","result":"{\"error\":{\"action\":\"wait until the next unlock and claim again; nothing was consumed\",\"code\":\"nothing_claimable\",\"message\":\"cliff-veil error 14: nothing claimable yet; next unlock at 2026-11-24T18:35:41.326Z (1795545341326 ms)\",\"program_code\":14},\"ok\":false}","status":"ok"}
+# result: {
+#  "error": {
+#   "action": "wait until the next unlock and claim again; nothing was consumed",
+#   "code": "nothing_claimable",
+#   "message": "cliff-veil error 14: nothing claimable yet; next unlock at 2026-11-24T18:35:41.326Z (1795545341326 ms)",
+#   "program_code": 14
+#  },
+#  "ok": false
+# }
+# (0.1 s)
+# CHECK PASS: claim before the cliff is refused or blocked with the next unlock
+# waiting 92 s for the cliff
+$ logosctl call cliff_veil_module recipient_view str:HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ str:
+{"method":"recipient_view","module":"cliff_veil_module","result":"{\"ok\":true,\"positions\":[{\"as_of\":\"2026-11-24T18:35:57.309Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":true,\"claim_hint\":null,\"claimable_now\":\"300,000,000\",\"claimed\":\"0\",\"claimed_bps\":0,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"cancelable, not transferable\",\"locked\":\"200,000,000\",\"next_unlock\":\"when the milestone authority signals a milestone\",\"schedule\":\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\",\"standing\":\"active\",\"terms\":[\"Milestones (1 of 2 signalled)\",\"#0: 300,000,000 signalled\",\"#1: 200,000,000 pending\"],\"total\":\"500,000,000\",\"vested\":\"300,000,000\",\"vested_bps\":6000,\"vested_share\":\"60.00%\"},{\"as_of\":\"2026-11-24T18:35:57.309Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":true,\"claim_hint\":null,\"claimable_now\":\"276,638,333\",\"claimed\":\"0\",\"claimed_bps\":0,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"cancelable, not transferable\",\"locked\":\"723,361,667\",\"next_unlock\":\"2026-11-24T18:35:57.310Z (in 1ms)\",\"schedule\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\",\"standing\":\"active\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\"],\"total\":\"1,000,000,000\",\"vested\":\"276,638,333\",\"vested_bps\":2766,\"vested_share\":\"27.66%\"},{\"as_of\":\"2026-11-24T18:35:57.309Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":false,\"claim_hint\":\"everything this schedule will pay has been claimed\",\"claimable_now\":\"0\",\"claimed\":\"0\",\"claimed_bps\":0,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"not cancelable, not transferable\",\"locked\":\"0\",\"next_unlock\":\"none (nothing more vests)\",\"schedule\":\"EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR\",\"standing\":\"settled (fully paid out)\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\",\"cancelled at 2026-11-24T18:33:57.310Z: 0 vested, 400,000,000 refunded\"],\"total\":\"400,000,000\",\"vested\":\"0\",\"vested_bps\":0,\"vested_share\":\"0.00%\"}],\"skipped\":[],\"totals\":{\"claimable_now\":[[\"native\",\"576,638,333\"]],\"locked\":[[\"native\",\"923,361,667\"]],\"schedules\":3}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "positions": [
+#   {
+#    "as_of": "2026-11-24T18:35:57.309Z",
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_claim": true,
+#    "claim_hint": null,
+#    "claimable_now": "300,000,000",
+#    "claimed": "0",
+#    "claimed_bps": 0,
+#    "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#    "flags": "cancelable, not transferable",
+#    "locked": "200,000,000",
+#    "next_unlock": "when the milestone authority signals a milestone",
+#    "schedule": "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv",
+#    "standing": "active",
+#    "terms": [
+#     "Milestones (1 of 2 signalled)",
+#     "#0: 300,000,000 signalled",
+#     "#1: 200,000,000 pending"
+#    ],
+#    "total": "500,000,000",
+#    "vested": "300,000,000",
+#    "vested_bps": 6000,
+#    "vested_share": "60.00%"
+#   },
+#   {
+#    "as_of": "2026-11-24T18:35:57.309Z",
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_claim": true,
+#    "claim_hint": null,
+#    "claimable_now": "276,638,333",
+#    "claimed": "0",
+#    "claimed_bps": 0,
+#    "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#    "flags": "cancelable, not transferable",
+#    "locked": "723,361,667",
+#    "next_unlock": "2026-11-24T18:35:57.310Z (in 1ms)",
+#    "schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy",
+#    "standing": "active",
+#    "terms": [
+#     "Linear (cliff, then linear)",
+#     "start 2026-11-24T18:33:11.326Z",
+#     "cliff 2026-11-24T18:35:41.326Z",
+#     "end   2026-11-24T18:43:11.326Z"
+#    ],
+#    "total": "1,000,000,000",
+#    "vested": "276,638,333",
+#    "vested_bps": 2766,
+#    "vested_share": "27.66%"
+#   },
+#   {
+#    "as_of": "2026-11-24T18:35:57.309Z",
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_claim": false,
+#    "claim_hint": "everything this schedule will pay has been claimed",
+#    "claimable_now": "0",
+#    "claimed": "0",
+#    "claimed_bps": 0,
+#    "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#    "flags": "not cancelable, not transferable",
+#    "locked": "0",
+#    "next_unlock": "none (nothing more vests)",
+#    "schedule": "EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR",
+#    "standing": "settled (fully paid out)",
+#    "terms": [
+#     "Linear (cliff, then linear)",
+#     "start 2026-11-24T18:33:11.326Z",
+#     "cliff 2026-11-24T18:35:41.326Z",
+#     "end   2026-11-24T18:43:11.326Z",
+#     "cancelled at 2026-11-24T18:33:57.310Z: 0 vested, 400,000,000 refunded"
+#    ],
+#    "total": "400,000,000",
+#    "vested": "0",
+#    "vested_bps": 0,
+#    "vested_share": "0.00%"
+#   }
+#  ],
+#  "skipped": [],
+#  "totals": {
+#   "claimable_now": [
+#    [
+#     "native",
+#     "576,638,333"
+#    ]
+#   ],
+#   "locked": [
+#    [
+#     "native",
+#     "923,361,667"
+#    ]
+#   ],
+#   "schedules": 3
+#  }
+# }
+# (1.0 s)
+# CHECK PASS: recipient view lists the beneficiary's schedules with totals (totals {'claimable_now': [['native', '576,638,333']], 'locked': [['native', '923,361,667']], 'schedules': 3})
+$ logosctl call cliff_veil_module recipient_view str:HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ str:7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy
+EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR
+259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv
+{"method":"recipient_view","module":"cliff_veil_module","result":"{\"ok\":true,\"positions\":[{\"as_of\":\"2026-11-24T18:35:57.309Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":true,\"claim_hint\":null,\"claimable_now\":\"276,638,333\",\"claimed\":\"0\",\"claimed_bps\":0,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"cancelable, not transferable\",\"locked\":\"723,361,667\",\"next_unlock\":\"2026-11-24T18:35:57.310Z (in 1ms)\",\"schedule\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\",\"standing\":\"active\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\"],\"total\":\"1,000,000,000\",\"vested\":\"276,638,333\",\"vested_bps\":2766,\"vested_share\":\"27.66%\"},{\"as_of\":\"2026-11-24T18:35:57.309Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":false,\"claim_hint\":\"everything this schedule will pay has been claimed\",\"claimable_now\":\"0\",\"claimed\":\"0\",\"claimed_bps\":0,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"not cancelable, not transferable\",\"locked\":\"0\",\"next_unlock\":\"none (nothing more vests)\",\"schedule\":\"EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR\",\"standing\":\"settled (fully paid out)\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\",\"cancelled at 2026-11-24T18:33:57.310Z: 0 vested, 400,000,000 refunded\"],\"total\":\"400,000,000\",\"vested\":\"0\",\"vested_bps\":0,\"vested_share\":\"0.00%\"},{\"as_of\":\"2026-11-24T18:35:57.309Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":true,\"claim_hint\":null,\"claimable_now\":\"300,000,000\",\"claimed\":\"0\",\"claimed_bps\":0,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"cancelable, not transferable\",\"locked\":\"200,000,000\",\"next_unlock\":\"when the milestone authority signals a milestone\",\"schedule\":\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\",\"standing\":\"active\",\"terms\":[\"Milestones (1 of 2 signalled)\",\"#0: 300,000,000 signalled\",\"#1: 200,000,000 pending\"],\"total\":\"500,000,000\",\"vested\":\"300,000,000\",\"vested_bps\":6000,\"vested_share\":\"60.00%\"}],\"skipped\":[],\"totals\":{\"claimable_now\":[[\"native\",\"576,638,333\"]],\"locked\":[[\"native\",\"923,361,667\"]],\"schedules\":3}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "positions": [
+#   {
+#    "as_of": "2026-11-24T18:35:57.309Z",
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_claim": true,
+#    "claim_hint": null,
+#    "claimable_now": "276,638,333",
+#    "claimed": "0",
+#    "claimed_bps": 0,
+#    "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#    "flags": "cancelable, not transferable",
+#    "locked": "723,361,667",
+#    "next_unlock": "2026-11-24T18:35:57.310Z (in 1ms)",
+#    "schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy",
+#    "standing": "active",
+#    "terms": [
+#     "Linear (cliff, then linear)",
+#     "start 2026-11-24T18:33:11.326Z",
+#     "cliff 2026-11-24T18:35:41.326Z",
+#     "end   2026-11-24T18:43:11.326Z"
+#    ],
+#    "total": "1,000,000,000",
+#    "vested": "276,638,333",
+#    "vested_bps": 2766,
+#    "vested_share": "27.66%"
+#   },
+#   {
+#    "as_of": "2026-11-24T18:35:57.309Z",
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_claim": false,
+#    "claim_hint": "everything this schedule will pay has been claimed",
+#    "claimable_now": "0",
+#    "claimed": "0",
+#    "claimed_bps": 0,
+#    "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#    "flags": "not cancelable, not transferable",
+#    "locked": "0",
+#    "next_unlock": "none (nothing more vests)",
+#    "schedule": "EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR",
+#    "standing": "settled (fully paid out)",
+#    "terms": [
+#     "Linear (cliff, then linear)",
+#     "start 2026-11-24T18:33:11.326Z",
+#     "cliff 2026-11-24T18:35:41.326Z",
+#     "end   2026-11-24T18:43:11.326Z",
+#     "cancelled at 2026-11-24T18:33:57.310Z: 0 vested, 400,000,000 refunded"
+#    ],
+#    "total": "400,000,000",
+#    "vested": "0",
+#    "vested_bps": 0,
+#    "vested_share": "0.00%"
+#   },
+#   {
+#    "as_of": "2026-11-24T18:35:57.309Z",
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_claim": true,
+#    "claim_hint": null,
+#    "claimable_now": "300,000,000",
+#    "claimed": "0",
+#    "claimed_bps": 0,
+#    "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#    "flags": "cancelable, not transferable",
+#    "locked": "200,000,000",
+#    "next_unlock": "when the milestone authority signals a milestone",
+#    "schedule": "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv",
+#    "standing": "active",
+#    "terms": [
+#     "Milestones (1 of 2 signalled)",
+#     "#0: 300,000,000 signalled",
+#     "#1: 200,000,000 pending"
+#    ],
+#    "total": "500,000,000",
+#    "vested": "300,000,000",
+#    "vested_bps": 6000,
+#    "vested_share": "60.00%"
+#   }
+#  ],
+#  "skipped": [],
+#  "totals": {
+#   "claimable_now": [
+#    [
+#     "native",
+#     "576,638,333"
+#    ]
+#   ],
+#   "locked": [
+#    [
+#     "native",
+#     "923,361,667"
+#    ]
+#   ],
+#   "schedules": 3
+#  }
+# }
+# (0.1 s)
+$ logosctl call cliff_veil_module prepare_claim str:{"schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy", "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ", "path": "public"}
+{"method":"prepare_claim","module":"cliff_veil_module","result":"{\"blocked\":null,\"disclosure\":null,\"flow\":6,\"ok\":true,\"stage\":\"ready\",\"summary\":{\"claimable\":\"at least 276,638,333 (computed at the clock time of the including block)\",\"dev_mode_note\":null,\"fee\":\"803,456\",\"gas\":{\"fee\":\"803,456\",\"holds\":\"100,000,000\",\"payer\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"status\":\"sufficient\"},\"lines\":[{\"label\":\"Schedule\",\"value\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\"},{\"label\":\"Beneficiary\",\"value\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\"},{\"label\":\"Claimable now\",\"value\":\"at least 276,638,333 (computed at the clock time of the including block)\"},{\"label\":\"Destination\",\"value\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ (public account)\"},{\"label\":\"Claimed after this claim\",\"value\":\"276,638,333\"},{\"label\":\"Still to come\",\"value\":\"723,361,667\"},{\"label\":\"Estimated network fee\",\"value\":\"~803,456 (dry run at current state)\"},{\"label\":\"Fee paid by\",\"value\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ, which will hold 100,000,000\"}],\"path\":\"public\"}}","status":"ok"}
+# result: {
+#  "blocked": null,
+#  "disclosure": null,
+#  "flow": 6,
+#  "ok": true,
+#  "stage": "ready",
+#  "summary": {
+#   "claimable": "at least 276,638,333 (computed at the clock time of the including block)",
+#   "dev_mode_note": null,
+#   "fee": "803,456",
+#   "gas": {
+#    "fee": "803,456",
+#    "holds": "100,000,000",
+#    "payer": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "status": "sufficient"
+#   },
+#   "lines": [
+#    {
+#     "label": "Schedule",
+#     "value": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy"
+#    },
+#    {
+#     "label": "Beneficiary",
+#     "value": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ"
+#    },
+#    {
+#     "label": "Claimable now",
+#     "value": "at least 276,638,333 (computed at the clock time of the including block)"
+#    },
+#    {
+#     "label": "Destination",
+#     "value": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ (public account)"
+#    },
+#    {
+#     "label": "Claimed after this claim",
+#     "value": "276,638,333"
+#    },
+#    {
+#     "label": "Still to come",
+#     "value": "723,361,667"
+#    },
+#    {
+#     "label": "Estimated network fee",
+#     "value": "~803,456 (dry run at current state)"
+#    },
+#    {
+#     "label": "Fee paid by",
+#     "value": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ, which will hold 100,000,000"
+#    }
+#   ],
+#   "path": "public"
+#  }
+# }
+# (0.8 s)
+# CHECK PASS: public pre-claim summary with claimable and estimated fee (claimable at least 276,638,333 (computed at the clock time of the including block), fee 803,456, gas sufficient)
+# CHECK PASS: public claim has no disclosure and is not blocked
+$ logosctl call cliff_veil_module confirm_claim 6
+{"method":"confirm_claim","module":"cliff_veil_module","result":"{\"claim\":{\"amount\":\"276638333\",\"at\":1795545357309,\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"claimed_total\":\"276638333\",\"destination\":{\"public\":{\"account\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\"}},\"dev_mode\":false,\"disclosure\":null,\"fee\":\"803456\",\"fee_payer\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"fee_payer_holds\":\"100000000\",\"remaining\":\"723361667\",\"schedule\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\"},\"ok\":true,\"receipt\":{\"block\":1950,\"hash\":\"11266997388d2da82bec0e3d9b767a7182d55d2ac5e894b7690a80421258dc31\"}}","status":"ok"}
+# result: {
+#  "claim": {
+#   "amount": "276638333",
+#   "at": 1795545357309,
+#   "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#   "claimed_total": "276638333",
+#   "destination": {
+#    "public": {
+#     "account": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ"
+#    }
+#   },
+#   "dev_mode": false,
+#   "disclosure": null,
+#   "fee": "803456",
+#   "fee_payer": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#   "fee_payer_holds": "100000000",
+#   "remaining": "723361667",
+#   "schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy"
+#  },
+#  "ok": true,
+#  "receipt": {
+#   "block": 1950,
+#   "hash": "11266997388d2da82bec0e3d9b767a7182d55d2ac5e894b7690a80421258dc31"
+#  }
+# }
+# (10.0 s)
+# CHECK PASS: public claim sent, with a transaction hash
+$ logosctl call cliff_veil_module prepare_claim str:{"schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy", "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ", "path": "private", "fee_payer": "Es73F2GHSMk88ZpQbC6qaYjcWq7kx2MHw4E1KzUdB4sc"}
+{"method":"prepare_claim","module":"cliff_veil_module","result":"{\"error\":{\"action\":\"claim later, when more has vested, or name a funded private account of this wallet as fee payer\",\"code\":\"private_fee_shortfall\",\"message\":\"the private account Es73F2GHSMk88ZpQbC6qaYjcWq7kx2MHw4E1KzUdB4sc cannot pay the network fee of this claim: it needs 5528672, it will hold 0 (short by 5528672)\"},\"ok\":false}","status":"ok"}
+# result: {
+#  "error": {
+#   "action": "claim later, when more has vested, or name a funded private account of this wallet as fee payer",
+#   "code": "private_fee_shortfall",
+#   "message": "the private account Es73F2GHSMk88ZpQbC6qaYjcWq7kx2MHw4E1KzUdB4sc cannot pay the network fee of this claim: it needs 5528672, it will hold 0 (short by 5528672)"
+#  },
+#  "ok": false
+# }
+# (0.7 s)
+# CHECK PASS: insufficient gas shown with an actionable error (claim later, when more has vested, or name a funded private account of this wallet as fee payer)
+$ logosctl call cliff_veil_module prepare_claim str:{"schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy", "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ", "path": "private"}
+{"method":"prepare_claim","module":"cliff_veil_module","result":"{\"blocked\":{\"action\":\"read the privacy disclosure for this claim and acknowledge it\",\"code\":\"disclosure_not_acknowledged\",\"message\":\"a claim to a private account is sent only after its privacy disclosure is acknowledged\"},\"disclosure\":{\"digest\":\"25ea741b4df389c5\",\"text\":\"Privacy of this claim (claim to a private account)\\n  Visible on-chain, to everyone:\\n    - the claim amount\\n    - the beneficiary address\\n    - the vesting schedule address\\n    - the time of the claim\\n  Not recorded in public on-chain state:\\n    - the destination private account\\n    - later movements of the claimed tokens\\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them.\"},\"flow\":7,\"ok\":true,\"stage\":\"review\",\"summary\":{\"claimable\":\"25,000,000 (computed at 2026-11-24T18:36:12.309Z)\",\"dev_mode_note\":\"dev mode: RISC0_DEV_MODE=1, the privacy-preserving transaction carries no real proof; on a network that verifies proofs the claim is proved locally first, which takes minutes\",\"fee\":\"5,528,672\",\"gas\":{\"fee\":\"5,528,672\",\"holds\":\"25,000,000\",\"payer\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5\",\"status\":\"sufficient\"},\"lines\":[{\"label\":\"Schedule\",\"value\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\"},{\"label\":\"Beneficiary\",\"value\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\"},{\"label\":\"Claimable now\",\"value\":\"25,000,000 (computed at 2026-11-24T18:36:12.309Z)\"},{\"label\":\"Destination\",\"value\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5 (new private account of this wallet; the transaction names only the one-time address Aw3a8rmzToTL4z9hrTFMjh52HQma7yWLJUXvenTE5Tbi)\"},{\"label\":\"Claimed after this claim\",\"value\":\"301,638,333\"},{\"label\":\"Still to come\",\"value\":\"698,361,667\"},{\"label\":\"Estimated network fee\",\"value\":\"~5,528,672 (dry run at current state)\"},{\"label\":\"Fee paid by\",\"value\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5, which will hold 25,000,000\"}],\"path\":\"private\"}}","status":"ok"}
+# result: {
+#  "blocked": {
+#   "action": "read the privacy disclosure for this claim and acknowledge it",
+#   "code": "disclosure_not_acknowledged",
+#   "message": "a claim to a private account is sent only after its privacy disclosure is acknowledged"
+#  },
+#  "disclosure": {
+#   "digest": "25ea741b4df389c5",
+#   "text": "Privacy of this claim (claim to a private account)\n  Visible on-chain, to everyone:\n    - the claim amount\n    - the beneficiary address\n    - the vesting schedule address\n    - the time of the claim\n  Not recorded in public on-chain state:\n    - the destination private account\n    - later movements of the claimed tokens\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them."
+#  },
+#  "flow": 7,
+#  "ok": true,
+#  "stage": "review",
+#  "summary": {
+#   "claimable": "25,000,000 (computed at 2026-11-24T18:36:12.309Z)",
+#   "dev_mode_note": "dev mode: RISC0_DEV_MODE=1, the privacy-preserving transaction carries no real proof; on a network that verifies proofs the claim is proved locally first, which takes minutes",
+#   "fee": "5,528,672",
+#   "gas": {
+#    "fee": "5,528,672",
+#    "holds": "25,000,000",
+#    "payer": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5",
+#    "status": "sufficient"
+#   },
+#   "lines": [
+#    {
+#     "label": "Schedule",
+#     "value": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy"
+#    },
+#    {
+#     "label": "Beneficiary",
+#     "value": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ"
+#    },
+#    {
+#     "label": "Claimable now",
+#     "value": "25,000,000 (computed at 2026-11-24T18:36:12.309Z)"
+#    },
+#    {
+#     "label": "Destination",
+#     "value": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5 (new private account of this wallet; the transaction names only the one-time address Aw3a8rmzToTL4z9hrTFMjh52HQma7yWLJUXvenTE5Tbi)"
+#    },
+#    {
+#     "label": "Claimed after this claim",
+#     "value": "301,638,333"
+#    },
+#    {
+#     "label": "Still to come",
+#     "value": "698,361,667"
+#    },
+#    {
+#     "label": "Estimated network fee",
+#     "value": "~5,528,672 (dry run at current state)"
+#    },
+#    {
+#     "label": "Fee paid by",
+#     "value": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5, which will hold 25,000,000"
+#    }
+#   ],
+#   "path": "private"
+#  }
+# }
+# (0.8 s)
+# CHECK PASS: private summary shows the disclosure and is blocked until it is acknowledged
+# destination private account 6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5: balance before 0 (['Balance 0, nonce 0'])
+$ logosctl call cliff_veil_module confirm_claim 7
+{"method":"confirm_claim","module":"cliff_veil_module","result":"{\"error\":{\"action\":\"read the privacy disclosure for this claim and acknowledge it\",\"code\":\"disclosure_not_acknowledged\",\"message\":\"a claim to a private account is sent only after its privacy disclosure is acknowledged\"},\"ok\":false}","status":"ok"}
+# result: {
+#  "error": {
+#   "action": "read the privacy disclosure for this claim and acknowledge it",
+#   "code": "disclosure_not_acknowledged",
+#   "message": "a claim to a private account is sent only after its privacy disclosure is acknowledged"
+#  },
+#  "ok": false
+# }
+# (0.0 s)
+# CHECK PASS: private claim refused before the acknowledgement
+$ logosctl call cliff_veil_module acknowledge_disclosure 7 str:0000000000000000
+{"method":"acknowledge_disclosure","module":"cliff_veil_module","result":"{\"error\":{\"action\":\"read the disclosure shown for this claim and acknowledge it\",\"code\":\"disclosure_changed\",\"message\":\"the acknowledgement is not for the disclosure of this claim\"},\"ok\":false}","status":"ok"}
+# result: {
+#  "error": {
+#   "action": "read the disclosure shown for this claim and acknowledge it",
+#   "code": "disclosure_changed",
+#   "message": "the acknowledgement is not for the disclosure of this claim"
+#  },
+#  "ok": false
+# }
+# (0.0 s)
+# CHECK PASS: acknowledgement with a wrong digest refused
+$ logosctl call cliff_veil_module acknowledge_disclosure 7 str:25ea741b4df389c5
+{"method":"acknowledge_disclosure","module":"cliff_veil_module","result":"{\"blocked\":null,\"disclosure\":{\"digest\":\"25ea741b4df389c5\",\"text\":\"Privacy of this claim (claim to a private account)\\n  Visible on-chain, to everyone:\\n    - the claim amount\\n    - the beneficiary address\\n    - the vesting schedule address\\n    - the time of the claim\\n  Not recorded in public on-chain state:\\n    - the destination private account\\n    - later movements of the claimed tokens\\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them.\"},\"flow\":7,\"ok\":true,\"stage\":\"ready\",\"summary\":{\"claimable\":\"25,000,000 (computed at 2026-11-24T18:36:12.309Z)\",\"dev_mode_note\":\"dev mode: RISC0_DEV_MODE=1, the privacy-preserving transaction carries no real proof; on a network that verifies proofs the claim is proved locally first, which takes minutes\",\"fee\":\"5,528,672\",\"gas\":{\"fee\":\"5,528,672\",\"holds\":\"25,000,000\",\"payer\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5\",\"status\":\"sufficient\"},\"lines\":[{\"label\":\"Schedule\",\"value\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\"},{\"label\":\"Beneficiary\",\"value\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\"},{\"label\":\"Claimable now\",\"value\":\"25,000,000 (computed at 2026-11-24T18:36:12.309Z)\"},{\"label\":\"Destination\",\"value\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5 (new private account of this wallet; the transaction names only the one-time address Aw3a8rmzToTL4z9hrTFMjh52HQma7yWLJUXvenTE5Tbi)\"},{\"label\":\"Claimed after this claim\",\"value\":\"301,638,333\"},{\"label\":\"Still to come\",\"value\":\"698,361,667\"},{\"label\":\"Estimated network fee\",\"value\":\"~5,528,672 (dry run at current state)\"},{\"label\":\"Fee paid by\",\"value\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5, which will hold 25,000,000\"}],\"path\":\"private\"}}","status":"ok"}
+# result: {
+#  "blocked": null,
+#  "disclosure": {
+#   "digest": "25ea741b4df389c5",
+#   "text": "Privacy of this claim (claim to a private account)\n  Visible on-chain, to everyone:\n    - the claim amount\n    - the beneficiary address\n    - the vesting schedule address\n    - the time of the claim\n  Not recorded in public on-chain state:\n    - the destination private account\n    - later movements of the claimed tokens\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them."
+#  },
+#  "flow": 7,
+#  "ok": true,
+#  "stage": "ready",
+#  "summary": {
+#   "claimable": "25,000,000 (computed at 2026-11-24T18:36:12.309Z)",
+#   "dev_mode_note": "dev mode: RISC0_DEV_MODE=1, the privacy-preserving transaction carries no real proof; on a network that verifies proofs the claim is proved locally first, which takes minutes",
+#   "fee": "5,528,672",
+#   "gas": {
+#    "fee": "5,528,672",
+#    "holds": "25,000,000",
+#    "payer": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5",
+#    "status": "sufficient"
+#   },
+#   "lines": [
+#    {
+#     "label": "Schedule",
+#     "value": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy"
+#    },
+#    {
+#     "label": "Beneficiary",
+#     "value": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ"
+#    },
+#    {
+#     "label": "Claimable now",
+#     "value": "25,000,000 (computed at 2026-11-24T18:36:12.309Z)"
+#    },
+#    {
+#     "label": "Destination",
+#     "value": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5 (new private account of this wallet; the transaction names only the one-time address Aw3a8rmzToTL4z9hrTFMjh52HQma7yWLJUXvenTE5Tbi)"
+#    },
+#    {
+#     "label": "Claimed after this claim",
+#     "value": "301,638,333"
+#    },
+#    {
+#     "label": "Still to come",
+#     "value": "698,361,667"
+#    },
+#    {
+#     "label": "Estimated network fee",
+#     "value": "~5,528,672 (dry run at current state)"
+#    },
+#    {
+#     "label": "Fee paid by",
+#     "value": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5, which will hold 25,000,000"
+#    }
+#   ],
+#   "path": "private"
+#  }
+# }
+# (0.0 s)
+# CHECK PASS: acknowledged: claim ready
+$ logosctl call cliff_veil_module confirm_claim 7
+{"method":"confirm_claim","module":"cliff_veil_module","result":"{\"error\":{\"action\":\"check the command line path and its environment (wallet home, program ids) in the Settings tab\",\"code\":\"backend_bad_output\",\"message\":\"the cliff-veil command line succeeded without the expected JSON answer: WARNING: proving in dev mode. This will not generate valid, secure proofs.\\nWARNING: Proving in dev mode does not generate a valid receipt. Receipts generated from this process are invalid and should never be used in production.\"},\"ok\":false}","status":"ok"}
+# result: {
+#  "error": {
+#   "action": "check the command line path and its environment (wallet home, program ids) in the Settings tab",
+#   "code": "backend_bad_output",
+#   "message": "the cliff-veil command line succeeded without the expected JSON answer: WARNING: proving in dev mode. This will not generate valid, secure proofs.\nWARNING: Proving in dev mode does not generate a valid receipt. Receipts generated from this process are invalid and should never be used in production."
+#  },
+#  "ok": false
+# }
+# (13.0 s)
+# CHECK FAIL: private claim sent, with a transaction hash
+# destination private account 6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5: balance after 19471328 (['Balance 19471328, nonce 316239326606482903315395383891228823895'])
+# CHECK PASS: private balance increased (0 -> 19471328)
+$ logosctl call cliff_veil_module confirm_claim 7
+{"method":"confirm_claim","module":"cliff_veil_module","result":"{\"error\":{\"action\":\"review it again\",\"code\":\"unknown_flow\",\"message\":\"no prepared claim with this id (already confirmed, or the module restarted)\"},\"ok\":false}","status":"ok"}
+# result: {
+#  "error": {
+#   "action": "review it again",
+#   "code": "unknown_flow",
+#   "message": "no prepared claim with this id (already confirmed, or the module restarted)"
+#  },
+#  "ok": false
+# }
+# (0.0 s)
+# CHECK PASS: a sent claim flow cannot be sent again
+$ logosctl call cliff_veil_module prepare_claim str:{"schedule": "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv", "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ", "path": "private", "account": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5"}
+{"method":"prepare_claim","module":"cliff_veil_module","result":"{\"blocked\":{\"action\":\"read the privacy disclosure for this claim and acknowledge it\",\"code\":\"disclosure_not_acknowledged\",\"message\":\"a claim to a private account is sent only after its privacy disclosure is acknowledged\"},\"disclosure\":{\"digest\":\"25ea741b4df389c5\",\"text\":\"Privacy of this claim (claim to a private account)\\n  Visible on-chain, to everyone:\\n    - the claim amount\\n    - the beneficiary address\\n    - the vesting schedule address\\n    - the time of the claim\\n  Not recorded in public on-chain state:\\n    - the destination private account\\n    - later movements of the claimed tokens\\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them.\"},\"flow\":8,\"ok\":true,\"stage\":\"review\",\"summary\":{\"claimable\":\"300,000,000 (computed at 2026-11-24T18:36:27.310Z)\",\"dev_mode_note\":\"dev mode: RISC0_DEV_MODE=1, the privacy-preserving transaction carries no real proof; on a network that verifies proofs the claim is proved locally first, which takes minutes\",\"fee\":\"5,529,344\",\"gas\":{\"fee\":\"5,529,344\",\"holds\":\"319,471,328\",\"payer\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5\",\"status\":\"sufficient\"},\"lines\":[{\"label\":\"Schedule\",\"value\":\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\"},{\"label\":\"Beneficiary\",\"value\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\"},{\"label\":\"Claimable now\",\"value\":\"300,000,000 (computed at 2026-11-24T18:36:27.310Z)\"},{\"label\":\"Destination\",\"value\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5 (private account of this wallet; the transaction names only the one-time address FoZ3BwxwsXF5VLfLxLBK3UdzJaxWVcbFS2uXsDuqEqBx)\"},{\"label\":\"Claimed after this claim\",\"value\":\"300,000,000\"},{\"label\":\"Still to come\",\"value\":\"200,000,000\"},{\"label\":\"Estimated network fee\",\"value\":\"~5,529,344 (dry run at current state)\"},{\"label\":\"Fee paid by\",\"value\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5, which will hold 319,471,328\"}],\"path\":\"private\"}}","status":"ok"}
+# result: {
+#  "blocked": {
+#   "action": "read the privacy disclosure for this claim and acknowledge it",
+#   "code": "disclosure_not_acknowledged",
+#   "message": "a claim to a private account is sent only after its privacy disclosure is acknowledged"
+#  },
+#  "disclosure": {
+#   "digest": "25ea741b4df389c5",
+#   "text": "Privacy of this claim (claim to a private account)\n  Visible on-chain, to everyone:\n    - the claim amount\n    - the beneficiary address\n    - the vesting schedule address\n    - the time of the claim\n  Not recorded in public on-chain state:\n    - the destination private account\n    - later movements of the claimed tokens\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them."
+#  },
+#  "flow": 8,
+#  "ok": true,
+#  "stage": "review",
+#  "summary": {
+#   "claimable": "300,000,000 (computed at 2026-11-24T18:36:27.310Z)",
+#   "dev_mode_note": "dev mode: RISC0_DEV_MODE=1, the privacy-preserving transaction carries no real proof; on a network that verifies proofs the claim is proved locally first, which takes minutes",
+#   "fee": "5,529,344",
+#   "gas": {
+#    "fee": "5,529,344",
+#    "holds": "319,471,328",
+#    "payer": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5",
+#    "status": "sufficient"
+#   },
+#   "lines": [
+#    {
+#     "label": "Schedule",
+#     "value": "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv"
+#    },
+#    {
+#     "label": "Beneficiary",
+#     "value": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ"
+#    },
+#    {
+#     "label": "Claimable now",
+#     "value": "300,000,000 (computed at 2026-11-24T18:36:27.310Z)"
+#    },
+#    {
+#     "label": "Destination",
+#     "value": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5 (private account of this wallet; the transaction names only the one-time address FoZ3BwxwsXF5VLfLxLBK3UdzJaxWVcbFS2uXsDuqEqBx)"
+#    },
+#    {
+#     "label": "Claimed after this claim",
+#     "value": "300,000,000"
+#    },
+#    {
+#     "label": "Still to come",
+#     "value": "200,000,000"
+#    },
+#    {
+#     "label": "Estimated network fee",
+#     "value": "~5,529,344 (dry run at current state)"
+#    },
+#    {
+#     "label": "Fee paid by",
+#     "value": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5, which will hold 319,471,328"
+#    }
+#   ],
+#   "path": "private"
+#  }
+# }
+# (0.8 s)
+$ logosctl call cliff_veil_module confirm_claim 8
+{"method":"confirm_claim","module":"cliff_veil_module","result":"{\"error\":{\"action\":\"read the privacy disclosure for this claim and acknowledge it\",\"code\":\"disclosure_not_acknowledged\",\"message\":\"a claim to a private account is sent only after its privacy disclosure is acknowledged\"},\"ok\":false}","status":"ok"}
+# result: {
+#  "error": {
+#   "action": "read the privacy disclosure for this claim and acknowledge it",
+#   "code": "disclosure_not_acknowledged",
+#   "message": "a claim to a private account is sent only after its privacy disclosure is acknowledged"
+#  },
+#  "ok": false
+# }
+# (0.0 s)
+# CHECK PASS: second private claim needs its own acknowledgement
+$ logosctl call cliff_veil_module acknowledge_disclosure 8 str:25ea741b4df389c5
+{"method":"acknowledge_disclosure","module":"cliff_veil_module","result":"{\"blocked\":null,\"disclosure\":{\"digest\":\"25ea741b4df389c5\",\"text\":\"Privacy of this claim (claim to a private account)\\n  Visible on-chain, to everyone:\\n    - the claim amount\\n    - the beneficiary address\\n    - the vesting schedule address\\n    - the time of the claim\\n  Not recorded in public on-chain state:\\n    - the destination private account\\n    - later movements of the claimed tokens\\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them.\"},\"flow\":8,\"ok\":true,\"stage\":\"ready\",\"summary\":{\"claimable\":\"300,000,000 (computed at 2026-11-24T18:36:27.310Z)\",\"dev_mode_note\":\"dev mode: RISC0_DEV_MODE=1, the privacy-preserving transaction carries no real proof; on a network that verifies proofs the claim is proved locally first, which takes minutes\",\"fee\":\"5,529,344\",\"gas\":{\"fee\":\"5,529,344\",\"holds\":\"319,471,328\",\"payer\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5\",\"status\":\"sufficient\"},\"lines\":[{\"label\":\"Schedule\",\"value\":\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\"},{\"label\":\"Beneficiary\",\"value\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\"},{\"label\":\"Claimable now\",\"value\":\"300,000,000 (computed at 2026-11-24T18:36:27.310Z)\"},{\"label\":\"Destination\",\"value\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5 (private account of this wallet; the transaction names only the one-time address FoZ3BwxwsXF5VLfLxLBK3UdzJaxWVcbFS2uXsDuqEqBx)\"},{\"label\":\"Claimed after this claim\",\"value\":\"300,000,000\"},{\"label\":\"Still to come\",\"value\":\"200,000,000\"},{\"label\":\"Estimated network fee\",\"value\":\"~5,529,344 (dry run at current state)\"},{\"label\":\"Fee paid by\",\"value\":\"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5, which will hold 319,471,328\"}],\"path\":\"private\"}}","status":"ok"}
+# result: {
+#  "blocked": null,
+#  "disclosure": {
+#   "digest": "25ea741b4df389c5",
+#   "text": "Privacy of this claim (claim to a private account)\n  Visible on-chain, to everyone:\n    - the claim amount\n    - the beneficiary address\n    - the vesting schedule address\n    - the time of the claim\n  Not recorded in public on-chain state:\n    - the destination private account\n    - later movements of the claimed tokens\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them."
+#  },
+#  "flow": 8,
+#  "ok": true,
+#  "stage": "ready",
+#  "summary": {
+#   "claimable": "300,000,000 (computed at 2026-11-24T18:36:27.310Z)",
+#   "dev_mode_note": "dev mode: RISC0_DEV_MODE=1, the privacy-preserving transaction carries no real proof; on a network that verifies proofs the claim is proved locally first, which takes minutes",
+#   "fee": "5,529,344",
+#   "gas": {
+#    "fee": "5,529,344",
+#    "holds": "319,471,328",
+#    "payer": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5",
+#    "status": "sufficient"
+#   },
+#   "lines": [
+#    {
+#     "label": "Schedule",
+#     "value": "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv"
+#    },
+#    {
+#     "label": "Beneficiary",
+#     "value": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ"
+#    },
+#    {
+#     "label": "Claimable now",
+#     "value": "300,000,000 (computed at 2026-11-24T18:36:27.310Z)"
+#    },
+#    {
+#     "label": "Destination",
+#     "value": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5 (private account of this wallet; the transaction names only the one-time address FoZ3BwxwsXF5VLfLxLBK3UdzJaxWVcbFS2uXsDuqEqBx)"
+#    },
+#    {
+#     "label": "Claimed after this claim",
+#     "value": "300,000,000"
+#    },
+#    {
+#     "label": "Still to come",
+#     "value": "200,000,000"
+#    },
+#    {
+#     "label": "Estimated network fee",
+#     "value": "~5,529,344 (dry run at current state)"
+#    },
+#    {
+#     "label": "Fee paid by",
+#     "value": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5, which will hold 319,471,328"
+#    }
+#   ],
+#   "path": "private"
+#  }
+# }
+# (0.0 s)
+$ logosctl call cliff_veil_module confirm_claim 8
+{"method":"confirm_claim","module":"cliff_veil_module","result":"{\"error\":{\"action\":\"check the command line path and its environment (wallet home, program ids) in the Settings tab\",\"code\":\"backend_bad_output\",\"message\":\"the cliff-veil command line succeeded without the expected JSON answer: WARNING: proving in dev mode. This will not generate valid, secure proofs.\\nWARNING: Proving in dev mode does not generate a valid receipt. Receipts generated from this process are invalid and should never be used in production.\"},\"ok\":false}","status":"ok"}
+# result: {
+#  "error": {
+#   "action": "check the command line path and its environment (wallet home, program ids) in the Settings tab",
+#   "code": "backend_bad_output",
+#   "message": "the cliff-veil command line succeeded without the expected JSON answer: WARNING: proving in dev mode. This will not generate valid, secure proofs.\nWARNING: Proving in dev mode does not generate a valid receipt. Receipts generated from this process are invalid and should never be used in production."
+#  },
+#  "ok": false
+# }
+# (14.2 s)
+# CHECK FAIL: milestone private claim sent
+# destination private account 6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5: balance after the second claim 302883296 (['Balance 302883296, nonce 95049379794151647062415434334738542475'])
+# CHECK PASS: private balance increased again (19471328 -> 302883296)
+$ logosctl call cliff_veil_module position str:7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy
+{"method":"position","module":"cliff_veil_module","result":"{\"ok\":true,\"position\":{\"as_of\":\"2026-11-24T18:36:42.310Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":true,\"claim_hint\":null,\"claimable_now\":\"50,001,667\",\"claimed\":\"301,638,333\",\"claimed_bps\":3016,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"cancelable, not transferable\",\"locked\":\"648,360,000\",\"next_unlock\":\"2026-11-24T18:36:42.311Z (in 1ms)\",\"schedule\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\",\"standing\":\"active\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\"],\"total\":\"1,000,000,000\",\"vested\":\"351,640,000\",\"vested_bps\":3516,\"vested_share\":\"35.16%\"}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "position": {
+#   "as_of": "2026-11-24T18:36:42.310Z",
+#   "asset": "native",
+#   "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#   "can_claim": true,
+#   "claim_hint": null,
+#   "claimable_now": "50,001,667",
+#   "claimed": "301,638,333",
+#   "claimed_bps": 3016,
+#   "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#   "flags": "cancelable, not transferable",
+#   "locked": "648,360,000",
+#   "next_unlock": "2026-11-24T18:36:42.311Z (in 1ms)",
+#   "schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy",
+#   "standing": "active",
+#   "terms": [
+#    "Linear (cliff, then linear)",
+#    "start 2026-11-24T18:33:11.326Z",
+#    "cliff 2026-11-24T18:35:41.326Z",
+#    "end   2026-11-24T18:43:11.326Z"
+#   ],
+#   "total": "1,000,000,000",
+#   "vested": "351,640,000",
+#   "vested_bps": 3516,
+#   "vested_share": "35.16%"
+#  }
+# }
+# (0.1 s)
+$ logosctl call cliff_veil_module position str:EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR
+{"method":"position","module":"cliff_veil_module","result":"{\"ok\":true,\"position\":{\"as_of\":\"2026-11-24T18:36:42.310Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":false,\"claim_hint\":\"everything this schedule will pay has been claimed\",\"claimable_now\":\"0\",\"claimed\":\"0\",\"claimed_bps\":0,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"not cancelable, not transferable\",\"locked\":\"0\",\"next_unlock\":\"none (nothing more vests)\",\"schedule\":\"EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR\",\"standing\":\"settled (fully paid out)\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\",\"cancelled at 2026-11-24T18:33:57.310Z: 0 vested, 400,000,000 refunded\"],\"total\":\"400,000,000\",\"vested\":\"0\",\"vested_bps\":0,\"vested_share\":\"0.00%\"}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "position": {
+#   "as_of": "2026-11-24T18:36:42.310Z",
+#   "asset": "native",
+#   "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#   "can_claim": false,
+#   "claim_hint": "everything this schedule will pay has been claimed",
+#   "claimable_now": "0",
+#   "claimed": "0",
+#   "claimed_bps": 0,
+#   "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#   "flags": "not cancelable, not transferable",
+#   "locked": "0",
+#   "next_unlock": "none (nothing more vests)",
+#   "schedule": "EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR",
+#   "standing": "settled (fully paid out)",
+#   "terms": [
+#    "Linear (cliff, then linear)",
+#    "start 2026-11-24T18:33:11.326Z",
+#    "cliff 2026-11-24T18:35:41.326Z",
+#    "end   2026-11-24T18:43:11.326Z",
+#    "cancelled at 2026-11-24T18:33:57.310Z: 0 vested, 400,000,000 refunded"
+#   ],
+#   "total": "400,000,000",
+#   "vested": "0",
+#   "vested_bps": 0,
+#   "vested_share": "0.00%"
+#  }
+# }
+# (0.1 s)
+$ logosctl call cliff_veil_module position str:259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv
+{"method":"position","module":"cliff_veil_module","result":"{\"ok\":true,\"position\":{\"as_of\":\"2026-11-24T18:36:42.310Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":false,\"claim_hint\":\"nothing is claimable now; next unlock: when the milestone authority signals a milestone\",\"claimable_now\":\"0\",\"claimed\":\"300,000,000\",\"claimed_bps\":6000,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"cancelable, not transferable\",\"locked\":\"200,000,000\",\"next_unlock\":\"when the milestone authority signals a milestone\",\"schedule\":\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\",\"standing\":\"active\",\"terms\":[\"Milestones (1 of 2 signalled)\",\"#0: 300,000,000 signalled\",\"#1: 200,000,000 pending\"],\"total\":\"500,000,000\",\"vested\":\"300,000,000\",\"vested_bps\":6000,\"vested_share\":\"60.00%\"}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "position": {
+#   "as_of": "2026-11-24T18:36:42.310Z",
+#   "asset": "native",
+#   "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#   "can_claim": false,
+#   "claim_hint": "nothing is claimable now; next unlock: when the milestone authority signals a milestone",
+#   "claimable_now": "0",
+#   "claimed": "300,000,000",
+#   "claimed_bps": 6000,
+#   "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#   "flags": "cancelable, not transferable",
+#   "locked": "200,000,000",
+#   "next_unlock": "when the milestone authority signals a milestone",
+#   "schedule": "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv",
+#   "standing": "active",
+#   "terms": [
+#    "Milestones (1 of 2 signalled)",
+#    "#0: 300,000,000 signalled",
+#    "#1: 200,000,000 pending"
+#   ],
+#   "total": "500,000,000",
+#   "vested": "300,000,000",
+#   "vested_bps": 6000,
+#   "vested_share": "60.00%"
+#  }
+# }
+# (0.1 s)
+$ logosctl call cliff_veil_module recipient_view str:HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ str:7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy
+EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR
+259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv
+{"method":"recipient_view","module":"cliff_veil_module","result":"{\"ok\":true,\"positions\":[{\"as_of\":\"2026-11-24T18:36:42.310Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":true,\"claim_hint\":null,\"claimable_now\":\"50,001,667\",\"claimed\":\"301,638,333\",\"claimed_bps\":3016,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"cancelable, not transferable\",\"locked\":\"648,360,000\",\"next_unlock\":\"2026-11-24T18:36:42.311Z (in 1ms)\",\"schedule\":\"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\",\"standing\":\"active\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\"],\"total\":\"1,000,000,000\",\"vested\":\"351,640,000\",\"vested_bps\":3516,\"vested_share\":\"35.16%\"},{\"as_of\":\"2026-11-24T18:36:42.310Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":false,\"claim_hint\":\"everything this schedule will pay has been claimed\",\"claimable_now\":\"0\",\"claimed\":\"0\",\"claimed_bps\":0,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"not cancelable, not transferable\",\"locked\":\"0\",\"next_unlock\":\"none (nothing more vests)\",\"schedule\":\"EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR\",\"standing\":\"settled (fully paid out)\",\"terms\":[\"Linear (cliff, then linear)\",\"start 2026-11-24T18:33:11.326Z\",\"cliff 2026-11-24T18:35:41.326Z\",\"end   2026-11-24T18:43:11.326Z\",\"cancelled at 2026-11-24T18:33:57.310Z: 0 vested, 400,000,000 refunded\"],\"total\":\"400,000,000\",\"vested\":\"0\",\"vested_bps\":0,\"vested_share\":\"0.00%\"},{\"as_of\":\"2026-11-24T18:36:42.310Z\",\"asset\":\"native\",\"beneficiary\":\"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\",\"can_claim\":false,\"claim_hint\":\"nothing is claimable now; next unlock: when the milestone authority signals a milestone\",\"claimable_now\":\"0\",\"claimed\":\"300,000,000\",\"claimed_bps\":6000,\"creator\":\"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\",\"flags\":\"cancelable, not transferable\",\"locked\":\"200,000,000\",\"next_unlock\":\"when the milestone authority signals a milestone\",\"schedule\":\"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\",\"standing\":\"active\",\"terms\":[\"Milestones (1 of 2 signalled)\",\"#0: 300,000,000 signalled\",\"#1: 200,000,000 pending\"],\"total\":\"500,000,000\",\"vested\":\"300,000,000\",\"vested_bps\":6000,\"vested_share\":\"60.00%\"}],\"skipped\":[],\"totals\":{\"claimable_now\":[[\"native\",\"50,001,667\"]],\"locked\":[[\"native\",\"848,360,000\"]],\"schedules\":3}}","status":"ok"}
+# result: {
+#  "ok": true,
+#  "positions": [
+#   {
+#    "as_of": "2026-11-24T18:36:42.310Z",
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_claim": true,
+#    "claim_hint": null,
+#    "claimable_now": "50,001,667",
+#    "claimed": "301,638,333",
+#    "claimed_bps": 3016,
+#    "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#    "flags": "cancelable, not transferable",
+#    "locked": "648,360,000",
+#    "next_unlock": "2026-11-24T18:36:42.311Z (in 1ms)",
+#    "schedule": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy",
+#    "standing": "active",
+#    "terms": [
+#     "Linear (cliff, then linear)",
+#     "start 2026-11-24T18:33:11.326Z",
+#     "cliff 2026-11-24T18:35:41.326Z",
+#     "end   2026-11-24T18:43:11.326Z"
+#    ],
+#    "total": "1,000,000,000",
+#    "vested": "351,640,000",
+#    "vested_bps": 3516,
+#    "vested_share": "35.16%"
+#   },
+#   {
+#    "as_of": "2026-11-24T18:36:42.310Z",
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_claim": false,
+#    "claim_hint": "everything this schedule will pay has been claimed",
+#    "claimable_now": "0",
+#    "claimed": "0",
+#    "claimed_bps": 0,
+#    "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#    "flags": "not cancelable, not transferable",
+#    "locked": "0",
+#    "next_unlock": "none (nothing more vests)",
+#    "schedule": "EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR",
+#    "standing": "settled (fully paid out)",
+#    "terms": [
+#     "Linear (cliff, then linear)",
+#     "start 2026-11-24T18:33:11.326Z",
+#     "cliff 2026-11-24T18:35:41.326Z",
+#     "end   2026-11-24T18:43:11.326Z",
+#     "cancelled at 2026-11-24T18:33:57.310Z: 0 vested, 400,000,000 refunded"
+#    ],
+#    "total": "400,000,000",
+#    "vested": "0",
+#    "vested_bps": 0,
+#    "vested_share": "0.00%"
+#   },
+#   {
+#    "as_of": "2026-11-24T18:36:42.310Z",
+#    "asset": "native",
+#    "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+#    "can_claim": false,
+#    "claim_hint": "nothing is claimable now; next unlock: when the milestone authority signals a milestone",
+#    "claimable_now": "0",
+#    "claimed": "300,000,000",
+#    "claimed_bps": 6000,
+#    "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+#    "flags": "cancelable, not transferable",
+#    "locked": "200,000,000",
+#    "next_unlock": "when the milestone authority signals a milestone",
+#    "schedule": "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv",
+#    "standing": "active",
+#    "terms": [
+#     "Milestones (1 of 2 signalled)",
+#     "#0: 300,000,000 signalled",
+#     "#1: 200,000,000 pending"
+#    ],
+#    "total": "500,000,000",
+#    "vested": "300,000,000",
+#    "vested_bps": 6000,
+#    "vested_share": "60.00%"
+#   }
+#  ],
+#  "skipped": [],
+#  "totals": {
+#   "claimable_now": [
+#    [
+#     "native",
+#     "50,001,667"
+#    ]
+#   ],
+#   "locked": [
+#    [
+#     "native",
+#     "848,360,000"
+#    ]
+#   ],
+#   "schedules": 3
+#  }
+# }
+# (0.1 s)
+
+# transactions: [{"step": "fund creator", "hash": "c94c62b82c5b35b435eca4a83fa9ce968930e2c11d5dac286bcf9332575ece38", "block": 1934}, {"step": "fund beneficiary", "hash": "d618f610c6839375c45225088864b66fba2d564be223775b2f127abe8b289def", "block": 1936}, {"step": "create linear: send", "block": 1939, "hash": "05f23d29dbfd31f95aaca97bab76f153f88a98054f02679859e0d52638d413ef"}, {"step": "create second linear (to cancel): send", "block": 1940, "hash": "36caad6db6944c9fccf7ea80fcdaac3c0f8231ac5469a1d1e3ba0ec52354fba6"}, {"step": "create milestones: send", "block": 1941, "hash": "e5c1f1efe0b83c932e8a0f7965889096eeb8c6b6f5f663622adfb86501702cd4"}, {"step": "cancel: send", "block": 1942, "hash": "d87a3b65e6cbebbed2fc1d89ae51dda94c3005c6e53ceca73178889a7ab20d98"}, {"step": "signal milestone 0: send", "block": 1943, "hash": "30a611ccd23dc6e4ef18c16b254205e1b8162098c1cd6312975e6a923f1289cc"}, {"step": "public claim: send", "block": 1950, "hash": "11266997388d2da82bec0e3d9b767a7182d55d2ac5e894b7690a80421258dc31"}]
+# checks: 29 of 31 passed; ended 2026-11-24T18:36:43Z

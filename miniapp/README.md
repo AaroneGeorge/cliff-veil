@@ -106,7 +106,10 @@ builder takes a few GiB of memory.
 
 5. In the mini-app's **Settings** tab, enter the path of `target/host/cliff-veil` and its environment as JSON, for
    example `{"LEE_WALLET_HOME_DIR": "/path/to/wallet-home", "RISC0_DEV_MODE": "1"}`, and click **Apply**. (Or start
-   Basecamp with `CLIFF_VEIL_CLI=/path/to/cliff-veil` in its environment.)
+   Basecamp with `CLIFF_VEIL_CLI=/path/to/cliff-veil` in its environment.) Creating, cancelling, signalling and
+   claiming run the program locally first, with RISC Zero's `r0vm`: when the host process does not find it (no rzup
+   install in its `HOME`, or not on its `PATH`), add `"RISC0_SERVER_PATH": "/path/to/r0vm"`. Without it these steps
+   fail with `Failed to execute program: No such file or directory`, while `show` and `list` still work.
 
 ### Without Basecamp: the core module under `logosctl`
 
@@ -118,6 +121,7 @@ S=/tmp/cliff-veil-session                       # any empty directory
 logosctl --config-dir $S daemon start --detach  # with CLIFF_VEIL_CLI=/path/to/cliff-veil in the environment
 logosctl --config-dir $S install cliff-veil-core/*.lgx -y
 logosctl --config-dir $S module load cliff_veil_module
+logosctl --config-dir $S call cliff_veil_module configure 'str:{"cli":"/path/to/cliff-veil","env":{"LEE_WALLET_HOME_DIR":"/path/to/wallet-home","CV_IDS":"/path/to/deploy/ids-local-dev.toml","RISC0_DEV_MODE":"1","RISC0_SERVER_PATH":"/path/to/r0vm"}}'
 logosctl --config-dir $S call cliff_veil_module recipient_view <beneficiary> 'str:<schedule account>' 
 logosctl --config-dir $S call cliff_veil_module prepare_claim 'str:{"schedule":"<s>","beneficiary":"<b>","path":"private"}'
 logosctl --config-dir $S call cliff_veil_module acknowledge_disclosure <flow> str:<digest>
@@ -138,9 +142,10 @@ nix build 'github:logos-co/logos-module-builder/a57dc7fd1fe92d3ac7b545c5559b9c58
 |---|---|
 | Logic and its tests (`u2_*`, `u4_*`, `u5_*`, `pr2_*`) | Done; `cargo test` passes |
 | Nix build of both packages (`lgx-portable`, linux-amd64) | Builds from a local checkout (`path:`); log in `evidence/miniapp/build.log` |
-| Core module installed, loaded and called under `logosctl` 0.3.2 | Done with a stand-in command line printing sample answers, including the disclosure gate (a private claim is refused before the acknowledgement and sent after it): `evidence/miniapp/load-logosctl.log` |
-| QML view rendered | Offscreen (Qt 6.9, software renderer) with sample answers from the real logic: `evidence/miniapp/screenshots/` |
-| Loaded in Basecamp | Not verified |
+| Core module installed, loaded and called under `logosctl` 0.3.2 | Done, over the real `cliff-veil` command line against the live local-dev sequencer (next row). The earlier run over a stand-in command line printing sample answers is kept in `evidence/miniapp/load-logosctl.log` |
+| Against a live sequencer (headless) | Done on local-dev (LEZ v0.4.0-rc3, RISC0_DEV_MODE=1), every step through the core module under `logosctl` with a fresh funded wallet: `evidence/miniapp/live-local-dev/20261124T183901Z.log` (summary `.json`, 31 of 31 checks). Creator view: three creations (linear with cliff, linear, milestones), `list --creator` finding them, a cancel and a milestone signal, each reviewed with an estimated fee and then sent (transaction hashes, blocks 1966 to 1970). Recipient view: position, claimable, next unlock, totals; a public claim with its pre-claim summary and fee; a private claim whose fee payer is an empty private account refused with `private_fee_shortfall` and what to do; a private claim (dev mode) showing the disclosure, refused before the acknowledgement and with a wrong digest, sent after it, the destination's private balance going from 0 to 19,469,781; a second private claim (signalled milestone) to the same account, again needing its own acknowledgement (balance 302,881,749) |
+| Found by the live run | A private claim's output starts with the wallet's sync lines; the module read that as bad output although the claim was sent (`evidence/miniapp/live-local-dev/20261124T183204Z.log`, 29 of 31). Fixed in `backend.rs` (`backend::tests::reads_a_private_claim_after_the_wallet_sync_lines`); the run above uses the fixed module |
+| QML view rendered | Offscreen (Qt 6.9, software renderer): with sample answers (`evidence/miniapp/screenshots/miniapp-*.png`) and with the answers the core module gave in the live run, replayed (`evidence/miniapp/screenshots/live-*.png`). The view itself did not talk to the chain |
+| Loaded in Basecamp | Not verified (no Basecamp GUI session: the QML view has not been loaded in Basecamp, so the view-to-module bridge there is untested) |
 | Wired to the `cliff-veil` command line | Every argument list is accepted by the built binary (`backend::tests::u2_every_argument_list_is_accepted_by_the_command_line`, run with `CLIFF_VEIL_CLI=<binary> cargo test -- --ignored`); its JSON is read by `cli.rs` (unit-tested on the shapes `cli/src/output.rs` prints) |
-| Against a live sequencer | Not verified (the vesting program was not yet deployed on the dev sequencer when this was written) |
 | Built from the GitHub URL (`github:...?dir=miniapp`) | Not verified (local `path:` builds only) |

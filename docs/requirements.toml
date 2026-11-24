@@ -84,8 +84,8 @@ id = "U2"
 group = "Usability"
 kind = "hard"
 text = "Provide a Logos mini-app GUI with local build instructions, downloadable assets, and loadable in Logos app (Basecamp) via git repo. The mini-app must cover at minimum: Recipient view: current vesting position, total locked, amount claimable now, next unlock event, claim action. Creator view: create a new schedule (all parameters), list active schedules, cancel a schedule, signal a milestone."
-gap = "mini-app logic tested, both Nix packages build, the core module loads and answers headless in the Logos runtime (logosctl 0.3.2); loading in Basecamp is not yet verified"
-files = ["evidence/miniapp/README.md", "evidence/miniapp/build.log", "evidence/miniapp/load-logosctl.log"]
+gap = "mini-app logic tested, both Nix packages build, the core module runs headless in the Logos runtime (logosctl 0.3.2) against a live local LEZ v0.4.0-rc3 sequencer with the real command line (create, list, cancel, signal, public and private claims, disclosure gate, fee shortfall); loading the views in the Basecamp GUI is not yet verified"
+files = ["evidence/miniapp/README.md", "evidence/miniapp/build.log", "evidence/miniapp/load-logosctl.log", "evidence/miniapp/live-local-dev/20261124T183901Z.log"]
 
 [[requirement]]
 id = "U3"
@@ -98,16 +98,16 @@ id = "U4"
 group = "Usability"
 kind = "hard"
 text = "The mini-app must display a pre-claim confirmation summary: claimable amount and estimated transaction fee. When using the private account path, it must confirm that the beneficiary account has sufficient gas to cover the claim; a clear, actionable error must be shown if the balance is insufficient."
-gap = "mini-app logic tested, both Nix packages build, the core module loads and answers headless in the Logos runtime (logosctl 0.3.2); loading in Basecamp is not yet verified"
-files = ["evidence/miniapp/README.md", "evidence/miniapp/build.log", "evidence/miniapp/load-logosctl.log"]
+gap = "mini-app logic tested, both Nix packages build, the core module runs headless in the Logos runtime (logosctl 0.3.2) against a live local LEZ v0.4.0-rc3 sequencer with the real command line (create, list, cancel, signal, public and private claims, disclosure gate, fee shortfall); loading the views in the Basecamp GUI is not yet verified"
+files = ["evidence/miniapp/README.md", "evidence/miniapp/build.log", "evidence/miniapp/load-logosctl.log", "evidence/miniapp/live-local-dev/20261124T183901Z.log"]
 
 [[requirement]]
 id = "U5"
 group = "Usability"
 kind = "hard"
 text = "When using the private account path, the mini-app must display a privacy disclosure before each claim, identifying what will be visible on-chain (claim amount, beneficiary address, vesting schedule address) and what will not be traceable (the destination private account and subsequent movements)."
-gap = "mini-app logic tested, both Nix packages build, the core module loads and answers headless in the Logos runtime (logosctl 0.3.2); loading in Basecamp is not yet verified"
-files = ["evidence/miniapp/README.md", "evidence/miniapp/build.log", "evidence/miniapp/load-logosctl.log"]
+gap = "mini-app logic tested, both Nix packages build, the core module runs headless in the Logos runtime (logosctl 0.3.2) against a live local LEZ v0.4.0-rc3 sequencer with the real command line (create, list, cancel, signal, public and private claims, disclosure gate, fee shortfall); loading the views in the Basecamp GUI is not yet verified"
+files = ["evidence/miniapp/README.md", "evidence/miniapp/build.log", "evidence/miniapp/load-logosctl.log", "evidence/miniapp/live-local-dev/20261124T183901Z.log"]
 
 [[requirement]]
 id = "U6"
@@ -206,16 +206,16 @@ id = "Pr1"
 group = "Privacy"
 kind = "hard"
 text = "The mini-app and SDK must support claiming to both public and private accounts."
-gap = "the SDK claims to public and private accounts on a sequencer; the mini-app's public and private claim paths are tested in its logic and its core module loads headless in the Logos runtime, but a private claim made from the mini-app in Basecamp is not yet shown"
-files = ["evidence/miniapp/README.md", "evidence/miniapp/load-logosctl.log"]
+gap = "the SDK claims to public and private accounts on a sequencer; the mini-app core module made public and private claims headless in the Logos runtime against a live local sequencer (dev mode); a private claim made from the mini-app views in the Basecamp GUI is not yet shown"
+files = ["evidence/miniapp/README.md", "evidence/miniapp/load-logosctl.log", "evidence/miniapp/live-local-dev/20261124T183901Z.log"]
 
 [[requirement]]
 id = "Pr2"
 group = "Privacy"
 kind = "hard"
 text = "When using the private account path, the mini-app must display the pre-confirmation privacy disclosure described in the Usability section before each claim, identifying what is visible on-chain (claim amount, beneficiary address, vesting schedule address) and what remains private (the destination private account and subsequent movements of claimed tokens)."
-gap = "mini-app logic tested, both Nix packages build, the core module loads and answers headless in the Logos runtime (logosctl 0.3.2); loading in Basecamp is not yet verified"
-files = ["evidence/miniapp/README.md", "evidence/miniapp/build.log", "evidence/miniapp/load-logosctl.log"]
+gap = "mini-app logic tested, both Nix packages build, the core module runs headless in the Logos runtime (logosctl 0.3.2) against a live local LEZ v0.4.0-rc3 sequencer with the real command line (create, list, cancel, signal, public and private claims, disclosure gate, fee shortfall); loading the views in the Basecamp GUI is not yet verified"
+files = ["evidence/miniapp/README.md", "evidence/miniapp/build.log", "evidence/miniapp/load-logosctl.log", "evidence/miniapp/live-local-dev/20261124T183901Z.log"]
 
 [[requirement]]
 id = "Pr3"

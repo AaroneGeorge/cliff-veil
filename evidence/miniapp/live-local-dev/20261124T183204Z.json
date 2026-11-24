@@ -1,0 +1,686 @@
+{
+ "run": "mlive-20261124T183204Z",
+ "started_utc": "20261124T183204Z",
+ "ended_utc": "2026-11-24T18:36:43Z",
+ "repo_commit": "1367a1935109be406dae59b5378f095969275107",
+ "runtime": "logosctl 0.3.2 (headless Logos Core), core module cliff_veil_module",
+ "core_module_lgx_sha256": "70214e2b2795fb8625673e202ecc82a35402106d456911975aef1a1d82751af5",
+ "command_line": "cliff-veil (cli/, debug build of repo_commit)",
+ "network": {
+  "name": "local-dev",
+  "rpc": "http://127.0.0.1:3050",
+  "lez": "v0.4.0-rc3",
+  "dev_mode": true
+ },
+ "accounts": {
+  "creator": "NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+  "beneficiary": "HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+  "private_destination": "6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5",
+  "empty_private_fee_payer": "Es73F2GHSMk88ZpQbC6qaYjcWq7kx2MHw4E1KzUdB4sc",
+  "funder": "LEZ local test key 2 (Justfile)"
+ },
+ "schedules": {
+  "linear": "7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy",
+  "cancelled": "EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR",
+  "milestones": "259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv"
+ },
+ "transactions": [
+  {
+   "step": "fund creator",
+   "hash": "c94c62b82c5b35b435eca4a83fa9ce968930e2c11d5dac286bcf9332575ece38",
+   "block": 1934
+  },
+  {
+   "step": "fund beneficiary",
+   "hash": "d618f610c6839375c45225088864b66fba2d564be223775b2f127abe8b289def",
+   "block": 1936
+  },
+  {
+   "step": "create linear: send",
+   "block": 1939,
+   "hash": "05f23d29dbfd31f95aaca97bab76f153f88a98054f02679859e0d52638d413ef"
+  },
+  {
+   "step": "create second linear (to cancel): send",
+   "block": 1940,
+   "hash": "36caad6db6944c9fccf7ea80fcdaac3c0f8231ac5469a1d1e3ba0ec52354fba6"
+  },
+  {
+   "step": "create milestones: send",
+   "block": 1941,
+   "hash": "e5c1f1efe0b83c932e8a0f7965889096eeb8c6b6f5f663622adfb86501702cd4"
+  },
+  {
+   "step": "cancel: send",
+   "block": 1942,
+   "hash": "d87a3b65e6cbebbed2fc1d89ae51dda94c3005c6e53ceca73178889a7ab20d98"
+  },
+  {
+   "step": "signal milestone 0: send",
+   "block": 1943,
+   "hash": "30a611ccd23dc6e4ef18c16b254205e1b8162098c1cd6312975e6a923f1289cc"
+  },
+  {
+   "step": "public claim: send",
+   "block": 1950,
+   "hash": "11266997388d2da82bec0e3d9b767a7182d55d2ac5e894b7690a80421258dc31"
+  }
+ ],
+ "checks": [
+  {
+   "check": "disclosure read through the module",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "create form validated",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "form with cliff after end refused with field errors",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "create review priced by a dry run",
+   "pass": true,
+   "detail": "fee 760,984"
+  },
+  {
+   "check": "linear schedule created on-chain",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "second schedule created on-chain",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "milestone schedule created on-chain",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "list --creator through the module finds the three schedules",
+   "pass": true,
+   "detail": "3 listed"
+  },
+  {
+   "check": "cancel review priced",
+   "pass": true,
+   "detail": "fee 772,144"
+  },
+  {
+   "check": "schedule cancelled on-chain",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "a sent operation cannot be sent twice",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "signal review priced",
+   "pass": true,
+   "detail": "fee 397,064"
+  },
+  {
+   "check": "milestone 0 signalled on-chain",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "signal by a non-authority refused before sending",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "position shows total, vested, claimed, locked, claimable and the next unlock",
+   "pass": true,
+   "detail": "claimable 0, next unlock 2026-11-24T18:35:41.326Z (in 1m 14s)"
+  },
+  {
+   "check": "claim before the cliff is refused or blocked with the next unlock",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "recipient view lists the beneficiary's schedules with totals",
+   "pass": true,
+   "detail": "totals {'claimable_now': [['native', '576,638,333']], 'locked': [['native', '923,361,667']], 'schedules': 3}"
+  },
+  {
+   "check": "public pre-claim summary with claimable and estimated fee",
+   "pass": true,
+   "detail": "claimable at least 276,638,333 (computed at the clock time of the including block), fee 803,456, gas sufficient"
+  },
+  {
+   "check": "public claim has no disclosure and is not blocked",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "public claim sent, with a transaction hash",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "insufficient gas shown with an actionable error",
+   "pass": true,
+   "detail": "claim later, when more has vested, or name a funded private account of this wallet as fee payer"
+  },
+  {
+   "check": "private summary shows the disclosure and is blocked until it is acknowledged",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "private claim refused before the acknowledgement",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "acknowledgement with a wrong digest refused",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "acknowledged: claim ready",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "private claim sent, with a transaction hash",
+   "pass": false,
+   "detail": ""
+  },
+  {
+   "check": "private balance increased",
+   "pass": true,
+   "detail": "0 -> 19471328"
+  },
+  {
+   "check": "a sent claim flow cannot be sent again",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "second private claim needs its own acknowledgement",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "milestone private claim sent",
+   "pass": false,
+   "detail": ""
+  },
+  {
+   "check": "private balance increased again",
+   "pass": true,
+   "detail": "19471328 -> 302883296"
+  }
+ ],
+ "checks_passed": 29,
+ "checks_total": 31,
+ "steps": [
+  {
+   "step": "configure",
+   "method": "configure",
+   "args": [
+    "str:{\"cli\": \"<workdir>/build/target/debug/cliff-veil\", \"env\": {\"LEE_WALLET_HOME_DIR\": \"<workdir>/run/wallet-miniapp-live\", \"LEE_WALLET_PASSWORD\": \"\", \"CV_IDS\": \"<workdir>/repo/deploy/ids-local-dev.toml\", \"RISC0_DEV_MODE\": \"1\", \"RUST_LOG\": \"warn\", \"RISC0_SERVER_PATH\": \"~/.risc0/extensions/v3.0.5-cargo-risczero-x86_64-unknown-linux-gnu/r0vm\"}}"
+   ],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "disclosure",
+   "method": "disclosure",
+   "args": [],
+   "ok": true,
+   "seconds": 0.1
+  },
+  {
+   "step": "create linear: validate form",
+   "method": "validate_create",
+   "args": [
+    "str:{\"creator\": \"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\", \"beneficiary\": \"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\", \"asset\": \"native\", \"kind\": \"linear\", \"total\": \"1000000000\", \"start\": \"1795545191326\", \"cliff\": \"1795545341326\", \"end\": \"1795545791326\", \"label\": \"mlive-20261124T183204Z-linear\"}"
+   ],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "create: form with cliff after end refused",
+   "method": "validate_create",
+   "args": [
+    "str:{\"creator\": \"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\", \"beneficiary\": \"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\", \"asset\": \"native\", \"kind\": \"linear\", \"total\": \"1000000000\", \"start\": \"1795545191326\", \"cliff\": \"1795546091326\", \"end\": \"1795545791326\", \"label\": \"mlive-20261124T183204Z-linear\"}"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {},
+   "errors": [
+    {
+     "field": "cliff",
+     "message": "times must satisfy start <= cliff <= end and start < end",
+     "program_code": 11
+    }
+   ]
+  },
+  {
+   "step": "create linear: review (dry run)",
+   "method": "prepare_create",
+   "args": [
+    "str:{\"creator\": \"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\", \"beneficiary\": \"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\", \"asset\": \"native\", \"kind\": \"linear\", \"total\": \"1000000000\", \"start\": \"1795545191326\", \"cliff\": \"1795545341326\", \"end\": \"1795545791326\", \"label\": \"mlive-20261124T183204Z-linear\"}"
+   ],
+   "ok": true,
+   "seconds": 0.7
+  },
+  {
+   "step": "create linear: send",
+   "method": "confirm_op",
+   "args": [
+    "1"
+   ],
+   "ok": true,
+   "seconds": 16.1,
+   "tx": {
+    "block": 1939,
+    "hash": "05f23d29dbfd31f95aaca97bab76f153f88a98054f02679859e0d52638d413ef"
+   }
+  },
+  {
+   "step": "create second linear (to cancel): review",
+   "method": "prepare_create",
+   "args": [
+    "str:{\"creator\": \"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\", \"beneficiary\": \"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\", \"asset\": \"native\", \"kind\": \"linear\", \"total\": \"400000000\", \"start\": \"1795545191326\", \"cliff\": \"1795545341326\", \"end\": \"1795545791326\", \"label\": \"mlive-20261124T183204Z-cancel\"}"
+   ],
+   "ok": true,
+   "seconds": 0.6
+  },
+  {
+   "step": "create second linear (to cancel): send",
+   "method": "confirm_op",
+   "args": [
+    "2"
+   ],
+   "ok": true,
+   "seconds": 14.4,
+   "tx": {
+    "block": 1940,
+    "hash": "36caad6db6944c9fccf7ea80fcdaac3c0f8231ac5469a1d1e3ba0ec52354fba6"
+   }
+  },
+  {
+   "step": "create milestones: review",
+   "method": "prepare_create",
+   "args": [
+    "str:{\"creator\": \"NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3\", \"beneficiary\": \"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\", \"asset\": \"native\", \"kind\": \"milestones\", \"milestones\": \"300000000;200000000\", \"label\": \"mlive-20261124T183204Z-milestones\"}"
+   ],
+   "ok": true,
+   "seconds": 0.6
+  },
+  {
+   "step": "create milestones: send",
+   "method": "confirm_op",
+   "args": [
+    "3"
+   ],
+   "ok": true,
+   "seconds": 14.4,
+   "tx": {
+    "block": 1941,
+    "hash": "e5c1f1efe0b83c932e8a0f7965889096eeb8c6b6f5f663622adfb86501702cd4"
+   }
+  },
+  {
+   "step": "creator view: list --creator (block scan)",
+   "method": "creator_view",
+   "args": [
+    "str:NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+    "str:"
+   ],
+   "ok": true,
+   "seconds": 1.5
+  },
+  {
+   "step": "cancel: review",
+   "method": "prepare_cancel",
+   "args": [
+    "str:EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR",
+    "str:NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3"
+   ],
+   "ok": true,
+   "seconds": 0.8
+  },
+  {
+   "step": "cancel: send",
+   "method": "confirm_op",
+   "args": [
+    "4"
+   ],
+   "ok": true,
+   "seconds": 12.8,
+   "tx": {
+    "block": 1942,
+    "hash": "d87a3b65e6cbebbed2fc1d89ae51dda94c3005c6e53ceca73178889a7ab20d98"
+   }
+  },
+  {
+   "step": "cancel: same op again refused (spent)",
+   "method": "confirm_op",
+   "args": [
+    "4"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "unknown_flow",
+    "message": "no prepared operation with this id (already confirmed, or the module restarted)",
+    "action": "review it again"
+   }
+  },
+  {
+   "step": "signal milestone 0: review",
+   "method": "prepare_signal",
+   "args": [
+    "str:259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv",
+    "str:NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+    "0"
+   ],
+   "ok": true,
+   "seconds": 0.3
+  },
+  {
+   "step": "signal milestone 0: send",
+   "method": "confirm_op",
+   "args": [
+    "5"
+   ],
+   "ok": true,
+   "seconds": 14.5,
+   "tx": {
+    "block": 1943,
+    "hash": "30a611ccd23dc6e4ef18c16b254205e1b8162098c1cd6312975e6a923f1289cc"
+   }
+  },
+  {
+   "step": "signal by the beneficiary (not the milestone authority): refused",
+   "method": "prepare_signal",
+   "args": [
+    "str:259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv",
+    "str:HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+    "1"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "not_milestone_authority",
+    "message": "cliff-veil error 6: only the milestone authority may signal a milestone",
+    "action": "send from the schedule's milestone authority (see `show`)",
+    "program_code": 6
+   }
+  },
+  {
+   "step": "creator view after cancel and signal (list --creator)",
+   "method": "creator_view",
+   "args": [
+    "str:NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+    "str:"
+   ],
+   "ok": true,
+   "seconds": 0.9
+  },
+  {
+   "step": "creator view, schedules typed in",
+   "method": "creator_view",
+   "args": [
+    "str:NTDMWe5Ms2gKqPgMxX3M5BUn9wXGrq8igHCDD7zciC3",
+    "str:7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\nEygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR\n259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv"
+   ],
+   "ok": true,
+   "seconds": 0.1
+  },
+  {
+   "step": "position before the cliff",
+   "method": "position",
+   "args": [
+    "str:7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy"
+   ],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "public claim before the cliff",
+   "method": "prepare_claim",
+   "args": [
+    "str:{\"schedule\": \"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\", \"beneficiary\": \"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\", \"path\": \"public\"}"
+   ],
+   "ok": false,
+   "seconds": 0.1,
+   "error": {
+    "code": "nothing_claimable",
+    "message": "cliff-veil error 14: nothing claimable yet; next unlock at 2026-11-24T18:35:41.326Z (1795545341326 ms)",
+    "action": "wait until the next unlock and claim again; nothing was consumed",
+    "program_code": 14
+   }
+  },
+  {
+   "step": "recipient view: list --beneficiary (block scan)",
+   "method": "recipient_view",
+   "args": [
+    "str:HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+    "str:"
+   ],
+   "ok": true,
+   "seconds": 1.0
+  },
+  {
+   "step": "recipient view, schedules typed in",
+   "method": "recipient_view",
+   "args": [
+    "str:HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+    "str:7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\nEygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR\n259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv"
+   ],
+   "ok": true,
+   "seconds": 0.1
+  },
+  {
+   "step": "public claim: pre-claim summary",
+   "method": "prepare_claim",
+   "args": [
+    "str:{\"schedule\": \"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\", \"beneficiary\": \"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\", \"path\": \"public\"}"
+   ],
+   "ok": true,
+   "seconds": 0.8
+  },
+  {
+   "step": "public claim: send",
+   "method": "confirm_claim",
+   "args": [
+    "6"
+   ],
+   "ok": true,
+   "seconds": 10.0,
+   "tx": {
+    "block": 1950,
+    "hash": "11266997388d2da82bec0e3d9b767a7182d55d2ac5e894b7690a80421258dc31"
+   }
+  },
+  {
+   "step": "private claim, fee payer an empty private account: summary",
+   "method": "prepare_claim",
+   "args": [
+    "str:{\"schedule\": \"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\", \"beneficiary\": \"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\", \"path\": \"private\", \"fee_payer\": \"Es73F2GHSMk88ZpQbC6qaYjcWq7kx2MHw4E1KzUdB4sc\"}"
+   ],
+   "ok": false,
+   "seconds": 0.7,
+   "error": {
+    "code": "private_fee_shortfall",
+    "message": "the private account Es73F2GHSMk88ZpQbC6qaYjcWq7kx2MHw4E1KzUdB4sc cannot pay the network fee of this claim: it needs 5528672, it will hold 0 (short by 5528672)",
+    "action": "claim later, when more has vested, or name a funded private account of this wallet as fee payer"
+   }
+  },
+  {
+   "step": "private claim: pre-claim summary and disclosure",
+   "method": "prepare_claim",
+   "args": [
+    "str:{\"schedule\": \"7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\", \"beneficiary\": \"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\", \"path\": \"private\"}"
+   ],
+   "ok": true,
+   "seconds": 0.8
+  },
+  {
+   "step": "private claim: confirm BEFORE the acknowledgement",
+   "method": "confirm_claim",
+   "args": [
+    "7"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "disclosure_not_acknowledged",
+    "message": "a claim to a private account is sent only after its privacy disclosure is acknowledged",
+    "action": "read the privacy disclosure for this claim and acknowledge it"
+   }
+  },
+  {
+   "step": "acknowledgement with a wrong digest",
+   "method": "acknowledge_disclosure",
+   "args": [
+    "7",
+    "str:0000000000000000"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "disclosure_changed",
+    "message": "the acknowledgement is not for the disclosure of this claim",
+    "action": "read the disclosure shown for this claim and acknowledge it"
+   }
+  },
+  {
+   "step": "private claim: disclosure acknowledged",
+   "method": "acknowledge_disclosure",
+   "args": [
+    "7",
+    "str:25ea741b4df389c5"
+   ],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "private claim: send (dev mode)",
+   "method": "confirm_claim",
+   "args": [
+    "7"
+   ],
+   "ok": false,
+   "seconds": 13.0,
+   "error": {
+    "code": "backend_bad_output",
+    "message": "the cliff-veil command line succeeded without the expected JSON answer: WARNING: proving in dev mode. This will not generate valid, secure proofs.\nWARNING: Proving in dev mode does not generate a valid receipt. Receipts generated from this process are invalid and should never be used in production.",
+    "action": "check the command line path and its environment (wallet home, program ids) in the Settings tab"
+   }
+  },
+  {
+   "step": "same flow again: refused (spent)",
+   "method": "confirm_claim",
+   "args": [
+    "7"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "unknown_flow",
+    "message": "no prepared claim with this id (already confirmed, or the module restarted)",
+    "action": "review it again"
+   }
+  },
+  {
+   "step": "milestone schedule: private claim to the same private account: summary",
+   "method": "prepare_claim",
+   "args": [
+    "str:{\"schedule\": \"259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv\", \"beneficiary\": \"HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ\", \"path\": \"private\", \"account\": \"6F1WyM9QRaMycpvcsqtptyzdsMPf99zrGWPBRND8EoA5\"}"
+   ],
+   "ok": true,
+   "seconds": 0.8
+  },
+  {
+   "step": "milestone private claim: confirm before acknowledgement",
+   "method": "confirm_claim",
+   "args": [
+    "8"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "disclosure_not_acknowledged",
+    "message": "a claim to a private account is sent only after its privacy disclosure is acknowledged",
+    "action": "read the privacy disclosure for this claim and acknowledge it"
+   }
+  },
+  {
+   "step": "milestone private claim: acknowledged",
+   "method": "acknowledge_disclosure",
+   "args": [
+    "8",
+    "str:25ea741b4df389c5"
+   ],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "milestone private claim: send (dev mode)",
+   "method": "confirm_claim",
+   "args": [
+    "8"
+   ],
+   "ok": false,
+   "seconds": 14.2,
+   "error": {
+    "code": "backend_bad_output",
+    "message": "the cliff-veil command line succeeded without the expected JSON answer: WARNING: proving in dev mode. This will not generate valid, secure proofs.\nWARNING: Proving in dev mode does not generate a valid receipt. Receipts generated from this process are invalid and should never be used in production.",
+    "action": "check the command line path and its environment (wallet home, program ids) in the Settings tab"
+   }
+  },
+  {
+   "step": "position after the claims",
+   "method": "position",
+   "args": [
+    "str:7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy"
+   ],
+   "ok": true,
+   "seconds": 0.1
+  },
+  {
+   "step": "cancelled schedule's position",
+   "method": "position",
+   "args": [
+    "str:EygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR"
+   ],
+   "ok": true,
+   "seconds": 0.1
+  },
+  {
+   "step": "milestone schedule's position",
+   "method": "position",
+   "args": [
+    "str:259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv"
+   ],
+   "ok": true,
+   "seconds": 0.1
+  },
+  {
+   "step": "recipient view at the end",
+   "method": "recipient_view",
+   "args": [
+    "str:HnkRsGhtCNy99YYVNyH22cFtJXQfdNjdqCX2JB9kuDsZ",
+    "str:7QTE6fs9sbBt2pmyopr4vRPmBWafJRqRG27xoAznTELy\nEygMmqf9TQ6XvCbQDaGpRvYaU8uy1HPTqKhjPG8AEpJR\n259tVQKJEP8Bn26fEdf2EKWsP9rpp88MhrxMMsNHG6vv"
+   ],
+   "ok": true,
+   "seconds": 0.1
+  }
+ ]
+}

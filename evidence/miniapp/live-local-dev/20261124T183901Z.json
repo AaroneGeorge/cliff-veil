@@ -1,0 +1,695 @@
+{
+ "run": "mlive-20261124T183901Z",
+ "started_utc": "20261124T183901Z",
+ "ended_utc": "2026-11-24T18:43:43Z",
+ "repo_commit": "1367a1935109be406dae59b5378f095969275107",
+ "runtime": "logosctl 0.3.2 (headless Logos Core), core module cliff_veil_module",
+ "core_module_lgx_sha256": "d8f94ceb27b942f3eb92eec10738316368af11a1d60f9af2487f026c12abda28",
+ "core_module_source": "this commit plus the working-tree change to miniapp/rust-lib/logic/src/backend.rs",
+ "command_line": "cliff-veil (cli/, debug build of repo_commit)",
+ "network": {
+  "name": "local-dev",
+  "rpc": "http://127.0.0.1:3050",
+  "lez": "v0.4.0-rc3",
+  "dev_mode": true
+ },
+ "accounts": {
+  "creator": "wb24bzHbp9z1S69ymVb5iJJCU4gDxLxjoB9LbUC3Pfn",
+  "beneficiary": "XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS",
+  "private_destination": "BuRb12nHiq3iqMswA3DzQ3VnRfez9arg8TfAb5cf2H2u",
+  "empty_private_fee_payer": "CxA6hoUaAJx14S5LctySAqgJtCdLSut2hz6RbQCux65f",
+  "funder": "LEZ local test key 2 (Justfile)"
+ },
+ "schedules": {
+  "linear": "9VppBLmH9tA17X2TqoA8ft5iwHKbkhbtZYF8qJ1yNT4d",
+  "cancelled": "DyZyi4DRWmnq7Lag4q7FdmrPK8snef7pTchrXYv7eVWu",
+  "milestones": "8Romeo9VevNwZDKE2Ay4DN2dCvE8DYEE7ddqJTLMqGvd"
+ },
+ "transactions": [
+  {
+   "step": "fund creator",
+   "hash": "fb9e75721933c1c15f85da658988d345972a31c92507422bec80f1f24f2ee498",
+   "block": 1962
+  },
+  {
+   "step": "fund beneficiary",
+   "hash": "52344e7650bab2ec00e36d17561979e73c8868dae408abe297db593f3785929d",
+   "block": 1964
+  },
+  {
+   "step": "create linear: send",
+   "block": 1966,
+   "hash": "ad94d22f7e340785b0da6d6b1dcfae77754a6cd9f402cd68050196b1b7095e89"
+  },
+  {
+   "step": "create second linear (to cancel): send",
+   "block": 1967,
+   "hash": "9f5319fd606f69730c53b0b8a1c632c9c95c52d589b1c036c1b36ebd7a81f72a"
+  },
+  {
+   "step": "create milestones: send",
+   "block": 1968,
+   "hash": "c04d364d8823f72fa72528fb1d9f434087f8305c1ec0ea44da41a02c3ba3a09b"
+  },
+  {
+   "step": "cancel: send",
+   "block": 1969,
+   "hash": "df475128441cc895558c3e33bba7d8083bfabd0c4cf284f8033a68417240e55f"
+  },
+  {
+   "step": "signal milestone 0: send",
+   "block": 1970,
+   "hash": "1f0c7172c6fddb42aebb95ef768f50876967d79551867201c674c7d4c5e97a64"
+  },
+  {
+   "step": "public claim: send",
+   "block": 1978,
+   "hash": "a6e47124b9451c21113d2d817b5565a768ba943e978d5abb1d5c2a24156d9958"
+  },
+  {
+   "step": "private claim: send (dev mode)",
+   "block": 1979,
+   "hash": "10b1c3ff7cf4dd9bdd1e4c36839c093b03f5bc8776e2bd2535f1d5b3b5ec5538"
+  },
+  {
+   "step": "milestone private claim: send (dev mode)",
+   "block": 1980,
+   "hash": "e4f472b5b4b2a91173ecf6a3198267eb60f1e77e5ad4df4e1319f78b08601f7d"
+  }
+ ],
+ "checks": [
+  {
+   "check": "disclosure read through the module",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "create form validated",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "form with cliff after end refused with field errors",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "create review priced by a dry run",
+   "pass": true,
+   "detail": "fee 760,984"
+  },
+  {
+   "check": "linear schedule created on-chain",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "second schedule created on-chain",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "milestone schedule created on-chain",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "list --creator through the module finds the three schedules",
+   "pass": true,
+   "detail": "3 listed"
+  },
+  {
+   "check": "cancel review priced",
+   "pass": true,
+   "detail": "fee 772,144"
+  },
+  {
+   "check": "schedule cancelled on-chain",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "a sent operation cannot be sent twice",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "signal review priced",
+   "pass": true,
+   "detail": "fee 397,064"
+  },
+  {
+   "check": "milestone 0 signalled on-chain",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "signal by a non-authority refused before sending",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "position shows total, vested, claimed, locked, claimable and the next unlock",
+   "pass": true,
+   "detail": "claimable 0, next unlock 2026-11-24T18:42:38.317Z (in 1m 26s)"
+  },
+  {
+   "check": "claim before the cliff is refused or blocked with the next unlock",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "recipient view lists the beneficiary's schedules with totals",
+   "pass": true,
+   "detail": "totals {'claimable_now': [['native', '581,655,000']], 'locked': [['native', '918,345,000']], 'schedules': 3}"
+  },
+  {
+   "check": "public pre-claim summary with claimable and estimated fee",
+   "pass": true,
+   "detail": "claimable at least 281,655,000 (computed at the clock time of the including block), fee 803,416, gas sufficient"
+  },
+  {
+   "check": "public claim has no disclosure and is not blocked",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "public claim sent, with a transaction hash",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "insufficient gas shown with an actionable error",
+   "pass": true,
+   "detail": "claim later, when more has vested, or name a funded private account of this wallet as fee payer"
+  },
+  {
+   "check": "private summary shows the disclosure and is blocked until it is acknowledged",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "private claim refused before the acknowledgement",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "acknowledgement with a wrong digest refused",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "acknowledged: claim ready",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "private claim sent, with a transaction hash",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "private balance increased",
+   "pass": true,
+   "detail": "0 -> 19469781"
+  },
+  {
+   "check": "a sent claim flow cannot be sent again",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "second private claim needs its own acknowledgement",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "milestone private claim sent",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "private balance increased again",
+   "pass": true,
+   "detail": "19469781 -> 302881749"
+  }
+ ],
+ "checks_passed": 31,
+ "checks_total": 31,
+ "steps": [
+  {
+   "step": "configure",
+   "method": "configure",
+   "args": [
+    "str:{\"cli\": \"<workdir>/build/target/debug/cliff-veil\", \"env\": {\"LEE_WALLET_HOME_DIR\": \"<workdir>/run/wallet-miniapp-live\", \"LEE_WALLET_PASSWORD\": \"\", \"CV_IDS\": \"<workdir>/repo/deploy/ids-local-dev.toml\", \"RISC0_DEV_MODE\": \"1\", \"RUST_LOG\": \"warn\", \"RISC0_SERVER_PATH\": \"~/.risc0/extensions/v3.0.5-cargo-risczero-x86_64-unknown-linux-gnu/r0vm\"}}"
+   ],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "disclosure",
+   "method": "disclosure",
+   "args": [],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "create linear: validate form",
+   "method": "validate_create",
+   "args": [
+    "str:{\"creator\": \"wb24bzHbp9z1S69ymVb5iJJCU4gDxLxjoB9LbUC3Pfn\", \"beneficiary\": \"XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS\", \"asset\": \"native\", \"kind\": \"linear\", \"total\": \"1000000000\", \"start\": \"1795545608317\", \"cliff\": \"1795545758317\", \"end\": \"1795546208317\", \"label\": \"mlive-20261124T183901Z-linear\"}"
+   ],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "create: form with cliff after end refused",
+   "method": "validate_create",
+   "args": [
+    "str:{\"creator\": \"wb24bzHbp9z1S69ymVb5iJJCU4gDxLxjoB9LbUC3Pfn\", \"beneficiary\": \"XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS\", \"asset\": \"native\", \"kind\": \"linear\", \"total\": \"1000000000\", \"start\": \"1795545608317\", \"cliff\": \"1795546508317\", \"end\": \"1795546208317\", \"label\": \"mlive-20261124T183901Z-linear\"}"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {},
+   "errors": [
+    {
+     "field": "cliff",
+     "message": "times must satisfy start <= cliff <= end and start < end",
+     "program_code": 11
+    }
+   ]
+  },
+  {
+   "step": "create linear: review (dry run)",
+   "method": "prepare_create",
+   "args": [
+    "str:{\"creator\": \"wb24bzHbp9z1S69ymVb5iJJCU4gDxLxjoB9LbUC3Pfn\", \"beneficiary\": \"XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS\", \"asset\": \"native\", \"kind\": \"linear\", \"total\": \"1000000000\", \"start\": \"1795545608317\", \"cliff\": \"1795545758317\", \"end\": \"1795546208317\", \"label\": \"mlive-20261124T183901Z-linear\"}"
+   ],
+   "ok": true,
+   "seconds": 0.6
+  },
+  {
+   "step": "create linear: send",
+   "method": "confirm_op",
+   "args": [
+    "1"
+   ],
+   "ok": true,
+   "seconds": 4.1,
+   "tx": {
+    "block": 1966,
+    "hash": "ad94d22f7e340785b0da6d6b1dcfae77754a6cd9f402cd68050196b1b7095e89"
+   }
+  },
+  {
+   "step": "create second linear (to cancel): review",
+   "method": "prepare_create",
+   "args": [
+    "str:{\"creator\": \"wb24bzHbp9z1S69ymVb5iJJCU4gDxLxjoB9LbUC3Pfn\", \"beneficiary\": \"XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS\", \"asset\": \"native\", \"kind\": \"linear\", \"total\": \"400000000\", \"start\": \"1795545608317\", \"cliff\": \"1795545758317\", \"end\": \"1795546208317\", \"label\": \"mlive-20261124T183901Z-cancel\"}"
+   ],
+   "ok": true,
+   "seconds": 0.6
+  },
+  {
+   "step": "create second linear (to cancel): send",
+   "method": "confirm_op",
+   "args": [
+    "2"
+   ],
+   "ok": true,
+   "seconds": 14.4,
+   "tx": {
+    "block": 1967,
+    "hash": "9f5319fd606f69730c53b0b8a1c632c9c95c52d589b1c036c1b36ebd7a81f72a"
+   }
+  },
+  {
+   "step": "create milestones: review",
+   "method": "prepare_create",
+   "args": [
+    "str:{\"creator\": \"wb24bzHbp9z1S69ymVb5iJJCU4gDxLxjoB9LbUC3Pfn\", \"beneficiary\": \"XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS\", \"asset\": \"native\", \"kind\": \"milestones\", \"milestones\": \"300000000;200000000\", \"label\": \"mlive-20261124T183901Z-milestones\"}"
+   ],
+   "ok": true,
+   "seconds": 0.6
+  },
+  {
+   "step": "create milestones: send",
+   "method": "confirm_op",
+   "args": [
+    "3"
+   ],
+   "ok": true,
+   "seconds": 14.4,
+   "tx": {
+    "block": 1968,
+    "hash": "c04d364d8823f72fa72528fb1d9f434087f8305c1ec0ea44da41a02c3ba3a09b"
+   }
+  },
+  {
+   "step": "creator view: list --creator (block scan)",
+   "method": "creator_view",
+   "args": [
+    "str:wb24bzHbp9z1S69ymVb5iJJCU4gDxLxjoB9LbUC3Pfn",
+    "str:"
+   ],
+   "ok": true,
+   "seconds": 1.6
+  },
+  {
+   "step": "cancel: review",
+   "method": "prepare_cancel",
+   "args": [
+    "str:DyZyi4DRWmnq7Lag4q7FdmrPK8snef7pTchrXYv7eVWu",
+    "str:wb24bzHbp9z1S69ymVb5iJJCU4gDxLxjoB9LbUC3Pfn"
+   ],
+   "ok": true,
+   "seconds": 0.8
+  },
+  {
+   "step": "cancel: send",
+   "method": "confirm_op",
+   "args": [
+    "4"
+   ],
+   "ok": true,
+   "seconds": 12.8,
+   "tx": {
+    "block": 1969,
+    "hash": "df475128441cc895558c3e33bba7d8083bfabd0c4cf284f8033a68417240e55f"
+   }
+  },
+  {
+   "step": "cancel: same op again refused (spent)",
+   "method": "confirm_op",
+   "args": [
+    "4"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "unknown_flow",
+    "message": "no prepared operation with this id (already confirmed, or the module restarted)",
+    "action": "review it again"
+   }
+  },
+  {
+   "step": "signal milestone 0: review",
+   "method": "prepare_signal",
+   "args": [
+    "str:8Romeo9VevNwZDKE2Ay4DN2dCvE8DYEE7ddqJTLMqGvd",
+    "str:wb24bzHbp9z1S69ymVb5iJJCU4gDxLxjoB9LbUC3Pfn",
+    "0"
+   ],
+   "ok": true,
+   "seconds": 0.4
+  },
+  {
+   "step": "signal milestone 0: send",
+   "method": "confirm_op",
+   "args": [
+    "5"
+   ],
+   "ok": true,
+   "seconds": 14.4,
+   "tx": {
+    "block": 1970,
+    "hash": "1f0c7172c6fddb42aebb95ef768f50876967d79551867201c674c7d4c5e97a64"
+   }
+  },
+  {
+   "step": "signal by the beneficiary (not the milestone authority): refused",
+   "method": "prepare_signal",
+   "args": [
+    "str:8Romeo9VevNwZDKE2Ay4DN2dCvE8DYEE7ddqJTLMqGvd",
+    "str:XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS",
+    "1"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "not_milestone_authority",
+    "message": "cliff-veil error 6: only the milestone authority may signal a milestone",
+    "action": "send from the schedule's milestone authority (see `show`)",
+    "program_code": 6
+   }
+  },
+  {
+   "step": "creator view after cancel and signal (list --creator)",
+   "method": "creator_view",
+   "args": [
+    "str:wb24bzHbp9z1S69ymVb5iJJCU4gDxLxjoB9LbUC3Pfn",
+    "str:"
+   ],
+   "ok": true,
+   "seconds": 0.9
+  },
+  {
+   "step": "creator view, schedules typed in",
+   "method": "creator_view",
+   "args": [
+    "str:wb24bzHbp9z1S69ymVb5iJJCU4gDxLxjoB9LbUC3Pfn",
+    "str:9VppBLmH9tA17X2TqoA8ft5iwHKbkhbtZYF8qJ1yNT4d\nDyZyi4DRWmnq7Lag4q7FdmrPK8snef7pTchrXYv7eVWu\n8Romeo9VevNwZDKE2Ay4DN2dCvE8DYEE7ddqJTLMqGvd"
+   ],
+   "ok": true,
+   "seconds": 0.1
+  },
+  {
+   "step": "position before the cliff",
+   "method": "position",
+   "args": [
+    "str:9VppBLmH9tA17X2TqoA8ft5iwHKbkhbtZYF8qJ1yNT4d"
+   ],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "public claim before the cliff",
+   "method": "prepare_claim",
+   "args": [
+    "str:{\"schedule\": \"9VppBLmH9tA17X2TqoA8ft5iwHKbkhbtZYF8qJ1yNT4d\", \"beneficiary\": \"XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS\", \"path\": \"public\"}"
+   ],
+   "ok": false,
+   "seconds": 0.1,
+   "error": {
+    "code": "nothing_claimable",
+    "message": "cliff-veil error 14: nothing claimable yet; next unlock at 2026-11-24T18:42:38.317Z (1795545758317 ms)",
+    "action": "wait until the next unlock and claim again; nothing was consumed",
+    "program_code": 14
+   }
+  },
+  {
+   "step": "recipient view: list --beneficiary (block scan)",
+   "method": "recipient_view",
+   "args": [
+    "str:XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS",
+    "str:"
+   ],
+   "ok": true,
+   "seconds": 0.9
+  },
+  {
+   "step": "recipient view, schedules typed in",
+   "method": "recipient_view",
+   "args": [
+    "str:XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS",
+    "str:9VppBLmH9tA17X2TqoA8ft5iwHKbkhbtZYF8qJ1yNT4d\nDyZyi4DRWmnq7Lag4q7FdmrPK8snef7pTchrXYv7eVWu\n8Romeo9VevNwZDKE2Ay4DN2dCvE8DYEE7ddqJTLMqGvd"
+   ],
+   "ok": true,
+   "seconds": 0.1
+  },
+  {
+   "step": "public claim: pre-claim summary",
+   "method": "prepare_claim",
+   "args": [
+    "str:{\"schedule\": \"9VppBLmH9tA17X2TqoA8ft5iwHKbkhbtZYF8qJ1yNT4d\", \"beneficiary\": \"XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS\", \"path\": \"public\"}"
+   ],
+   "ok": true,
+   "seconds": 0.8
+  },
+  {
+   "step": "public claim: send",
+   "method": "confirm_claim",
+   "args": [
+    "6"
+   ],
+   "ok": true,
+   "seconds": 13.1,
+   "tx": {
+    "block": 1978,
+    "hash": "a6e47124b9451c21113d2d817b5565a768ba943e978d5abb1d5c2a24156d9958"
+   }
+  },
+  {
+   "step": "private claim, fee payer an empty private account: summary",
+   "method": "prepare_claim",
+   "args": [
+    "str:{\"schedule\": \"9VppBLmH9tA17X2TqoA8ft5iwHKbkhbtZYF8qJ1yNT4d\", \"beneficiary\": \"XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS\", \"path\": \"private\", \"fee_payer\": \"CxA6hoUaAJx14S5LctySAqgJtCdLSut2hz6RbQCux65f\"}"
+   ],
+   "ok": false,
+   "seconds": 0.7,
+   "error": {
+    "code": "private_fee_shortfall",
+    "message": "the private account CxA6hoUaAJx14S5LctySAqgJtCdLSut2hz6RbQCux65f cannot pay the network fee of this claim: it needs 5528552, it will hold 0 (short by 5528552)",
+    "action": "claim later, when more has vested, or name a funded private account of this wallet as fee payer"
+   }
+  },
+  {
+   "step": "private claim: pre-claim summary and disclosure",
+   "method": "prepare_claim",
+   "args": [
+    "str:{\"schedule\": \"9VppBLmH9tA17X2TqoA8ft5iwHKbkhbtZYF8qJ1yNT4d\", \"beneficiary\": \"XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS\", \"path\": \"private\"}"
+   ],
+   "ok": true,
+   "seconds": 0.8
+  },
+  {
+   "step": "private claim: confirm BEFORE the acknowledgement",
+   "method": "confirm_claim",
+   "args": [
+    "7"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "disclosure_not_acknowledged",
+    "message": "a claim to a private account is sent only after its privacy disclosure is acknowledged",
+    "action": "read the privacy disclosure for this claim and acknowledge it"
+   }
+  },
+  {
+   "step": "acknowledgement with a wrong digest",
+   "method": "acknowledge_disclosure",
+   "args": [
+    "7",
+    "str:0000000000000000"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "disclosure_changed",
+    "message": "the acknowledgement is not for the disclosure of this claim",
+    "action": "read the disclosure shown for this claim and acknowledge it"
+   }
+  },
+  {
+   "step": "private claim: disclosure acknowledged",
+   "method": "acknowledge_disclosure",
+   "args": [
+    "7",
+    "str:25ea741b4df389c5"
+   ],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "private claim: send (dev mode)",
+   "method": "confirm_claim",
+   "args": [
+    "7"
+   ],
+   "ok": true,
+   "seconds": 13.0,
+   "tx": {
+    "block": 1979,
+    "hash": "10b1c3ff7cf4dd9bdd1e4c36839c093b03f5bc8776e2bd2535f1d5b3b5ec5538"
+   }
+  },
+  {
+   "step": "same flow again: refused (spent)",
+   "method": "confirm_claim",
+   "args": [
+    "7"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "unknown_flow",
+    "message": "no prepared claim with this id (already confirmed, or the module restarted)",
+    "action": "review it again"
+   }
+  },
+  {
+   "step": "milestone schedule: private claim to the same private account: summary",
+   "method": "prepare_claim",
+   "args": [
+    "str:{\"schedule\": \"8Romeo9VevNwZDKE2Ay4DN2dCvE8DYEE7ddqJTLMqGvd\", \"beneficiary\": \"XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS\", \"path\": \"private\", \"account\": \"BuRb12nHiq3iqMswA3DzQ3VnRfez9arg8TfAb5cf2H2u\"}"
+   ],
+   "ok": true,
+   "seconds": 0.8
+  },
+  {
+   "step": "milestone private claim: confirm before acknowledgement",
+   "method": "confirm_claim",
+   "args": [
+    "8"
+   ],
+   "ok": false,
+   "seconds": 0.0,
+   "error": {
+    "code": "disclosure_not_acknowledged",
+    "message": "a claim to a private account is sent only after its privacy disclosure is acknowledged",
+    "action": "read the privacy disclosure for this claim and acknowledge it"
+   }
+  },
+  {
+   "step": "milestone private claim: acknowledged",
+   "method": "acknowledge_disclosure",
+   "args": [
+    "8",
+    "str:25ea741b4df389c5"
+   ],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "milestone private claim: send (dev mode)",
+   "method": "confirm_claim",
+   "args": [
+    "8"
+   ],
+   "ok": true,
+   "seconds": 14.2,
+   "tx": {
+    "block": 1980,
+    "hash": "e4f472b5b4b2a91173ecf6a3198267eb60f1e77e5ad4df4e1319f78b08601f7d"
+   }
+  },
+  {
+   "step": "position after the claims",
+   "method": "position",
+   "args": [
+    "str:9VppBLmH9tA17X2TqoA8ft5iwHKbkhbtZYF8qJ1yNT4d"
+   ],
+   "ok": true,
+   "seconds": 0.0
+  },
+  {
+   "step": "cancelled schedule's position",
+   "method": "position",
+   "args": [
+    "str:DyZyi4DRWmnq7Lag4q7FdmrPK8snef7pTchrXYv7eVWu"
+   ],
+   "ok": true,
+   "seconds": 0.1
+  },
+  {
+   "step": "milestone schedule's position",
+   "method": "position",
+   "args": [
+    "str:8Romeo9VevNwZDKE2Ay4DN2dCvE8DYEE7ddqJTLMqGvd"
+   ],
+   "ok": true,
+   "seconds": 0.1
+  },
+  {
+   "step": "recipient view at the end",
+   "method": "recipient_view",
+   "args": [
+    "str:XBVQGCJefJpdsDb3e53dBrqGNZcfDcuCWqyAaf8nQJS",
+    "str:9VppBLmH9tA17X2TqoA8ft5iwHKbkhbtZYF8qJ1yNT4d\nDyZyi4DRWmnq7Lag4q7FdmrPK8snef7pTchrXYv7eVWu\n8Romeo9VevNwZDKE2Ay4DN2dCvE8DYEE7ddqJTLMqGvd"
+   ],
+   "ok": true,
+   "seconds": 0.1
+  }
+ ]
+}

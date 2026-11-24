@@ -213,13 +213,26 @@ pub trait Backend {
     fn call(&mut self, request: &Request) -> Result<Value, ErrorInfo>;
 }
 
+/// The JSON object a command printed. A private claim makes the LEZ wallet sync its private accounts, and the wallet
+/// prints that progress (`Latest block is ...`, `Syncing to block ...`) on standard output before the object; so when
+/// the whole output does not read, the object is the text from the first line that opens with `{` to the end.
+fn document(stdout: &str) -> Option<Value> {
+    let t = stdout.trim();
+    serde_json::from_str(t).ok().or_else(|| {
+        t.match_indices('\n')
+            .map(|(i, _)| &t[i + 1..])
+            .filter(|rest| rest.starts_with('{'))
+            .find_map(|rest| serde_json::from_str(rest).ok())
+    })
+}
+
 /// Reads a command's output: the object on success, else the refusal it printed ([`crate::cli::error`]).
 ///
 /// # Errors
 /// The printed refusal; `backend_bad_output` when the output is not the expected JSON (for example an argument the
 /// command line does not know, which it reports as text).
 pub fn read_output(success: bool, stdout: &str, stderr: &str) -> Result<Value, ErrorInfo> {
-    let parsed: Option<Value> = serde_json::from_str(stdout.trim()).ok();
+    let parsed = document(stdout);
     if let Some(e) = parsed.as_ref().and_then(crate::cli::error) {
         return Err(e);
     }
@@ -410,6 +423,26 @@ mod tests {
         let e = read_output(false, "", "error: unrecognized subcommand 'list'\n").unwrap_err();
         assert_eq!(e.code, "backend_bad_output");
         assert!(e.message.contains("unrecognized subcommand 'list'"));
+    }
+
+    #[test]
+    fn reads_a_private_claim_after_the_wallet_sync_lines() {
+        // What `cliff-veil --json claim ... --private --yes` prints on local-dev: the wallet's sync progress, then the
+        // object (dev-mode warnings go to stderr).
+        let stdout = "Latest block is 1951\nSyncing to block 1951. Blocks to sync: 3\nSynced to block 1951 in 151ms\n\
+                      {\n  \"ok\": true,\n  \"sent\": [\n    {\"block\": 1952, \"hash\": \"ab\"}\n  ]\n}\n";
+        let stderr = "WARNING: proving in dev mode. This will not generate valid, secure proofs.\n";
+        let v = read_output(true, stdout, stderr).unwrap();
+        assert_eq!(v["sent"][0]["block"], 1952);
+        // A refusal after the sync lines is still the SDK's refusal, not unreadable output.
+        let refused = "Latest block is 7\n{\"ok\":false,\"error\":{\"code\":14,\"name\":\"NothingClaimable\",\
+                       \"message\":\"nothing claimable yet\",\"action\":null}}";
+        assert_eq!(read_output(false, refused, "").unwrap_err().code, "nothing_claimable");
+        // Text with no object in it stays unreadable.
+        assert_eq!(
+            read_output(true, "Latest block is 7\n", "").unwrap_err().code,
+            "backend_bad_output"
+        );
     }
 
     #[test]
