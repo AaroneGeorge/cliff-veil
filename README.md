@@ -19,10 +19,10 @@ Logos mini-app, the end-to-end tests, and the evidence files the numbers in thes
 | Create (cliff + linear, fully linear, milestones, batch), claim to a public account, cancel, make non-cancelable, signal a milestone, transfer the beneficiary, creation-fee switch | Runs on a LEZ v0.4.0-rc3 standalone sequencer in dev mode. The end-to-end suite has 43 tests (34 + 4 + 3 + 2 in `e2e/tests/`, counted with `cargo test -p vesting_e2e -- --list --ignored`). The recorded local run of 2026-11-24 passed 41 of 41, before the two composition tests were added ([evidence/e2e/local-dev/20261124T160153Z.json](evidence/e2e/local-dev/20261124T160153Z.json)); those two passed 2 of 2 in their own run ([evidence/e2e/compose/20261124T163557Z.json](evidence/e2e/compose/20261124T163557Z.json)). |
 | Native and token schedules | Both are covered by tests. Executor cycles and transaction sizes are measured for both; the fee a sequencer charges is measured for native operations only ([docs/COSTS.md](docs/COSTS.md)). |
 | Claim to a private account | In the end-to-end suite and the lifecycle log it runs in RISC Zero dev mode (`RISC0_DEV_MODE=1`: the transaction carries no real proof), and those figures are labelled as dev-mode figures. A native claim and a token claim were each also proved for real; see the next row. Token private claim: dev mode on a sequencer ([evidence/e2e/local-dev/20261124T160153Z.json](evidence/e2e/local-dev/20261124T160153Z.json)), and once with real proofs. |
-| Private claim with a real proof | Two real-proof runs, each with `RISC0_DEV_MODE` unset everywhere and a standalone LEZ v0.4.0-rc3 sequencer that verifies proofs, on a GitHub-hosted runner (4 cores, 16 GiB, a swap file added as a margin). **Native claim** (`ClaimAsOf` to a fresh private account of the wallet): in the first run transaction `66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43`, block 193, 305,555,555 claimed, 1,229 s for the whole CLI command, 251,270 bytes ([evidence/real-proof/20261124T155037Z/](evidence/real-proof/20261124T155037Z/)); in the second run transaction `fc85d370db0b1044aac8ce34306e40d01a22753e2506d0d4e2ba5b04894fdc1b`, block 231, 319,443,518 claimed, 1,562 s, 251,270 bytes, peak memory 9.17 GiB in both ([evidence/real-proof/20261124T165520Z/](evidence/real-proof/20261124T165520Z/), GitHub run 45437451120). **Token claim** (second run): transaction `51efe1b6c5741087a65aa0ac3c7c34e9289b474c42686a1bf52f8e0b9f7e8bb9`, block 728, 1,000,000 of a token claimed to a private holding of the wallet. It takes three proved steps, each 25 to 50 minutes on 4 CPUs: fund a private fee payer, initialise the private holding, claim. Peak memory 9.17 GiB, claim transaction 255,200 bytes; the private fee payer paid 22,272,688 for the initialisation and the claim together. The scan of the claim's `getBlock` and `getTransaction` answers finds the destination and the fee payer 0 times and the one-time address 8 times. In both runs the same sequencer refused the claim made with a dev-mode receipt (`Invalid privacy preserving execution circuit proof`), and in both the canonical id of the private destination appears 0 times. These are two runs on one kind of machine and an ephemeral sequencer, not a public network. Method and limits: [tools/real_proof/README.md](tools/real_proof/README.md). |
-| Public chain | Our own standalone LEZ v0.4.0-rc3 sequencer with dev mode unset, readable by anyone at `https://cliff-veil-seq.tailcdec7a.ts.net` (read-only). It holds the deployment and every public operation of the command line on native schedules, plus token schedules created, claimed and cancelled; `scripts/verify_public.sh` re-reads it all. See [Public chain](#public-chain). |
+| Private claim with a real proof | Two real-proof runs, each with `RISC0_DEV_MODE` unset everywhere and a standalone LEZ v0.4.0-rc3 sequencer that verifies proofs, on a GitHub-hosted runner (4 cores, 16 GiB, a swap file added as a margin). **Native claim** (`ClaimAsOf` to a fresh private account of the wallet): in the first run transaction `66d6e06d68ae4b76eca4d21996809286a1aebae4e94abdf98a286d1c05200d43`, block 193, 305,555,555 claimed, 1,229 s for the whole CLI command, 251,270 bytes ([evidence/real-proof/20261124T155037Z/](evidence/real-proof/20261124T155037Z/)); in the second run transaction `fc85d370db0b1044aac8ce34306e40d01a22753e2506d0d4e2ba5b04894fdc1b`, block 231, 319,443,518 claimed, 1,562 s, 251,270 bytes, peak memory 9.17 GiB in both ([evidence/real-proof/20261124T165520Z/](evidence/real-proof/20261124T165520Z/), GitHub run 45437451120). **Token claim** (second run): transaction `51efe1b6c5741087a65aa0ac3c7c34e9289b474c42686a1bf52f8e0b9f7e8bb9`, block 728, 1,000,000 of a token claimed to a private holding of the wallet. It takes three proved steps, each 25 to 50 minutes on 4 CPUs: fund a private fee payer, initialise the private holding, claim. Peak memory 9.17 GiB, claim transaction 255,200 bytes; the private fee payer paid 22,272,688 for the initialisation and the claim together. The scan of the claim's `getBlock` and `getTransaction` answers finds the destination and the fee payer 0 times and the one-time address 8 times. In both runs the same sequencer refused the claim made with a dev-mode receipt (`Invalid privacy preserving execution circuit proof`), and in both the canonical id of the private destination appears 0 times. These are two runs on one kind of machine and an ephemeral sequencer, not a public network. A third native claim was proved against the public chain and is included on it: see the next row and [Public chain](#public-chain). Method and limits: [tools/real_proof/README.md](tools/real_proof/README.md). |
+| Public chain | Our own standalone LEZ v0.4.0-rc3 sequencer with dev mode unset, readable by anyone at `https://cliff-veil-seq.tailcdec7a.ts.net` (read-only). It holds the deployment and every public operation of the command line on native schedules, plus token schedules created, claimed and cancelled, and one private claim with a real proof (transaction `660a13a03d5533d571a0d680beb56fcce043ca28de0146c403183b7a3477490a`, block 498, 69,442,592 to a fresh private account): proved on a GitHub-hosted runner (GitHub run 45598084620, `RISC0_DEV_MODE` unset, 1,572 s, about 9.17 GiB) with every read through the public endpoint, then submitted from the host. A scan of the block and transaction as the public endpoint serves them finds the destination 0 times and the one-time address 8 times. `scripts/verify_public.sh` re-reads it all. See [Public chain](#public-chain). |
 | LEZ testnet 0.4 | Not yet live. Nothing is deployed there. The suite runs on a local standalone sequencer instead; program ids of that network are in [deploy/ids-local-dev.toml](deploy/ids-local-dev.toml). |
-| Mini-app | Both packages build with Nix, the core module installs, loads and answers under `logosctl` 0.3.2, and the view renders offscreen. The core module has also run against a live local sequencer (LEZ v0.4.0-rc3, dev mode) with the real command line: create, list, cancel, signal, public claim, private claim behind the disclosure gate, and the fee-shortfall refusal, 31 of 31 checks ([evidence/miniapp/live-local-dev/20261124T183901Z.log](evidence/miniapp/live-local-dev/20261124T183901Z.log)). The recipient and creator views were then installed, loaded and used in the Basecamp 0.3.2 GUI: list, create with every parameter, cancel, signal a milestone, public and private claims with the fee reserve shown and the disclosure gate (dev mode on a local sequencer), 22 screenshots with transaction hashes ([evidence/miniapp/basecamp/20261125T104537Z/README.md](evidence/miniapp/basecamp/20261125T104537Z/README.md)). |
+| Mini-app | Both packages build with Nix, the core module installs, loads and answers under `logosctl` 0.3.2, and the view renders offscreen. The core module has also run against a live local sequencer (LEZ v0.4.0-rc3, dev mode) with the real command line: create, list, cancel, signal, public claim, private claim behind the disclosure gate, and the fee-shortfall refusal, 31 of 31 checks ([evidence/miniapp/live-local-dev/20261124T183901Z.log](evidence/miniapp/live-local-dev/20261124T183901Z.log)). The recipient and creator views were then installed, loaded and used in the Basecamp 0.3.2 GUI: list, create with every parameter, cancel, signal a milestone, public and private claims with the fee reserve shown and the disclosure gate (dev mode on a local sequencer), 26 screenshots with transaction hashes ([evidence/miniapp/basecamp/20261125T104537Z/README.md](evidence/miniapp/basecamp/20261125T104537Z/README.md)). |
 | Guest builds | Reproducible: independent builds in the pinned RISC Zero builder image give identical binaries and image ids ([evidence/guests/reproducible-local-dev.log](evidence/guests/reproducible-local-dev.log)). |
 | Cost measurements | Executor cycles and transaction sizes of every operation (native, token, fee path, batches at the caps), standalone-sequencer fees of the native operations, the fee of one private claim in dev mode, and the time, memory and size of one private claim with a real proof ([docs/COSTS.md](docs/COSTS.md)). They are LEZ v0.4.0-rc3 measurements on a local sequencer, not testnet 0.4 measurements. |
 
@@ -49,6 +49,23 @@ What is on it ([evidence/public-chain/](evidence/public-chain/)):
 | [20261125T100306Z](evidence/public-chain/20261125T100306Z/run.json) | the deployment (`token`, `vesting_fees` and its `Init`, `ata`, `vesting`, built in the pinned image from commit `91db156`, ids in [deploy/ids-local-pub.toml](deploy/ids-local-pub.toml)), then the command line on native schedules: cliff + linear, fully linear, milestones, a batch of 20 in one transaction, claimable and next-unlock queries, public claims, a milestone signal, a beneficiary transfer, make non-cancelable, a cancel with its refund, and the claim of the vested part after it | 40 (18 deployment, 6 account funding, 16 vesting) |
 | same run | 10 refusals with their error codes (SPEC 5): claim before the cliff (14), claim by a non-beneficiary (3) and by the previous beneficiary after a transfer (3), transfer of a non-transferable schedule (19), signal by a non-authority (6) and twice (18), cancel by a non-authority (5), make non-cancelable by a non-creator (4), cancel of a non-cancelable (15) and of a cancelled schedule (16) | none: the SDK checks every operation before sending, so a refused one is never sent |
 | [20261125T100631Z-token](evidence/public-chain/20261125T100631Z-token/run.json) | token schedules: a token definition, holdings, a linear token schedule claimed in two parts, and a token schedule cancelled with the unvested part refunded to a refund holding, then the vested part claimed (the two token end-to-end tests run against `local-pub`, their transactions recorded by `scripts/public_token_run.sh`) | 20 |
+| [20261125T113302Z-private-real-proof](evidence/public-chain/20261125T113302Z-private-real-proof/run.json) | one private claim with a real proof, included on this chain (see below): funding of the creator and the beneficiary, a native linear schedule (total 10,000,000,000, cliff 60 s, end 3 h), and the claim of 69,442,592 to a fresh private account | 4 (2 account funding, 1 vesting, 1 private claim) |
+
+**The private claim with a real proof.** The beneficiary's key was made on a GitHub-hosted runner
+([workflow `public-proof`](.github/workflows/public-proof.yml), run 45598084620) and never left it. The runner built
+the claim and proved it with `RISC0_DEV_MODE` unset in 1,572 s at a peak of about 9.17 GiB (9,615,800 KiB), reading the
+chain only through the public endpoint above, and kept the signed, proven transaction (335,094 bytes) instead of
+sending it. The host that runs the sequencer submitted that transaction: hash
+`660a13a03d5533d571a0d680beb56fcce043ca28de0146c403183b7a3477490a`, block 498, 69,442,592 to a fresh private account of
+the beneficiary, the claim's only claim on the schedule. The chain's sequencer verifies proofs (dev mode unset), so this
+transaction was included only because its proof checked. The scan of `getBlock` and `getTransaction`, as the public
+endpoint serves them ([scan.txt](evidence/public-chain/20261125T113302Z-private-real-proof/scan.txt)): the canonical id
+of the destination appears 0 times, the one-time address named in the transaction 8 times
+([docs/PRIVACY.md](docs/PRIVACY.md#the-scan-of-a-private-claim-included-on-the-public-chain)). To check this run alone:
+
+```bash
+scripts/verify_public.sh --public "" evidence/public-chain/20261125T113302Z-private-real-proof/run.json
+```
 
 Verify it with one command (Python 3.11+ and `dig`; nothing to build):
 
@@ -56,12 +73,14 @@ Verify it with one command (Python 3.11+ and `dig`; nothing to build):
 scripts/verify_public.sh --public
 ```
 
-It re-reads every transaction of every `run.json` from the public URL and checks its block, reads the 26 schedule
+It re-reads every transaction of every `run.json` from the public URL and checks its block, reads the 27 schedule
 accounts, decodes their state from the Borsh layout of SPEC 2 (independently of our SDK) and compares it with the
 recorded state (creator, beneficiary, asset, total, claimed, milestones signalled, cancelable, transferable,
 authorities, refund account, cancellation), checks each native escrow balance against total - claimed - refunded,
 and checks that `sendTransaction` is refused. `--public` connects to the address public DNS gives, so the requests
-take the internet route. Our output: [evidence/public-chain/verify-20261125T1042Z.txt](evidence/public-chain/verify-20261125T1042Z.txt); the
+take the internet route. Our output: [evidence/public-chain/verify-20261125T1135Z.txt](evidence/public-chain/verify-20261125T1135Z.txt) (64 of 64
+transactions, 27 of 27 schedules, 15 of 15 program and config accounts; the earlier
+[verify-20261125T1042Z.txt](evidence/public-chain/verify-20261125T1042Z.txt) has the 60 transactions and 26 schedules before the real-proof claim was added); the
 endpoint's answers to allowed and refused requests are in `evidence/public-chain/endpoint-checks-*.txt`.
 To rerun the lifecycle on your own machine: `scripts/seq.sh pub start`, `scripts/deploy_local.sh pub --build
 release`, `scripts/public_lifecycle.sh`, `scripts/public_token_run.sh`, then `scripts/verify_public.sh
@@ -71,9 +90,11 @@ Honest notes:
 
 - This is our own sequencer on one machine, not testnet 0.4 (not live yet) and not a network with other operators.
   Anyone can read it; only we can write to it. It can be restarted or reset; the evidence files keep every hash.
-- Dev mode is off on this sequencer, but the transactions here are public ones, which the sequencer executes itself;
-  none of them carries a proof. Private claims with real proofs were recorded separately, on a sequencer that verifies
-  proofs: [evidence/real-proof/](evidence/real-proof/) (see [Status](#status)).
+- Dev mode is off on this sequencer. The transactions here are public ones, which the sequencer executes itself and
+  which carry no proof, except one: the private claim above, whose real proof the sequencer checked. Private claims
+  with real proofs were also recorded on other sequencers that verify proofs, on hosted runners:
+  [evidence/real-proof/](evidence/real-proof/) (see [Status](#status)). The token claim with a real proof is not on
+  this chain.
 - The refusals are the SDK's local checks with the program's error codes; a refused operation is not sent, so it has
   no hash. The program's own refusals of the same operations are covered by the executor and end-to-end tests.
 - The endpoint may be stopped while the machine runs heavy jobs; `verify_public.sh` then fails to connect rather than
@@ -348,8 +369,14 @@ the command-line arguments the module sends, and the headless `logosctl` route a
 Creating a schedule, claiming and cancelling in the mini-app are the same operations as the CLI commands above, each
 reviewed with a dry run before it is sent.
 
-Not verified: loading in Basecamp, and building from the GitHub URL (only local `path:` builds were run). The core module
-did run against a live local sequencer under `logosctl`. The evidence that exists is in [evidence/miniapp/](evidence/miniapp/README.md).
+Verified in the Basecamp 0.3.2 GUI (dev mode on a local sequencer, so a private claim carries a dev-mode receipt):
+recipient and creator views, public claims, a private claim with the fee reserve shown and the disclosure gate, create
+with every parameter, cancel, signal a milestone and a milestone claim
+([evidence/miniapp/basecamp/20261125T104537Z/README.md](evidence/miniapp/basecamp/20261125T104537Z/README.md)). Packages
+built from the GitHub URL are byte for byte the packages used there
+([evidence/miniapp/from-git/README.md](evidence/miniapp/from-git/README.md)). Not verified: a private claim with a real
+proof from the mini-app, and a run on LEZ testnet 0.4. The rest of the evidence is in
+[evidence/miniapp/](evidence/miniapp/README.md).
 
 ## Tests and CI
 

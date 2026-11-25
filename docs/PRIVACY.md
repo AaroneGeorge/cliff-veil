@@ -8,7 +8,8 @@ real transaction, and what the check does not show. The binding statement is [SP
 on every such claim (`dev mode: RISC0_DEV_MODE=1, ...`). A native private claim and a token private claim were also made with real
 proofs, with `RISC0_DEV_MODE` unset everywhere, and included by a standalone sequencer that verifies proofs; their scans
 are [below](#the-scan-of-a-private-claim-with-a-real-proof). The native claim was proved in two runs, the token claim
-in the second run only.
+in the second run only. A third native claim, proved the same way against the public chain's read-only endpoint, is
+included on that chain and scanned [below](#the-scan-of-a-private-claim-included-on-the-public-chain).
 
 ## What is visible, and what is not
 
@@ -144,6 +145,39 @@ funding the private fee payer, initialising the private holding, and the claim. 
 22,272,688 across the initialisation and the claim. The scan found neither the destination nor the fee payer in the
 block or the transaction of the claim, and the one-time address 8 times, as for the native claim.
 
+## The scan of a private claim included on the public chain
+
+The third real-proof claim is on our public chain (`local-pub`, the standalone LEZ v0.4.0-rc3 sequencer at
+`https://cliff-veil-seq.tailcdec7a.ts.net`, `RISC0_DEV_MODE` unset, so its sequencer checks proofs). The beneficiary's key was
+made on a GitHub-hosted runner (GitHub run 45598084620) and stayed there. The runner built the claim and proved it with
+every read going through the public endpoint, and kept the signed transaction; the sequencer's host submitted it. The
+claim took 1,572 s and a peak of about 9.17 GiB (9,615,800 KiB). The record is
+[evidence/public-chain/20261125T113302Z-private-real-proof/](../evidence/public-chain/20261125T113302Z-private-real-proof/)
+(`run.json`, `submit.json`, `scan.txt`, `claim.time`, `export-summary.json`, the exported transaction and the block and
+transaction answers that were scanned); the scan is [tools/scan_rpc/scan_rpc.py](../tools/scan_rpc/scan_rpc.py), run on
+the answers of the public endpoint.
+
+| What | Value |
+|---|---|
+| Transaction hash | `660a13a03d5533d571a0d680beb56fcce043ca28de0146c403183b7a3477490a` |
+| Block | 498 |
+| Amount claimed | 69,442,592 |
+| Canonical private account (the destination) | `6oymXyoWkLVcdq7hCTvA6RZXQfGEH9JxW2gs6B1LNsTT` |
+| One-time address named in the transaction | `J6FPodSLZFjaieMaYUBTWiNgKxcP8HKpoYeVGfHUMZnS` |
+| `getBlock`, canonical id: base58 / hex / raw bytes | 0 / 0 / 0 |
+| `getTransaction`, canonical id: base58 / hex / raw bytes | 0 / 0 / 0 |
+| `getBlock`, one-time address, raw bytes in decoded base64 | 4 |
+| `getTransaction`, one-time address, raw bytes in decoded base64 | 4 |
+| Total, canonical id / one-time address | 0 / 8 |
+| Size of the claim transaction (the proof is in it) | 251,270 bytes (the base64 blob in `getTransaction`); the signed request kept by the runner is 335,094 bytes of JSON |
+
+The result is the same as for the other real-proof claims: the canonical id of the destination is nowhere in the block
+or the transaction as the public endpoint serves them, and the one-time address is, 8 times. The amount is public. The
+destination pays the network fee out of the claim (estimated 5,528,680), because no other private account of this
+beneficiary held the larger reserve. Anyone can check that the transaction is on the chain with
+`scripts/verify_public.sh --public "" evidence/public-chain/20261125T113302Z-private-real-proof/run.json`. What the
+scan does not show is below; it is one claim on a chain that only we write to.
+
 ## What the scan does not show
 
 - It looks for identifiers. It says nothing about linking a claim to a destination by **amount or timing**: the claim's
@@ -152,8 +186,8 @@ block or the transaction of the claim, and the one-time address 8 times, as for 
 - Each scan covers one transaction on a local chain (the first in dev mode, the others with proofs verified by the
   sequencer), not a population of transactions on a live network. The real-proof sequencers were ephemeral and are gone;
   the records keep the RPC answers that were scanned.
-- The real-proof scans cover two native claims into a fresh private account and one token claim into a private holding
-  with a separate private fee payer (the token claim also ran in dev mode on a sequencer:
+- The real-proof scans cover three native claims into a fresh private account (the third on the public chain) and one
+  token claim into a private holding with a separate private fee payer (the token claim also ran in dev mode on a sequencer:
   [evidence/e2e/local-dev/20261124T160153Z.json](../evidence/e2e/local-dev/20261124T160153Z.json)). The token claim
   was made once.
 

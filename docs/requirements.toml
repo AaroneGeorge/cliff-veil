@@ -194,7 +194,7 @@ kind = "hard"
 text = "A README documents end-to-end usage: deployment steps, program addresses, and step-by-step instructions for creating a schedule, claiming, and cancelling via CLI and mini-app."
 evidence = "README.md"
 files = ["README.md"]
-gap = "the program addresses given are those of a local LEZ v0.4.0-rc3 deployment (deploy/ids-local-dev.toml); there are no LEZ testnet 0.4 addresses yet (no public endpoint), and the mini-app steps for Basecamp are written but not yet verified in Basecamp"
+gap = "the program addresses given are those of a local LEZ v0.4.0-rc3 deployment (deploy/ids-local-dev.toml); there are no LEZ testnet 0.4 addresses yet (no public endpoint); the mini-app steps were run in the Basecamp 0.3.2 GUI (evidence/miniapp/basecamp/20261125T104537Z/)"
 
 # ---------------------------------------------------------------- Privacy
 
