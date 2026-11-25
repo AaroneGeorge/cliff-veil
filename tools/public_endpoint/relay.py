@@ -35,7 +35,8 @@ POST / with one JSON-RPC 2.0 request, content-type application/json. Forwarded m
   {", ".join(sorted(policy.ALLOWED))}
 Everything else is refused with -32601, including sendTransaction.
 Limits: {policy.MAX_BODY} bytes per request, one request per body (no batches), getBlockRange at most
-{policy.MAX_RANGE} blocks, getAccountsNonces at most {policy.MAX_NONCES} ids, replies at most {policy.MAX_REPLY} bytes,
+{policy.MAX_RANGE} blocks, getAccountsNonces at most {policy.MAX_NONCES} ids, getProofsAndRoot at most {policy.MAX_PROOFS} entries per
+list, getPublications a limit of 1 to {policy.MAX_PUBLICATIONS}, replies at most {policy.MAX_REPLY} bytes,
 {policy.PER_VISITOR_RATE:g} requests a second per visitor (burst {policy.PER_VISITOR_BURST:g}; a little over is slowed by up to
 {policy.MAX_DELAY:g} s, more gets HTTP 429), {policy.TOTAL_TIMEOUT:g} s per request.
 

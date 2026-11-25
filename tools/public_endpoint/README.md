@@ -2,7 +2,7 @@
 
 `local-pub` (`scripts/seq.sh pub`: LEZ v0.4.0-rc3 standalone, `RISC0_DEV_MODE` unset) holds every transaction of
 `evidence/public-chain/`. Its JSON-RPC listens on `127.0.0.1:3051` only and has no authentication of its own,
-including for `sendTransaction`. This folder makes 12 of its read methods reachable from the internet and nothing
+including for `sendTransaction`. This folder makes 14 of its read methods reachable from the internet and nothing
 else.
 
 ```
@@ -28,13 +28,20 @@ out to the relay instead. Nothing new listens on the host.
 - Forwarded: `getTransaction`, `getBlock`, `getBlockRange` (at most 16 blocks), `getLastBlockId`, `getAccount`,
   `getAccountView`, `getAccountBalance`, `getAccountsNonces` (at most 16 ids), `getProgramIds`, `getFeeState`,
   `getChannelId`, `checkHealth`.
+- Also forwarded, because a wallet needs them to sync and to prove a private claim, and both read data that is already
+  public on the chain: `getPublications` as `[from_position, limit]` (an unsigned integer and a limit of 1 to 256) and
+  `getProofsAndRoot` as `[commitments, message_positions]` (at most 16 entries in each list; a commitment is an array
+  of exactly 32 integers 0..255, a position an unsigned integer). The named form (`{"from_position", "limit"}`,
+  `{"commitments", "message_positions"}`) is accepted with exactly those keys. Any other shape, an extra param, a
+  limit of 0 or above 256, or a 17th entry is refused with `-32602` before it reaches the sequencer.
 - Refused with `-32601` "not available on this read-only endpoint": `sendTransaction`,
-  `requeueCrossZoneDeadLetter`, `getPublications`, `getMessagePath`, `getProofsAndRoot`, `getRecoveryBinding`,
-  `getCrossZoneDeadLetters`, `rpc.*`, any other name.
+  `requeueCrossZoneDeadLetter`, `getMessagePath`, `getRecoveryBinding`, `getCrossZoneDeadLetters`, `rpc.*`, any other
+  name.
 - One JSON object per request (a batch is `-32600`), only the keys `jsonrpc`, `id`, `method`, `params`, no duplicate
   keys, no notifications. The request is re-encoded before it reaches the sequencer, so the sequencer sees only what
   the policy checked.
-- `POST /` only (plus `GET /` help and `GET /health`); 2 KiB per request (HTTP 413 above); replies at most 2 MiB.
+- `POST /` only (plus `GET /` help and `GET /health`); 4 KiB per request (HTTP 413 above; 16 commitments of
+  `getProofsAndRoot` fit); replies at most 2 MiB.
 - 5 requests a second per visitor, burst 20, 20 a second in total. A visitor a little over the rate is slowed by up
   to 1 s; more gets HTTP 429.
 - At most 64 requests waiting, 4 sequencer calls at once, 5 s per sequencer call, 10 s per request (HTTP 504);
@@ -65,6 +72,6 @@ restarts.
 ## Test
 
 ```
-python3 -I tools/public_endpoint/test_policy.py      # 27 unit and in-process tests
+python3 -I tools/public_endpoint/test_policy.py      # 29 unit and in-process tests
 scripts/verify_public.sh                             # re-reads evidence/public-chain/ through the public URL
 ```

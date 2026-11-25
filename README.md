@@ -34,11 +34,13 @@ It is not a Logos network. Its JSON-RPC is published read-only at
 
 **`https://cliff-veil-seq.tailcdec7a.ts.net`**
 
-which forwards 12 read methods (`getTransaction`, `getBlock`, `getBlockRange`, `getLastBlockId`, `getAccount`,
+which forwards 14 read methods (`getTransaction`, `getBlock`, `getBlockRange`, `getLastBlockId`, `getAccount`,
 `getAccountView`, `getAccountBalance`, `getAccountsNonces`, `getProgramIds`, `getFeeState`, `getChannelId`,
-`checkHealth`) and refuses everything else, including `sendTransaction`, with `-32601`. The relay and its allow-list
-are in [tools/public_endpoint/](tools/public_endpoint/README.md); limits are 5 requests a second per visitor and 2 KiB
-per request.
+`checkHealth`, and the two a wallet needs to sync and prove a private claim, `getPublications` with a limit of 1 to
+256 and `getProofsAndRoot` with at most 16 entries per list, both of which read data already public on the chain) and
+refuses everything else, including `sendTransaction`, with `-32601`. The relay and its allow-list are in
+[tools/public_endpoint/](tools/public_endpoint/README.md); limits are 5 requests a second per visitor and 4 KiB per
+request.
 
 What is on it ([evidence/public-chain/](evidence/public-chain/)):
 
@@ -59,7 +61,8 @@ accounts, decodes their state from the Borsh layout of SPEC 2 (independently of 
 recorded state (creator, beneficiary, asset, total, claimed, milestones signalled, cancelable, transferable,
 authorities, refund account, cancellation), checks each native escrow balance against total - claimed - refunded,
 and checks that `sendTransaction` is refused. `--public` connects to the address public DNS gives, so the requests
-take the internet route. Our output: [evidence/public-chain/verify-20261125T1013Z.txt](evidence/public-chain/verify-20261125T1013Z.txt).
+take the internet route. Our output: [evidence/public-chain/verify-20261125T1042Z.txt](evidence/public-chain/verify-20261125T1042Z.txt); the
+endpoint's answers to allowed and refused requests are in `evidence/public-chain/endpoint-checks-*.txt`.
 To rerun the lifecycle on your own machine: `scripts/seq.sh pub start`, `scripts/deploy_local.sh pub --build
 release`, `scripts/public_lifecycle.sh`, `scripts/public_token_run.sh`, then `scripts/verify_public.sh
 http://127.0.0.1:3051 evidence/public-chain/<your run>/run.json` for each new run.

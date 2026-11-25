@@ -1,0 +1,109 @@
+$ scripts/verify_public.sh --public    # 2026-11-25T10:42:25Z, from the machine that runs local-pub, over the internet route; relay with getPublications and getProofsAndRoot allowed
+endpoint https://cliff-veil-seq.tailcdec7a.ts.net (connected to 103.84.155.217, the address public DNS gives)
+chain head: block 296
+
+20261125T100306Z: 40 transactions, 24 schedules (local-pub, LEZ v0.4.0-rc3, dev mode False)
+  ok   token         G47ivGM8zSMH8GbLiBBkaVRGwJJMCdGuGGyfFzuw1GX6
+  ok   vesting_fees  2BME3Tvbh3M9ehzjV5oUiTBq7sC87CZePwSRcibP1oZP
+  ok   ata           fxPsJympi87tLPh43MAwZ8Tr7zbiRryqXbbHaWyuYt1
+  ok   vesting       J6cQ2c3C7q2mdR8nVwb93oWPEJKdyvAycXSP7SYgB3cV
+  ok   fees_config   8ghb6rYjRAU1rd1vjQqz4ZzqWdEfmjPnKip72Z1F6RTC
+  ok   tx 42d9241f9c742e24.. block     84  deploy token: program-loader transaction 1
+  ok   tx ee6c5f30546e75eb.. block     86  deploy token: program-loader transaction 2
+  ok   tx 490e9973cbe3f23d.. block     88  deploy token: program-loader transaction 3
+  ok   tx afe5d92f06eb32c6.. block     90  deploy token: program-loader transaction 4
+  ok   tx dcab3b1ac9b62b09.. block     92  deploy vesting_fees: program-loader transaction 1
+  ok   tx d159470a2198b4b4.. block     94  deploy vesting_fees: program-loader transaction 2
+  ok   tx 0c1f0d04a26cc6a3.. block     96  deploy vesting_fees: program-loader transaction 3
+  ok   tx daef6f2f6a15b949.. block     98  deploy vesting_fees: program-loader transaction 4
+  ok   tx 5137bd3cc573b2ac.. block    100  vesting_fees Init by the deployer
+  ok   tx 368350ef2e83e618.. block    102  deploy ata: program-loader transaction 1
+  ok   tx 55b7d2352a553e0e.. block    104  deploy ata: program-loader transaction 2
+  ok   tx c0220df1f82185f8.. block    106  deploy ata: program-loader transaction 3
+  ok   tx b767c2ab97e5280b.. block    108  deploy ata: program-loader transaction 4
+  ok   tx 48fc4210026c6fec.. block    127  deploy vesting: program-loader transaction 1
+  ok   tx 40905180111d66a8.. block    129  deploy vesting: program-loader transaction 2
+  ok   tx 7ed4f30c5d05c8f1.. block    131  deploy vesting: program-loader transaction 3
+  ok   tx 5560158b6d1645f3.. block    133  deploy vesting: program-loader transaction 4
+  ok   tx 3fbc9a39cbcd1e90.. block    135  deploy vesting: program-loader transaction 5
+  ok   tx b2fa0035ea869a04.. block    138  native transfer of 60000000000 to Public/DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE (account funding)
+  ok   tx 45f17777c2811cd1.. block    140  native transfer of 2000000000 to Public/EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP (account funding)
+  ok   tx a834f2e7871b3777.. block    142  native transfer of 2000000000 to Public/oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT (account funding)
+  ok   tx 8b1307cc4b9d288c.. block    144  native transfer of 2000000000 to Public/8muNnw8npBvRgeyNi66rDERJvDYVrAs1ZS2eFSQFg1Wy (account funding)
+  ok   tx 8349766486ef9d1b.. block    146  native transfer of 500000000 to Public/DYW3TGtP3e7TWaxVztjH1DM9tLbCVZceuijTWnU36Wdk (account funding)
+  ok   tx a1a61bf8fabb763d.. block    148  native transfer of 500000000 to Public/2ckDWmUFLMSTGF6Zrj8v5cxPwVBY5CnxpKAbPbQENemi (account funding)
+  ok   tx 744e844f876505c2.. block    150  create: linear with a cliff (cliff +120 s, end +900 s), transferable, cancelable
+  ok   tx d72fa5b32ec06c6e.. block    151  create: fully linear (no cliff, end +180 s)
+  ok   tx 5003af4d1bad698e.. block    152  create: milestones 300000000 + 700000000, milestone authority the creator
+  ok   tx b623f4f26dafd8ce.. block    153  create: linear schedule for the cancel with refund (end +600 s), refund to bob
+  ok   tx 81fd7290f42af9a2.. block    154  create-batch: 20 linear schedules with a cliff (cliff +60 s, end +900 s)
+  ok   tx c93e02f39b70b897.. block    155  signal milestone #0
+  ok   tx 7e349f8322f41ee4.. block    156  public claim of the signalled milestone
+  ok   tx d6c96c36315998f0.. block    157  public claim, fully linear schedule
+  ok   tx 3c0798dcfa5c7f7c.. block    158  make the linear schedule non-cancelable
+  ok   tx 7b0bd90c42a0e760.. block    159  public claim after the cliff
+  ok   tx b5ece9465387238f.. block    160  public claim from batch schedule #1 by its recipient
+  ok   tx 51d1acb6da70cead.. block    161  public claim from batch schedule #2 by its recipient
+  ok   tx 7f60841cbc0d4f56.. block    162  transfer the cliff schedule from alice to bob
+  ok   tx a3fbb4ca68680b7c.. block    163  public claim by the new beneficiary
+  ok   tx c2d1c9823f21ea58.. block    164  cancel: the unvested part goes to the refund account (bob), the vested part stays claimable
+  ok   tx 14f37a9a5cfbacf0.. block    165  public claim of the vested part after the cancel
+  ok   schedule cliff       9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB  linear, total 1000000000, claimed 216666666, escrow 783333334, cancelable true
+  ok   schedule linear      2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU  linear, total 600000000, claimed 299996666, escrow 300003334, cancelable false
+  ok   schedule milestones  3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh  milestones, total 1000000000, claimed 300000000, escrow 700000000, signalled 0b1
+  ok   schedule cancel      CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB  linear, total 900000000, claimed 247500000, escrow 0, cancelled, refunded 652500000
+  ok   schedule batch-01    FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR  linear, total 101000000, claimed 10099887, escrow 90900113, cancelable true
+  ok   schedule batch-02    5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b  linear, total 102000000, claimed 11900000, escrow 90100000, cancelable true
+  ok   schedule batch-03    71LAmXFsuKds1WZMA1APsyuxaX82NdvhEvTjQvFHxCEC  linear, total 103000000, claimed 0, escrow 103000000, cancelable true
+  ok   schedule batch-04    6q9783wdfpSS6Qcda9Sfbz9NbaFwxudxUCGBbfQe38Q3  linear, total 104000000, claimed 0, escrow 104000000, cancelable true
+  ok   schedule batch-05    8JK9Utv6ZFyozuUZXid3MhB4iaPptg9hMLPWAUJpdQYP  linear, total 105000000, claimed 0, escrow 105000000, cancelable true
+  ok   schedule batch-06    Czc5aqB2Tzrtx8EBjtXYejtBiMRKQsbrJmXA1iNdAqcr  linear, total 106000000, claimed 0, escrow 106000000, cancelable true
+  ok   schedule batch-07    CSPAE6m4VSNxt5WnVjrF1jGAouLvDP6YoAgW6piEafTG  linear, total 107000000, claimed 0, escrow 107000000, cancelable true
+  ok   schedule batch-08    BYvDR7VsnU2EwUwTCeoJKaipK3wUX26V6hQdazoAieoj  linear, total 108000000, claimed 0, escrow 108000000, cancelable true
+  ok   schedule batch-09    Fqy5fFUDZNbw8nRNNW8tFeX73SWVuDMPL46DKSuGkKRe  linear, total 109000000, claimed 0, escrow 109000000, cancelable true
+  ok   schedule batch-10    8EX7Y5HfioEuEtX5sNhqR6eGuQPe3kMXtiy69dUdyv6x  linear, total 110000000, claimed 0, escrow 110000000, cancelable true
+  ok   schedule batch-11    FNdbn5XzHMq9FaXbTGM2tuQYLDLWJS478uMZtSeEsb82  linear, total 111000000, claimed 0, escrow 111000000, cancelable true
+  ok   schedule batch-12    7idKdvzsRTJHVDk4RxWfxMoahRV6yz8y7cd6HmMro4Gj  linear, total 112000000, claimed 0, escrow 112000000, cancelable true
+  ok   schedule batch-13    ETwsXYcLre92ewVAZmtwkRAQnjQmFmSMEqjJJonXBKnf  linear, total 113000000, claimed 0, escrow 113000000, cancelable true
+  ok   schedule batch-14    6PY1qyX19cLYWaBdLBo7LitVBQdHQyF61dBWqk25942Y  linear, total 114000000, claimed 0, escrow 114000000, cancelable true
+  ok   schedule batch-15    Et8EVcaeRqnYEMgCwR6rr2yr5pxMPTLn5yPv4bVpBxAu  linear, total 115000000, claimed 0, escrow 115000000, cancelable true
+  ok   schedule batch-16    54tiZYp3n3THjguzHvbLbpR6SvH3B2r6JK4sKiMkugZq  linear, total 116000000, claimed 0, escrow 116000000, cancelable true
+  ok   schedule batch-17    EfQkGxpgYjWbtykWLDrgxcQkUZWGxLJeJGmQ9x7ykvUB  linear, total 117000000, claimed 0, escrow 117000000, cancelable true
+  ok   schedule batch-18    6eDhTNwR7wqG5XqQnhKvHonqyYB4RZGZRE6JQFvQx44r  linear, total 118000000, claimed 0, escrow 118000000, cancelable true
+  ok   schedule batch-19    4MEoRs1v66eppnqVnueV82h9iy2VyTUvMzg8eAeW7S25  linear, total 119000000, claimed 0, escrow 119000000, cancelable true
+  ok   schedule batch-20    BUWe77qZxFeSPVvLHZxhKnAi6QS8Le8ffwcJUJNswBX7  linear, total 120000000, claimed 0, escrow 120000000, cancelable true
+
+20261125T100631Z-token: 20 transactions, 2 schedules (local-pub, LEZ v0.4.0-rc3, dev mode False)
+  ok   token         G47ivGM8zSMH8GbLiBBkaVRGwJJMCdGuGGyfFzuw1GX6
+  ok   vesting_fees  2BME3Tvbh3M9ehzjV5oUiTBq7sC87CZePwSRcibP1oZP
+  ok   ata           fxPsJympi87tLPh43MAwZ8Tr7zbiRryqXbbHaWyuYt1
+  ok   vesting       J6cQ2c3C7q2mdR8nVwb93oWPEJKdyvAycXSP7SYgB3cV
+  ok   fees_config   8ghb6rYjRAU1rd1vjQqz4ZzqWdEfmjPnKip72Z1F6RTC
+  ok   tx 0e1ec6a464909fcf.. block    152  native transfer (test account funding, test f2)
+  ok   tx 30873997a10c0d6d.. block    152  native transfer (test account funding, test f2)
+  ok   tx a4b880613faaf7b9.. block    152  native transfer (test account funding, test f2)
+  ok   tx a0b724215076df1e.. block    152  native transfer (test account funding, test f2)
+  ok   tx 257a317533c17fa1.. block    153  token: new definition, whole supply to the creator
+  ok   tx fe14ce8dea56f78c.. block    154  token: initialise the destination holding
+  ok   tx 111081778f7eb4eb.. block    155  vesting: create a linear token schedule (no cliff)
+  ok   tx 9a2ccffd595e99eb.. block    157  vesting: public claim (part, mid-vesting)
+  ok   tx 0ab0d5d4a764f63d.. block    163  vesting: public claim (the rest, after the end)
+  ok   tx 886d3cdc8f001876.. block    164  native transfer (test account funding, test f3)
+  ok   tx 74fb688c236bbaef.. block    164  native transfer (test account funding, test f3)
+  ok   tx 59b01e53bfe35557.. block    164  native transfer (test account funding, test f3)
+  ok   tx ffd59b2ddeb8638e.. block    164  native transfer (test account funding, test f3)
+  ok   tx 04fb71a1f6b8d2ae.. block    164  native transfer (test account funding, test f3)
+  ok   tx f2685a9e8eafd213.. block    165  token: new definition, whole supply to the creator
+  ok   tx 99308753bfb169bd.. block    166  token: initialise the refund holding
+  ok   tx aa52b2365ed56923.. block    167  token: initialise the beneficiary holding
+  ok   tx 53b5126590d49f60.. block    168  vesting: create a linear token schedule, cancel authority and refund holding set
+  ok   tx 519000602ba6c8f1.. block    170  vesting: cancel (unvested part refunded to the refund holding)
+  ok   tx 143221d6acd7c79b.. block    171  vesting: public claim of the vested part after the cancel
+  ok   schedule token-1     FTfZsVvZZuhTbeDhtnC9VKGLMCzCUwijWVoaaKM8q8sK  linear, total 1000000, claimed 1000000, token 2Wc5sgwd.. (escrow in the schedule's token holding), cancelable true
+  ok   schedule token-2     C3crfTGynmRZQiYU3wYcmczZw3dwhrrjTFpVf2ydup7d  linear, total 1000000, claimed 200000, token GSnpMTbc.. (escrow in the schedule's token holding), cancelled, refunded 800000
+
+ok   sendTransaction refused by the endpoint: HTTP 200, code -32601
+
+checked 10 program and config accounts, 60 transactions, 26 schedules with 98 requests
+PASS
+[exit 0]

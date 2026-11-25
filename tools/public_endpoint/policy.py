@@ -15,16 +15,20 @@ ALLOWED = frozenset({
     "getTransaction", "getBlock", "getBlockRange", "getLastBlockId",
     "getAccount", "getAccountView", "getAccountBalance", "getAccountsNonces",
     "getProgramIds", "getFeeState", "getChannelId", "checkHealth",
+    # What a wallet needs to sync and prove a private claim; both read data that is already public on the chain
+    # (the publications in commitment order, and membership paths with their root). Shapes and sizes checked below.
+    "getPublications", "getProofsAndRoot",
 })
 # Named here so the tests and the help text can show them; refused like any unknown method.
 WRITES = ("sendTransaction", "requeueCrossZoneDeadLetter")
-REFUSED_READS = ("getPublications", "getMessagePath", "getProofsAndRoot", "getRecoveryBinding",
-                 "getCrossZoneDeadLetters")
+REFUSED_READS = ("getMessagePath", "getRecoveryBinding", "getCrossZoneDeadLetters")
 
-MAX_BODY = 2048               # bytes per request
+MAX_BODY = 4096               # bytes per request (16 commitments of getProofsAndRoot fit)
 MAX_REPLY = 2 * 1024 * 1024   # bytes per reply
 MAX_RANGE = 16                # blocks per getBlockRange (inclusive span)
 MAX_NONCES = 16               # account ids per getAccountsNonces
+MAX_PROOFS = 16               # entries per list of getProofsAndRoot (commitments, message positions)
+MAX_PUBLICATIONS = 256        # the limit of getPublications
 MAX_ID_LEN = 64               # characters of a string request id
 PER_VISITOR_RATE, PER_VISITOR_BURST = 5.0, 20.0
 TOTAL_RATE, TOTAL_BURST = 20.0, 40.0
@@ -68,6 +72,12 @@ def _uint(v):
     return isinstance(v, int) and not isinstance(v, bool) and 0 <= v < 2 ** 64
 
 
+def _commitment(v):
+    """A commitment as the sequencer reads it: an array of exactly 32 bytes (integers 0..255)."""
+    return (isinstance(v, list) and len(v) == 32
+            and all(isinstance(b, int) and not isinstance(b, bool) and 0 <= b <= 255 for b in v))
+
+
 def _positional(method, params, names):
     """The params as a list in `names` order (array or object form), or Refused."""
     if isinstance(params, list):
@@ -94,6 +104,22 @@ def _check_params(method, params):
         (ids,) = _positional(method, params, ("account_ids",))
         if not isinstance(ids, list) or len(ids) > MAX_NONCES:
             raise Refused(INVALID_PARAMS, f"getAccountsNonces takes at most {MAX_NONCES} account ids")
+    elif method == "getPublications":
+        start, limit = _positional(method, params, ("from_position", "limit"))
+        if not _uint(start):
+            raise Refused(INVALID_PARAMS, "from_position must be an unsigned integer")
+        if not (_uint(limit) and 1 <= limit <= MAX_PUBLICATIONS):
+            raise Refused(INVALID_PARAMS, f"getPublications takes a limit of 1 to {MAX_PUBLICATIONS} on this endpoint")
+    elif method == "getProofsAndRoot":
+        commitments, positions = _positional(method, params, ("commitments", "message_positions"))
+        if not (isinstance(commitments, list) and isinstance(positions, list)):
+            raise Refused(INVALID_PARAMS, "commitments and message_positions must be arrays")
+        if len(commitments) > MAX_PROOFS or len(positions) > MAX_PROOFS:
+            raise Refused(INVALID_PARAMS, f"getProofsAndRoot takes at most {MAX_PROOFS} entries per list on this endpoint")
+        if not all(_commitment(c) for c in commitments):
+            raise Refused(INVALID_PARAMS, "a commitment is an array of 32 integers 0..255")
+        if not all(_uint(p) for p in positions):
+            raise Refused(INVALID_PARAMS, "message positions must be unsigned integers")
 
 
 def check_request(body):

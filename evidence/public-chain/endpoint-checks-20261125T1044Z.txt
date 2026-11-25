@@ -1,0 +1,66 @@
+# read-only endpoint checks after allowing getPublications and getProofsAndRoot, 2026-11-25T10:44:07Z, https://cliff-veil-seq.tailcdec7a.ts.net via the address public DNS gives (103.84.155.217)
+GET /health
+  -> HTTP 200 {"ok": true, "dialer": true}
+read: getLastBlockId
+  -> HTTP 200 result, 37 bytes
+allowed: getPublications [0,256] (the wallet's first page)
+  -> HTTP 200 result, 9436 bytes, 2 publications
+allowed: getPublications [7,256] (past the last publication: the empty page that ends a scan)
+  -> HTTP 200 result, 36 bytes
+allowed: getPublications named form
+  -> HTTP 200 result, 4728 bytes, 1 publications
+allowed: getProofsAndRoot [[],[]] (what this claim sends)
+  -> HTTP 200 result, 160 bytes
+allowed: getProofsAndRoot one commitment, one position
+  -> HTTP 200 result, 635 bytes
+allowed: getProofsAndRoot 16 commitments and 16 positions (the cap, longest encoding)
+  -> HTTP 200 result, 318 bytes
+refused: getPublications limit 257
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"getPublications takes a limit of 1 to 256 on this endpoint"}}
+refused: getPublications limit 0
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"getPublications takes a limit of 1 to 256 on this endpoint"}}
+refused: getPublications negative position
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"from_position must be an unsigned integer"}}
+refused: getPublications string limit
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"getPublications takes a limit of 1 to 256 on this endpoint"}}
+refused: getPublications three params
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"getPublications takes 2 params"}}
+refused: getPublications extra named key
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"getPublications takes params from_position, limit"}}
+refused: getProofsAndRoot 17 commitments
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"getProofsAndRoot takes at most 16 entries per list on this endpoint"}}
+refused: getProofsAndRoot 17 positions
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"getProofsAndRoot takes at most 16 entries per list on this endpoint"}}
+refused: getProofsAndRoot commitment of 31 bytes
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"a commitment is an array of 32 integers 0..255"}}
+refused: getProofsAndRoot commitment byte 256
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"a commitment is an array of 32 integers 0..255"}}
+refused: getProofsAndRoot base64 commitment
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"a commitment is an array of 32 integers 0..255"}}
+refused: getProofsAndRoot one list only
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"getProofsAndRoot takes 2 params"}}
+refused: getProofsAndRoot float position
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"message positions must be unsigned integers"}}
+write: sendTransaction
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"not available on this read-only endpoint"}}
+write: requeueCrossZoneDeadLetter
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"not available on this read-only endpoint"}}
+not allow-listed: getMessagePath
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"not available on this read-only endpoint"}}
+not allow-listed: getRecoveryBinding
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"not available on this read-only endpoint"}}
+not allow-listed: rpc.discover
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"not available on this read-only endpoint"}}
+batch (read + write)
+  -> HTTP 200 {"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"batches are not accepted on this endpoint"}}
+duplicate method key
+  -> HTTP 200 {"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"parse error"}}
+getBlockRange of 17 blocks
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"getBlockRange spans at most 16 blocks on this endpoint"}}
+5 KiB body
+  -> HTTP 413 {"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"request over 4096 bytes"}}
+PUT /
+  -> HTTP 405 {"error":"method not allowed"}
+
+# host dialer counters after these checks (stats.json, dialer restarted 10:42:17Z with the new policy): only allow-listed reads reached the sequencer
+{"errors": {}, "forwarded": {"getAccount": 36, "getLastBlockId": 2, "getProofsAndRoot": 3, "getPublications": 3, "getTransaction": 60}, "refused": {}, "started": "2026-11-25T10:42:17Z", "written": "2026-11-25T10:44:27Z"}

@@ -40,7 +40,7 @@ def refused_code(body):
 
 class PolicyTest(unittest.TestCase):
     def test_allowed_set(self):
-        self.assertEqual(len(policy.ALLOWED), 12)
+        self.assertEqual(len(policy.ALLOWED), 14)
         for m in policy.WRITES + policy.REFUSED_READS:
             self.assertNotIn(m, policy.ALLOWED)
 
@@ -94,6 +94,35 @@ class PolicyTest(unittest.TestCase):
         self.assertEqual(refused_code(req("getAccountsNonces", [["a"] * 17])), policy.INVALID_PARAMS)
         self.assertEqual(refused_code(req("getAccountsNonces", ["a"])), policy.INVALID_PARAMS)
         self.assertEqual(refused_code(req("getAccountsNonces", [])), policy.INVALID_PARAMS)
+
+    def test_publications(self):
+        # The wallet's shape: [from_position, limit], positional; the named form is accepted too.
+        for p in ([0, 256], [0, 1], [2 ** 64 - 1, 16], {"from_position": 5, "limit": 256}):
+            self.assertIsNone(refused_code(req("getPublications", p)), p)
+        method, body = policy.check_request(req("getPublications", [0, 256]))
+        self.assertEqual(body, b'{"jsonrpc":"2.0","id":1,"method":"getPublications","params":[0,256]}')
+        for p in ([0, 257], [0, 0], [0, -1], [0, 2 ** 32], [-1, 10], [2 ** 64, 10], [0.0, 10], [0, 10.0], ["0", 10],
+                  [0, "10"], [True, 10], [0, True], [None, 10], [0, None], [[0], 10], [0], [0, 10, 1], [],
+                  {"from_position": 0}, {"from_position": 0, "limit": 10, "x": 1}, {"limit": 10, "start": 0},
+                  {"from_position": 0, "limit": 257}, None, 5, "0,10"):
+            self.assertEqual(refused_code(req("getPublications", p)), policy.INVALID_PARAMS, p)
+
+    def test_proofs_and_root(self):
+        c = list(range(32))
+        for p in ([[], []], [[c], [0]], [[c] * 7, [0, 1, 2, 3, 4]], [[c] * 16, [2 ** 64 - 1] * 16],
+                  [[[255] * 32], []], {"commitments": [c], "message_positions": [3]}):
+            self.assertIsNone(refused_code(req("getProofsAndRoot", p)), str(p)[:60])
+        # 16 commitments at their longest still fit in one request.
+        self.assertIsNone(refused_code(req("getProofsAndRoot", [[[255] * 32] * 16, [2 ** 64 - 1] * 16])))
+        for p in ([[c] * 17, []], [[], [0] * 17], [[c] * 17, [0] * 17],          # over the cap
+                  [[c[:31]], []], [[c + [0]], []], [[[256] + c[1:]], []], [[[-1] + c[1:]], []],
+                  [[[1.0] + c[1:]], []], [[[True] + c[1:]], []], [[["1"] + c[1:]], []], [["AQID" * 11], []],
+                  [[None], []], [[{"0": 1}], []], [c, []],                         # malformed commitments
+                  [[], [-1]], [[], [2 ** 64]], [[], [1.5]], [[], ["1"]], [[], [None]], [[], [True]], [[], [[1]]],
+                  [[]], [[], [], []], [None, []], [[], None], [{}, []], [[], {}], [],
+                  {"commitments": []}, {"commitments": [], "message_positions": [], "x": 1},
+                  {"commitments": [c] * 17, "message_positions": []}, None, 5):
+            self.assertEqual(refused_code(req("getProofsAndRoot", p)), policy.INVALID_PARAMS, str(p)[:60])
 
     def test_non_finite_numbers(self):
         # 1e999 parses as infinity; it has no JSON form, so it must never be re-encoded and sent on.
@@ -252,10 +281,12 @@ class DialerAgainstForgedRelay(unittest.TestCase):
             ("j2", '{"jsonrpc":"2.0","id":2,"method":"requeueCrossZoneDeadLetter","params":["00"]}'),
             ("j3", '[{"jsonrpc":"2.0","id":3,"method":"getBlock","params":[1]}]'),
             ("j4", '{"jsonrpc":"2.0","id":4,"method":"getBlockRange","params":[0,1000]}'),
-            ("j5", '{"jsonrpc":"2.0","id":5,"method":"getBlock","params":["' + "y" * 3000 + '"]}'),
-            ("j6", '{"jsonrpc":"2.0","id":6,"method":"getProofsAndRoot","params":[[],[]]}'),
+            ("j5", '{"jsonrpc":"2.0","id":5,"method":"getBlock","params":["' + "y" * (policy.MAX_BODY + 1000) + '"]}'),
+            ("j6", '{"jsonrpc":"2.0","id":6,"method":"getProofsAndRoot","params":[[],[' + ",".join(["0"] * 17) + ']]}'),
             ("j7", '{"jsonrpc":"2.0","id":7,"method":"getBlock","params":[1],"method2":"sendTransaction"}'),
             ("j8", '{"jsonrpc":"2.0","id":8,"method":"getBlock","params":[355]}'),
+            ("j9", '{"jsonrpc":"2.0","id":9,"method":"getPublications","params":[0,257]}'),
+            ("j10", '{"jsonrpc":"2.0","id":10,"method":"getMessagePath","params":[0]}'),
         ]
         relay = ForgedRelay(forged)
         stats_path = os.path.join(os.environ.get("TMPDIR", "/tmp"), f"seq-read-test-{os.getpid()}.json")
@@ -274,7 +305,9 @@ class DialerAgainstForgedRelay(unittest.TestCase):
         self.assertEqual(by_job["j3"][1]["error"]["code"], policy.INVALID_REQUEST)
         self.assertEqual(by_job["j4"][1]["error"]["code"], policy.INVALID_PARAMS)
         self.assertEqual(by_job["j5"][1]["error"]["code"], policy.INVALID_REQUEST)
-        self.assertEqual(by_job["j6"][1]["error"]["code"], policy.METHOD_NOT_FOUND)
+        self.assertEqual(by_job["j6"][1]["error"]["code"], policy.INVALID_PARAMS)
+        self.assertEqual(by_job["j9"][1]["error"]["code"], policy.INVALID_PARAMS)
+        self.assertEqual(by_job["j10"][1]["error"]["code"], policy.METHOD_NOT_FOUND)
         self.assertEqual(by_job["j7"][1]["error"]["code"], policy.INVALID_REQUEST)
         self.assertEqual(by_job["j8"], (200, {"jsonrpc": "2.0", "id": 1, "result": 42}))
         self.assertTrue(all(h == f"Bearer {TOKEN}" for h in relay.auth))
@@ -411,7 +444,10 @@ class RelayEndToEnd(unittest.TestCase):
                          policy.INVALID_REQUEST)
         self.assertEqual(code(b"hello"), policy.PARSE_ERROR)
         self.assertEqual(code(req("getBlockRange", [1, 17])), policy.INVALID_PARAMS)
-        self.assertEqual(self.call("POST", "/", req("getBlock", ["x" * 3000]))[0], 413)
+        self.assertEqual(code(req("getPublications", [0, 257])), policy.INVALID_PARAMS)
+        self.assertEqual(code(req("getProofsAndRoot", [[list(range(32))] * 17, []])), policy.INVALID_PARAMS)
+        self.assertEqual(code(req("getMessagePath", [0])), policy.METHOD_NOT_FOUND)
+        self.assertEqual(self.call("POST", "/", req("getBlock", ["x" * (policy.MAX_BODY + 1000)]))[0], 413)
         self.assertEqual(self.call("GET", "/x")[0], 404)
         self.assertEqual(self.call("POST", "/x", req("getBlock", [1]))[0], 404)
         self.assertEqual(self.call("PUT", "/", req("getBlock", [1]))[0], 405)
