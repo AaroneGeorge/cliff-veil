@@ -167,3 +167,14 @@ The audit's scope is both programs, the rules crate and the SDK's private-claim 
 the token program are in scope where our use of them is. The audit package is prepared at a frozen commit, and every
 finding is fixed or answered with a test before the final release; a fix to a deployed program ships as a new
 immutable version with migration notes. How to report a vulnerability: [SECURITY.md](../SECURITY.md).
+
+## Platform advisory: RISC Zero GHSA-g6qg-9j8p-7j87
+
+LEZ v0.4.0-rc3 pins `risc0-zkvm` 3.0.5 ([docs/REUSE.md](REUSE.md)). RISC Zero advisory
+[GHSA-g6qg-9j8p-7j87](https://github.com/risc0/risc0/security/advisories/GHSA-g6qg-9j8p-7j87) (critical, 2026-11-11)
+affects `risc0-zkvm` below 3.1.0 and `risc0-circuit-recursion` below 4.1.0: a flaw in the recursion and Groth16
+wrapper circuits can let a forged receipt be accepted. cliff-veil's private claims are proved with that stack and
+verified by the sequencer, so on rc3 a forged private claim cannot be ruled out at the proof-system level. This is a
+platform risk, not a cliff-veil defect: the fix is a LEZ release on a patched RISC Zero, and our port to the released
+LEZ 0.4 (milestone M1) moves to it. Until then, and until the external audit is closed, no schedule should hold real
+value ([SECURITY.md](../SECURITY.md)).

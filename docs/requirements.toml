@@ -78,6 +78,7 @@ id = "U1"
 group = "Usability"
 kind = "hard"
 text = "Provide an SDK that can be used to build Logos modules interacting with the vesting program. The SDK must expose the full lifecycle: create schedule, query claimable amount, claim, cancel, signal milestone, and transfer beneficiary. The SDK must support claiming to both public and private accounts."
+gap = "the Rust SDK and its C ABI (libcliff_veil) are built and tested, and the mini-app module reaches the SDK through the command line; a C++ Logos module that links the C ABI directly is not built yet (milestone M2)"
 
 [[requirement]]
 id = "U2"
