@@ -28,6 +28,9 @@ Pane {
         try {
             var r = logos.callModule(root.moduleName, method, args)
             var v = (typeof r === "string") ? JSON.parse(r) : r
+            // Basecamp 0.3.2's bridge hands a string result over JSON-encoded once more ("\"{...}\""): unwrap it.
+            if (typeof v === "string")
+                v = JSON.parse(v)
             if (v === null || v === undefined)
                 return { ok: false, error: { code: "no_answer", message: "the core module did not answer (is cliff_veil_module installed and loaded?)" } }
             return v
@@ -41,7 +44,10 @@ Pane {
             return r.errors.map(function (e) { return e.field + ": " + e.message + (e.program_code ? " (code " + e.program_code + ")" : "") }).join("\n")
         if (!r.error)
             return ""
-        var t = r.error.message
+        // The host bridge answers a failed call with {"error": "<text>"}, not the module's error object.
+        if (typeof r.error === "string")
+            return r.error
+        var t = r.error.message || r.error.code || JSON.stringify(r.error)
         if (r.error.program_code)
             t += " (program error " + r.error.program_code + ")"
         if (r.error.action)
@@ -188,7 +194,7 @@ Pane {
                             }
                             Field { id: publicTo; visible: toPublic.checked; label: "Public destination (empty: the beneficiary)" }
                             Field { id: privateAccount; visible: toPrivate.checked; label: "Private destination (empty: a new private account)" }
-                            Field { id: feePayer; visible: toPrivate.checked; label: "Private fee payer (empty: the destination pays from a native claim)" }
+                            Field { id: feePayer; visible: toPrivate.checked; label: "Private fee payer (empty: the SDK picks the private account of this wallet, other than the destination, with the smallest balance that covers the fee reserve; if none does, the destination pays out of the claim)" }
                             Button {
                                 text: "Review claim"
                                 onClicked: {
@@ -224,8 +230,8 @@ Pane {
                                     property var gas: recipientTab.claim ? recipientTab.claim.summary.gas : null
                                     color: gas && gas.status === "sufficient" ? "#1a6b1a" : "#a40000"
                                     text: !gas ? "" : (gas.status === "sufficient"
-                                          ? "Gas check passed: " + gas.payer + " will hold " + gas.holds + " for a fee of about " + gas.fee + "."
-                                          : "Gas check failed: " + gas.payer + " holds " + gas.have + ", the fee is about " + gas.need + ".\nWhat to do: " + gas.action)
+                                          ? "Gas check passed: " + gas.payer + " will hold " + gas.holds + ", enough for the fee reserve of " + gas.reserve + " (estimated fee about " + gas.fee + ")."
+                                          : "Gas check failed: " + gas.payer + " holds " + gas.have + ", the fee reserve is " + gas.need + ".\nWhat to do: " + gas.action)
                                 }
                                 Label {
                                     visible: recipientTab.claim !== null && recipientTab.claim.summary.dev_mode_note !== null
@@ -391,7 +397,7 @@ Pane {
                                         text: "Signal milestone..."
                                         enabled: modelData.signal_indices.length > 0
                                         onClicked: creatorTab.prepared("Signal milestone " + milestoneIndex.currentText + " of " + modelData.schedule,
-                                                                       root.call("prepare_signal", [modelData.schedule, creator.text, Number(milestoneIndex.currentText)]))
+                                                                       root.call("prepare_signal_request", [JSON.stringify({ schedule: modelData.schedule, authority: creator.text, index: Number(milestoneIndex.currentText) })]))
                                     }
                                     Label { text: modelData.signal_hint || ""; color: "#555" }
                                 }

@@ -177,6 +177,20 @@ pub struct PreparedClaim {
     /// What the fee payer holds when the fee is charged.
     #[serde(with = "dec")]
     pub fee_payer_holds: u128,
+    /// The fee reserve (`sdk::ClaimSummary::reserve`, at least `fee`): on the private path the amount fixed inside
+    /// the proof that the fee is paid from, the most the fee payer is charged; on the public path what admission
+    /// holds from the signer, which is then charged the actual fee.
+    #[serde(with = "dec", default)]
+    pub reserve: u128,
+    /// Blocks of steepest base-fee rise the reserve is priced for.
+    #[serde(default)]
+    pub headroom_blocks: u64,
+    /// The reserve that covers `headroom_blocks` of rise.
+    #[serde(with = "dec", default)]
+    pub headroom_reserve: u128,
+    /// Why this account pays the fee, in the SDK's words (`fee_payer_reason`).
+    #[serde(default)]
+    pub fee_payer_reason: Option<String>,
     /// `sdk::privacy_disclosure()`; present for a private claim.
     #[serde(default)]
     pub disclosure: Option<String>,

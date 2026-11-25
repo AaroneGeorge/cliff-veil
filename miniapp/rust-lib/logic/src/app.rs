@@ -372,6 +372,23 @@ impl<B: Backend> App<B> {
         self.prepare_op(r, Value::Null)
     }
 
+    /// Step 1 of a milestone signal, from one JSON request `{"schedule", "authority", "index"}`: the form the view
+    /// uses, since Basecamp 0.3.2's view bridge refused the three-argument call (`prepare_signal`) with "Call
+    /// refused" while it passes one-string calls such as `prepare_create`.
+    #[must_use]
+    pub fn prepare_signal_request(&mut self, request_json: &str) -> String {
+        #[derive(serde::Deserialize)]
+        struct SignalRequest {
+            schedule: String,
+            authority: String,
+            index: u8,
+        }
+        match serde_json::from_str::<SignalRequest>(request_json) {
+            Ok(r) => self.prepare_signal(&r.schedule, &r.authority, r.index),
+            Err(e) => fail(&bad_input("milestone signal", e)),
+        }
+    }
+
     fn prepare_op(&mut self, request: Request, lines: Value) -> String {
         match self.backend.call(&request).and_then(|d| cli::prepared_op(&d)) {
             Ok(p) => {
@@ -717,8 +734,12 @@ mod tests {
             .as_array()
             .unwrap()
             .contains(&json!(["Stays claimable by the beneficiary", "400"])));
-        let s = v(&a.prepare_signal(&id(4), &id(5), 1));
-        assert_eq!(s["outcome"]["signalled"]["amount"], "200");
+        // The view sends the one-string form; a bad index is refused before the command line runs.
+        let bad =
+            v(&a.prepare_signal_request(&json!({ "schedule": id(4), "authority": id(5), "index": 300 }).to_string()));
+        assert_eq!(bad["error"]["code"], "bad_request");
+        let s = v(&a.prepare_signal_request(&json!({ "schedule": id(4), "authority": id(5), "index": 1 }).to_string()));
+        assert_eq!(s["outcome"]["signalled"]["amount"], "200", "{s}");
         assert_eq!(v(&a.confirm_op(s["op"].as_u64().unwrap()))["ok"], true);
         assert!(matches!(
             a.backend.seen[4],

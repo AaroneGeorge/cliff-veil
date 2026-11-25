@@ -1,0 +1,10 @@
+Core module uninstalled: "cliff_veil_module"
+[2026-11-25 16:16:06.385] [warning] [logos] [package_manager] Warning: Package is unsigned: <build>/logos-cliff_veil_module-module-lib.lgx
+Core module file installed: "<basecamp-home>/.local/share/Logos/LogosBasecamp/modules/cliff_veil_module/cliff_veil_module_plugin.so"
+UI plugin uninstalled: "cliff_veil_ui"
+[2026-11-25 16:16:21.151] [warning] [logos] [package_manager] Warning: Package is unsigned: <build>/logos-cliff_veil_ui-module.lgx
+UI plugin file installed: "<basecamp-home>/.local/share/Logos/LogosBasecamp/plugins/cliff_veil_ui"
+Loading core module: "cliff_veil_module"
+[2026-11-25 16:16:43.404] [info] [logos] Module loaded: cliff_veil_module
+Successfully loaded core module: "cliff_veil_module"
+Successfully loaded UI module: "cliff_veil_ui"

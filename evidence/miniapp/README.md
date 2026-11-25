@@ -33,5 +33,22 @@
   replaced by a stub returning answers computed by the mini-app's Rust logic over SAMPLE command-line output (not
   chain data). The creator screenshot shows the review panel of a sample creation; its form fields are empty because
   the stub answered without the form being filled.
-- Not verified: loading the QML view in Basecamp (no Basecamp GUI session); the view has not talked to the chain
-  itself, only the core module has (headless, above).
+- `basecamp/20261125T101712Z/`: the mini-app in the Basecamp 0.3.2 GUI (released AppImage, linux x86-64) against
+  local-dev (LEZ v0.4.0-rc3, RISC0_DEV_MODE=1: dev mode, no real proofs). Both packages installed through Basecamp's
+  Package Manager, the core module loaded in the Module Inspector, the view loaded from the Apps Inspector, Settings
+  applied and checked; the recipient view from a block scan; a public claim (summary, estimated fee, gas check, sent)
+  and a private claim to a new private account (summary, dev-mode notice, the disclosure, **Confirm claim** disabled
+  until the acknowledgement, sent), with transaction hashes and the balances read back from the wallet. Its README
+  also records the bridge fix: Basecamp's view bridge hands a module's string answer to QML JSON-encoded once more
+  (`"{\"ok\":true,...}"`), so the view parses a second time when the first parse gives a string; without it the view
+  ignored every answer (the offscreen renders above use a stub bridge and could not show this).
+- `basecamp/20261125T103042Z/`: the creator view in the same Basecamp, after reinstalling packages with the fee
+  reserve in the pre-claim summary: a linear schedule with a cliff created with every parameter (reviewed, then
+  sent), the creator's active schedules listed, a schedule cancelled (reviewed, then sent); the milestone signal
+  refused by the bridge ("Call refused") and the change made for it.
+- `basecamp/20261125T104537Z/`: the full run in Basecamp with the final packages, one screenshot per step: recipient
+  list; a public claim (summary with estimated fee, fee reserve and gas check; sent); a private claim (summary with
+  "Fee reserve (max charged)", disclosure, **Confirm claim** greyed out, acknowledged, sent); the creator list; a
+  creation with every parameter (review, sent); a cancel (review, sent); a milestone signal (review, sent) and the
+  public claim of that milestone. Transaction hashes, blocks and the balances read back: the private claim's fee
+  payer was charged exactly the reserve shown, the public claims the estimated fee.

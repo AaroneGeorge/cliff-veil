@@ -34,6 +34,8 @@ pub trait CliffVeilModule: Send + 'static {
     fn prepare_cancel(&mut self, schedule: String, authority: String) -> String;
     /// Signal milestone `index`, step 1.
     fn prepare_signal(&mut self, schedule: String, authority: String, index: i64) -> String;
+    /// Signal milestone, step 1, from `{"schedule": "...", "authority": "...", "index": n}` (the view's form).
+    fn prepare_signal_request(&mut self, request_json: String) -> String;
     /// Create, cancel or signal, step 2: sends it.
     fn confirm_op(&mut self, op: i64) -> String;
 
@@ -97,6 +99,9 @@ impl CliffVeilModule for CliffVeil {
             Ok(i) => self.app.prepare_signal(&schedule, &authority, i),
             Err(_) => r#"{"ok":false,"error":{"code":"bad_request","message":"milestone index out of range"}}"#.to_owned(),
         }
+    }
+    fn prepare_signal_request(&mut self, request_json: String) -> String {
+        self.app.prepare_signal_request(&request_json)
     }
     fn confirm_op(&mut self, op: i64) -> String {
         self.app.confirm_op(id(op))

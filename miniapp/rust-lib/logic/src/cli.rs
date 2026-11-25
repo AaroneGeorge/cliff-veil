@@ -191,6 +191,11 @@ pub fn prepared_claim(doc: &Value) -> Result<PreparedClaim, ErrorInfo> {
         other => return Err(bad(W, format!("unknown destination kind `{other}`"))),
     };
     let e = field(t, W, "estimate")?;
+    let fee = amount(e, W, "network_fee")?;
+    // The claim's own `reserve` / `headroom_*` (the SDK's summary), else the estimate's; an older command line
+    // without them: the reserve is the fee.
+    let opt = |key: &str| amount(t, W, key).or_else(|_| amount(e, W, key)).ok();
+    let reserve = opt("reserve").unwrap_or(fee).max(fee);
     Ok(PreparedClaim {
         schedule: text(t, W, "schedule")?,
         beneficiary: text(t, W, "beneficiary")?,
@@ -199,9 +204,17 @@ pub fn prepared_claim(doc: &Value) -> Result<PreparedClaim, ErrorInfo> {
         claimed_total: amount(t, W, "claimed_after")?,
         remaining: amount(t, W, "still_to_come")?,
         destination,
-        fee: amount(e, W, "network_fee")?,
+        fee,
         fee_payer: text(e, W, "payer")?,
         fee_payer_holds: amount(t, W, "fee_payer_holds")?,
+        reserve,
+        headroom_blocks: t
+            .get("headroom_blocks")
+            .or_else(|| e.get("headroom_blocks"))
+            .and_then(Value::as_u64)
+            .unwrap_or(0),
+        headroom_reserve: opt("headroom_reserve").unwrap_or(reserve),
+        fee_payer_reason: t.get("fee_payer_reason").and_then(Value::as_str).map(str::to_owned),
         disclosure: t.get("privacy_disclosure").and_then(Value::as_str).map(str::to_owned),
         dev_mode: t.get("dev_mode").and_then(Value::as_bool).unwrap_or(false),
     })
@@ -394,6 +407,41 @@ pub(crate) mod tests {
         );
         m["schedule"]["kind"] = json!("spiral");
         assert_eq!(status(&m).unwrap_err().code, "backend_bad_output");
+    }
+
+    #[test]
+    fn u4_reads_the_fee_reserve_and_the_fee_payer_choice() {
+        // As `sdk::json` prints a private claim: the claim's own reserve and headroom, and the payer's reason.
+        let mut d = claim_doc();
+        let t = &mut d["transactions"][0];
+        t["estimate"] = json!({ "network_fee": "5529344", "reserve": "16588032", "payer": id(7), "private": true,
+            "cycles": 57211, "headroom_blocks": 12, "headroom_reserve": "16588032" });
+        t["fee_payer_holds"] = json!("42762634");
+        t["reserve"] = json!("16588032");
+        t["headroom_blocks"] = json!(12);
+        t["headroom_reserve"] = json!("16588032");
+        t["headroom_covered"] = json!(true);
+        t["fee_payer"] = json!(id(7));
+        t["fee_payer_choice"] = json!("auto");
+        t["fee_payer_reason"] = json!(
+            "chosen by the SDK: the private account of this wallet with the smallest \
+            balance (42762634) that covers the reserve for 12 blocks of base-fee rise (16588032)"
+        );
+        let p = prepared_claim(&d).unwrap();
+        assert_eq!(
+            (p.fee, p.reserve, p.headroom_blocks, p.headroom_reserve),
+            (5_529_344, 16_588_032, 12, 16_588_032)
+        );
+        assert!(p.fee_payer_reason.unwrap().starts_with("chosen by the SDK"));
+        // Without the claim-level fields, the estimate's reserve; without any, the fee.
+        let mut e = claim_doc();
+        e["transactions"][0]["estimate"]["reserve"] = json!("45");
+        assert_eq!(prepared_claim(&e).unwrap().reserve, 45);
+        e["transactions"][0]["estimate"]
+            .as_object_mut()
+            .unwrap()
+            .remove("reserve");
+        assert_eq!(prepared_claim(&e).unwrap().reserve, 30);
     }
 
     #[test]

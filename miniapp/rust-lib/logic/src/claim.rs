@@ -58,7 +58,8 @@ impl ClaimRequest {
     }
 }
 
-/// Can the fee payer pay the network fee (RFP Usability 4)?
+/// Can the fee payer pay the network fee (RFP Usability 4)? It must hold the fee reserve, not only the estimated
+/// fee: admission holds the reserve (the SDK checks the same), and a private claim's reserve is fixed in its proof.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case", tag = "status")]
 pub enum GasCheck {
@@ -68,14 +69,16 @@ pub enum GasCheck {
         payer: String,
         /// What it holds when the fee is charged.
         holds: String,
-        /// The fee.
+        /// The estimated fee.
         fee: String,
+        /// The fee reserve it must hold (at least the fee).
+        reserve: String,
     },
     /// No: the claim is blocked, with what to do.
     Insufficient {
         /// Who pays.
         payer: String,
-        /// The fee.
+        /// The fee reserve it must hold.
         need: String,
         /// What it holds.
         have: String,
@@ -89,17 +92,19 @@ pub enum GasCheck {
 /// claim (the fee is charged after the claim, SPEC 9); the SDK computes that figure (`fee_payer_holds`).
 #[must_use]
 pub fn gas_check(p: &PreparedClaim, native: bool) -> GasCheck {
-    if p.fee_payer_holds >= p.fee {
+    let need = p.reserve.max(p.fee);
+    if p.fee_payer_holds >= need {
         return GasCheck::Sufficient {
             payer: p.fee_payer.clone(),
             holds: display(p.fee_payer_holds),
             fee: display(p.fee),
+            reserve: display(need),
         };
     }
     let action = match (&p.destination, native) {
         (Destination::Public { .. }, _) => format!(
             "send at least {} native units to the beneficiary account {} and review the claim again",
-            display(p.fee - p.fee_payer_holds),
+            display(need - p.fee_payer_holds),
             p.fee_payer
         ),
         (Destination::Private { .. }, true) => {
@@ -109,12 +114,12 @@ pub fn gas_check(p: &PreparedClaim, native: bool) -> GasCheck {
         (Destination::Private { .. }, false) => format!(
             "a token claim brings no native balance: fund a private account of this wallet with at least {} native \
              units and choose it as fee payer",
-            display(p.fee)
+            display(need)
         ),
     };
     GasCheck::Insufficient {
         payer: p.fee_payer.clone(),
-        need: display(p.fee),
+        need: display(need),
         have: display(p.fee_payer_holds),
         action,
     }
@@ -182,7 +187,7 @@ impl Summary {
                 ),
             ),
         };
-        let lines = vec![
+        let mut lines = vec![
             l("Schedule", p.schedule.clone()),
             l("Beneficiary", p.beneficiary.clone()),
             l("Claimable now", claimable.clone()),
@@ -193,11 +198,21 @@ impl Summary {
                 "Estimated network fee",
                 format!("~{} (dry run at current state)", display(p.fee)),
             ),
-            l(
-                "Fee paid by",
-                format!("{}, which will hold {}", p.fee_payer, display(p.fee_payer_holds)),
-            ),
         ];
+        if let Some(reserve) = reserve_line(p) {
+            lines.push(l("Fee reserve (max charged)", reserve));
+        }
+        lines.push(l(
+            "Fee paid by",
+            match &p.fee_payer_reason {
+                Some(why) => format!(
+                    "{}, which will hold {} ({why})",
+                    p.fee_payer,
+                    display(p.fee_payer_holds)
+                ),
+                None => format!("{}, which will hold {}", p.fee_payer, display(p.fee_payer_holds)),
+            },
+        ));
         Self {
             path: path.to_owned(),
             claimable,
@@ -207,6 +222,46 @@ impl Summary {
             dev_mode_note: (p.dev_mode && path == "private").then(|| DEV_MODE_NOTE.to_owned()),
         }
     }
+}
+
+/// The fee reserve line: always on the private path (the reserve is fixed in the proof and is what the fee payer
+/// is charged at most, typically the whole of it); on the public path only when it differs from the fee (the
+/// beneficiary must hold it; the actual fee is charged).
+fn reserve_line(p: &PreparedClaim) -> Option<String> {
+    let reserve = p.reserve.max(p.fee);
+    let private = matches!(p.destination, Destination::Private { .. });
+    if !private && reserve == p.fee {
+        return None;
+    }
+    let mut v = if private {
+        format!(
+            "{}, fixed in the proof; estimated fee ~{}",
+            display(reserve),
+            display(p.fee)
+        )
+    } else {
+        format!(
+            "{} held from the beneficiary at admission; charged: the actual fee, ~{}",
+            display(reserve),
+            display(p.fee)
+        )
+    };
+    if p.headroom_blocks > 0 {
+        if reserve >= p.headroom_reserve {
+            v.push_str(&format!(
+                "; covers {} blocks of base-fee rise before inclusion",
+                p.headroom_blocks
+            ));
+        } else {
+            v.push_str(&format!(
+                "; below the {} that covers {} blocks of base-fee rise: if blocks are busy the claim can be dropped \
+                 (nothing is consumed; review it again)",
+                display(p.headroom_reserve),
+                p.headroom_blocks
+            ));
+        }
+    }
+    Some(v)
 }
 
 /// Where a flow is.
@@ -436,6 +491,10 @@ pub(crate) mod tests {
             fee: 30,
             fee_payer: id(8),
             fee_payer_holds: 400,
+            reserve: 30,
+            headroom_blocks: 0,
+            headroom_reserve: 30,
+            fee_payer_reason: None,
             disclosure: Some(sdk_text()),
             dev_mode: true,
         }
@@ -490,7 +549,8 @@ pub(crate) mod tests {
             GasCheck::Sufficient {
                 payer: id(8),
                 holds: "400".into(),
-                fee: "30".into()
+                fee: "30".into(),
+                reserve: "30".into()
             }
         );
     }
@@ -520,6 +580,114 @@ pub(crate) mod tests {
         let e = f.confirm().unwrap_err();
         assert_eq!(e.code, "private_fee_shortfall");
         assert!(e.message.contains(&id(8)) && e.action.is_some());
+    }
+
+    /// A private claim as the SDK prices it on local-dev: the fee payer is another private account of the wallet,
+    /// chosen by the SDK, and the reserve fixed in the proof (what is charged) is about three times the fee.
+    pub(crate) fn prepared_private_reserve() -> PreparedClaim {
+        PreparedClaim {
+            amount: 300_000_000,
+            destination: Destination::Private {
+                account: id(8),
+                blinded: id(9),
+                fresh: true,
+            },
+            fee: 5_529_344,
+            fee_payer: id(7),
+            fee_payer_holds: 42_762_634,
+            reserve: 16_588_032,
+            headroom_blocks: 12,
+            headroom_reserve: 16_588_032,
+            fee_payer_reason: Some(
+                "chosen by the SDK: the private account of this wallet with the smallest balance (42762634) that covers \
+                 the reserve for 12 blocks of base-fee rise (16588032)"
+                    .into(),
+            ),
+            ..prepared_private()
+        }
+    }
+
+    #[test]
+    fn u4_private_summary_shows_the_fee_reserve_next_to_the_estimated_fee() {
+        let s = Summary::new(&prepared_private_reserve(), true);
+        assert_eq!(
+            value(&s, "Estimated network fee"),
+            "~5,529,344 (dry run at current state)"
+        );
+        assert_eq!(
+            value(&s, "Fee reserve (max charged)"),
+            "16,588,032, fixed in the proof; estimated fee ~5,529,344; covers 12 blocks of base-fee rise before \
+             inclusion"
+        );
+        // The reserve line comes right after the estimated fee, before who pays.
+        let labels: Vec<&str> = s.lines.iter().map(|l| l.label.as_str()).collect();
+        let at = |x: &str| labels.iter().position(|l| *l == x).unwrap();
+        assert_eq!(at("Fee reserve (max charged)"), at("Estimated network fee") + 1);
+        assert_eq!(at("Fee paid by"), at("Fee reserve (max charged)") + 1);
+        assert!(
+            value(&s, "Fee paid by").contains("chosen by the SDK"),
+            "{}",
+            value(&s, "Fee paid by")
+        );
+        assert_eq!(
+            s.gas,
+            GasCheck::Sufficient {
+                payer: id(7),
+                holds: "42,762,634".into(),
+                fee: "5,529,344".into(),
+                reserve: "16,588,032".into()
+            }
+        );
+    }
+
+    #[test]
+    fn u4_private_reserve_below_the_headroom_is_flagged() {
+        let p = PreparedClaim {
+            reserve: 9_000_000,
+            ..prepared_private_reserve()
+        };
+        let v = Summary::new(&p, true)
+            .lines
+            .into_iter()
+            .find(|l| l.label == "Fee reserve (max charged)")
+            .unwrap();
+        assert!(
+            v.value.contains("below the 16,588,032 that covers 12 blocks"),
+            "{}",
+            v.value
+        );
+    }
+
+    #[test]
+    fn u4_gas_check_needs_the_reserve_not_only_the_fee() {
+        // Holds more than the estimated fee but less than the reserve fixed in the proof: blocked.
+        let p = PreparedClaim {
+            fee_payer_holds: 10_000_000,
+            ..prepared_private_reserve()
+        };
+        let GasCheck::Insufficient { need, have, .. } = gas_check(&p, true) else {
+            panic!("must be short")
+        };
+        assert_eq!((need.as_str(), have.as_str()), ("16,588,032", "10,000,000"));
+        // Public: the beneficiary must hold the reserve admission holds; the summary says what is charged.
+        let p = PreparedClaim {
+            reserve: 40,
+            ..prepared_public()
+        };
+        let s = Summary::new(&p, true);
+        assert!(matches!(s.gas, GasCheck::Sufficient { ref reserve, .. } if reserve == "40"));
+        assert!(value(&s, "Fee reserve (max charged)").contains("charged: the actual fee, ~30"));
+        let short = PreparedClaim {
+            fee_payer_holds: 35,
+            ..p
+        };
+        let mut f = ClaimFlow::new(public_request(), short, true).unwrap();
+        assert!(f.confirm().unwrap_err().action.unwrap().contains("send at least 5"));
+        // Public with reserve equal to the fee: no reserve line.
+        assert!(!Summary::new(&prepared_public(), true)
+            .lines
+            .iter()
+            .any(|l| l.label.starts_with("Fee reserve")));
     }
 
     #[test]

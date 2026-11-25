@@ -1,0 +1,27 @@
+[2026-11-25 15:25:04.593] [warning] [logos] [package_manager] Warning: Package is unsigned: <build>/logos-cliff_veil_module-module-lib.lgx
+Core module file installed: "<basecamp-home>/.local/share/Logos/LogosBasecamp/modules/cliff_veil_module/cliff_veil_module_plugin.so"
+[2026-11-25 15:25:32.778] [warning] [logos] [package_manager] Warning: Package is unsigned: <build>/logos-cliff_veil_ui-module.lgx
+UI plugin file installed: "<basecamp-home>/.local/share/Logos/LogosBasecamp/plugins/cliff_veil_ui"
+App launcher clicked: "cliff_veil_ui"
+Loading UI module: "cliff_veil_ui"
+MainContainer: Added plugin dock to WorkspaceArea: "cliff-veil vesting" (module: "cliff_veil_ui" )
+Successfully loaded UI module: "cliff_veil_ui"
+Loading core module: "cliff_veil_module"
+[2026-11-25 15:27:03.869] [info] [logos] Module loaded: cliff_veil_module
+Successfully loaded core module: "cliff_veil_module"
+App launcher clicked: "cliff_veil_ui"
+App launcher clicked: "cliff_veil_ui"
+Loading UI module: "cliff_veil_ui"
+MainContainer: Added plugin dock to WorkspaceArea: "cliff-veil vesting" (module: "cliff_veil_ui" )
+Successfully loaded UI module: "cliff_veil_ui"
+App launcher clicked: "cliff_veil_ui"
+Loading UI module: "cliff_veil_ui"
+MainContainer: Added plugin dock to WorkspaceArea: "cliff-veil vesting" (module: "cliff_veil_ui" )
+Successfully loaded UI module: "cliff_veil_ui"
+UI plugin uninstalled: "cliff_veil_ui"
+[2026-11-25 15:47:01.745] [warning] [logos] [package_manager] Warning: Package is unsigned: <build>/logos-cliff_veil_ui-module.lgx
+UI plugin file installed: "<basecamp-home>/.local/share/Logos/LogosBasecamp/plugins/cliff_veil_ui"
+Loading UI module: "cliff_veil_ui"
+MainContainer: Added plugin dock to WorkspaceArea: "cliff-veil vesting" (module: "cliff_veil_ui" )
+Successfully loaded UI module: "cliff_veil_ui"
+App launcher clicked: "cliff_veil_ui"
