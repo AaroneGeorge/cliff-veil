@@ -94,3 +94,30 @@ Local paths in the record are replaced by `<build>` and `~`. A run kept in this 
   seconds are in `token_private_claim.steps`.
 - Only privacy-preserving transactions are proved. Public transactions (deploys, create, public claim, cancel) carry no
   proof on LEZ: the sequencer executes them itself.
+
+## Private claim on the public chain
+
+The runs above use a sequencer that lives and dies inside the runner. This one puts a private claim with a real proof
+on the public-chain sequencer `local-pub` (evidence/public-chain/, read through its public read-only endpoint), whose
+host cannot make the proof itself. The proof is made on a GitHub-hosted runner, the transaction is carried to the host
+as a file, and the host submits it:
+
+1. **runner, `public_export.sh init`** (workflow `public-proof.yml`, on a push to `public-proof`): a new wallet with
+   one public account, the beneficiary. Only its public id and public key leave the runner (artifact `beneficiary`);
+   the wallet, and the key with it, stay outside every uploaded directory.
+2. **host, `public_schedule.sh <id> <public key> <work dir>`**: funds the beneficiary's account and creates the native
+   schedule named in `public-claim.env` (creator and label) for it, cliff 60 s after the chain clock.
+3. **runner, `public_export.sh claim`**: waits for that schedule, then runs `cliff-veil claim --private` with
+   `RISC0_DEV_MODE` unset. The wallet and the CLI talk to `export_proxy.py`, which forwards reads to the public
+   endpoint and writes the `sendTransaction` request to a file instead of sending it: the CLI reports a failed send,
+   and `exported-tx.json` holds the signed, proven transaction exactly as the wallet would have posted it. The LEZ
+   rc3 wallet builds, proves and sends in one call, so the request is kept at the RPC boundary rather than inside the
+   wallet. `proxy/methods.tsv` lists every RPC call the claim made.
+4. **host, `submit_exported.sh <artifact dir> <work dir> <evidence dir>`**: posts `exported-tx.json` to the sequencer
+   (its sha256 is checked first), waits for the block, reads the transaction and its block back through the public
+   endpoint, runs the privacy scan on those answers (the canonical private account must appear 0 times), and writes
+   `run.json` for `scripts/verify_public.sh`.
+
+A claim proved this way carries the chain state it was proved against (the schedule, the beneficiary's nonce): it is
+submitted once, soon after the proof, with nothing else touching that schedule meanwhile. `test_export_proxy.py`
+tests the proxy (`python3 -I tools/real_proof/test_export_proxy.py`).
