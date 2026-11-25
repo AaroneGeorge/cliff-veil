@@ -1,0 +1,51 @@
+{
+  "steps": [
+    {
+      "step": "token-definition",
+      "hash": "9de6089bd92c90d8cb78a4349d287fb8d85b50fb7c15ad4a7688d0a43e6ee747",
+      "block": 235,
+      "seconds": 14
+    },
+    {
+      "step": "create",
+      "hash": "b2d5dcdcd6943ff9a0773afa2e843026f06e3fa010f4a490d9840d49445aeed9",
+      "block": 236,
+      "seconds": 15
+    },
+    {
+      "step": "fund-private-fee-payer",
+      "hash": "8ff1111ec31b08f66a0a7a95a250aa9a5af7468967151125fcde58023c2f9041",
+      "block": 339,
+      "seconds": 1546
+    },
+    {
+      "step": "init-private-holding",
+      "hash": "49e9de6bed36387b08b70aae42d85a842760f8dcf5949682b355d61911d46c24",
+      "block": 533,
+      "seconds": 2909
+    },
+    {
+      "step": "private-token-claim",
+      "hash": "51efe1b6c5741087a65aa0ac3c7c34e9289b474c42686a1bf52f8e0b9f7e8bb9",
+      "block": 728,
+      "seconds": 2924
+    }
+  ],
+  "values": {
+    "token_program": "49MCWAbeaqn2jcwnm1FnbnKPb2SPX18dHbCqdhFUR9C1",
+    "creator": "7Km55ekzvXWCBiNJAhse597bcfxTT3zLbijj5N6PNWR2",
+    "beneficiary": "2ZqQAyTFfCEXzrpccgyiW1QHU1dLrvp9Yk9dqY9nT6Gb",
+    "definition": "9sB6TkfXEBE1nCFdV5iCBbw1fZS57MCJzbckxd9DztAH",
+    "schedule": "DJKefT1ctJsREVbRovjv6JnDDYRzr7mfMGgk9GGwF4hc",
+    "payer_funded": "44929384",
+    "claim_amount": "1000000",
+    "schedule_claimed": "1000000",
+    "private_holding_balance": "1000000",
+    "payer_balance_after": "22656696",
+    "fee_paid_by_private_payer": "22272688",
+    "destination_private_account": "51ApLWXTH2WPmcw4F1ZENDfCZyjcEWafLChnMTN4iuCo",
+    "private_fee_payer": "7duxzpSAcvYTYELv5ut858TdEqMcKJGJYUpBKGSSvj13",
+    "one_time_address": "BwZQ9vVs1XniBiNXUzCNkEiFhswa5zCeg2uoeCh5Cex4"
+  },
+  "error": null
+}

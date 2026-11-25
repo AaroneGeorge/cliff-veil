@@ -83,7 +83,54 @@ From `evidence/batch/max.txt` (executor, budget of one transaction). A batch ove
 
 ## private claim with a real proof (LEZ v0.4.0-rc3)
 
-Every record under `evidence/real-proof/`, newest first: one run. The figures come from each record's `summary.json` and `private-claim.time` (and `token.time` for the token part); the memory samples are in `memory.tsv`, the privacy scan in `scan.txt`, the sequencer's log in `sequencer.log`. The method and its limits are in [tools/real_proof/README.md](../tools/real_proof/README.md).
+Every record under `evidence/real-proof/`, newest first: 2 runs. The figures come from each record's `summary.json` and `private-claim.time` (and `token.time` for the token part); the memory samples are in `memory.tsv`, the privacy scan in `scan.txt`, the sequencer's log in `sequencer.log`. The method and its limits are in [tools/real_proof/README.md](../tools/real_proof/README.md).
+
+### 20261124T165520Z: one run on a hosted runner
+
+- source: `evidence/real-proof/20261124T165520Z/`, repository commit `6032e9428667fe67d0e69529d5c67c4f95b19b8e`, workflow run [45437451120](https://github.com/AaroneGeorge/cliff-veil/actions/runs/45437451120)
+- transaction: `fc85d370db0b1044aac8ce34306e40d01a22753e2506d0d4e2ba5b04894fdc1b` in block 231
+- RISC0_DEV_MODE: unset in the client and in the sequencer's environment (`risc0_dev_mode_in_its_environment: false`)
+- sequencer: standalone LEZ v0.4.0-rc3 that verifies proofs, started for this run on the same machine and discarded with it
+- machine: GitHub-hosted runner, 4 CPUs (AMD EPYC 9V74 80-Core Processor), 15,983 MiB of memory, 11,263 MiB of swap in total (including any swap file the workflow added as a margin), image `ubuntu24 20261116.376.1`, prover `risc0-r0vm 3.0.5`
+
+| Measure | Value |
+|---|---|
+| Claimed | 319,443,518 (the private balance after the claim: 313,914,630) |
+| Network fee estimate | 5,528,888 |
+| Cycles (the CLI's estimate before sending) | 57,284 |
+| Wall time of the whole CLI command | 1,562 s (26:01.85 by `/usr/bin/time -v`) |
+| Time `r0vm` was seen running | about 1,525 s (sampled every 5 s) |
+| CPU use | 371% (user 5,779.31 s, system 17.14 s) |
+| Peak memory of the command (maximum resident set size) | 9,614,700 KiB (9.17 GiB) |
+| Peak sampled memory of `r0vm` / of the CLI | 9,434,728 KiB / 37,508 KiB |
+| Peak swap in use (sampled) | 1,232,636 KiB |
+| Lowest available memory (sampled) | 5,772,644 KiB |
+| Size of the transaction (`getTransaction`) | 251,270 bytes |
+| Privacy scan of `getBlock` and `getTransaction` | canonical private account found 0 times, one-time address 8 times |
+
+The wall time covers the whole command: local checks, the dry run, the proof, sending, and waiting for the transaction to be included. Public transactions carry no proof on LEZ, so the public claim (`a3e57771...`, block 232, 1,444,499,074) and the cancel (`67cbad88...`, block 233) of the same run were not proved. The same claim made with a dev-mode receipt was not included, and the sequencer's log names the reason: `State transition failed at transaction 0: Invalid privacy preserving execution circuit proof, skipping it`. The privacy scan of this transaction is in [PRIVACY.md](PRIVACY.md).
+
+**Token claim to a private holding** (status `ok`, exit 0): a private fee payer funded, the destination's holding initialised, and the claim, each proved.
+
+| Step | Proved | Transaction | Block | Seconds from send to inclusion |
+|---|---|---|---|---|
+| token-definition | no (public) | `9de6089b...` | 235 | 14 |
+| create | no (public) | `b2d5dcdc...` | 236 | 15 |
+| fund-private-fee-payer | yes | `8ff1111e...` | 339 | 1,546 |
+| init-private-holding | yes | `49e9de6b...` | 533 | 2,909 |
+| private-token-claim | yes | `51efe1b6...` | 728 | 2,924 |
+
+| Measure | Value |
+|---|---|
+| Claimed (the private holding after the claim) | 1,000,000 (1,000,000) |
+| Paid by the private fee payer, for initialising the holding and the claim together | 22,272,688 |
+| Wall time of the whole program (five transactions, three proofs) | 7,414 s |
+| CPU use | 375% (user 27,783.69 s, system 70.54 s) |
+| Peak memory of the program (maximum resident set size) | 9,616,604 KiB (9.17 GiB) |
+| Peak sampled memory of `r0vm` / of the program | 9,617,008 KiB / 46,088 KiB |
+| Time `r0vm` was seen running | about 7,250 s (sampled every 5 s) |
+| Size of the claim transaction (`getTransaction`) | 255,200 bytes |
+| Privacy scan of the claim's `getBlock` and `getTransaction` | destination found 0 times, fee payer 0 times, one-time address 8 times |
 
 ### 20261124T155037Z: one run on a hosted runner
 
@@ -112,4 +159,4 @@ The wall time covers the whole command: local checks, the dry run, the proof, se
 
 This run predates the token part of `run.sh`.
 
-What the run does not show: how the time scales on other machines (a different runner, a laptop), or a second run on the same kind of machine. Nor a token claim with real proofs (which needs three more proofs): a token private claim is so far measured in dev mode on a sequencer only.
+What the runs do not show: how the time scales on other machines (a different runner, a laptop).

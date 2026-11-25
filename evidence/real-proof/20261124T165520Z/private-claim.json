@@ -1,0 +1,52 @@
+{
+  "ok": true,
+  "private_balance_after": {
+    "account": "FZHw3uhx234Sx5NgFLtrR56qAsP2V1R7ygoBiAvFj67G",
+    "native": "313914630"
+  },
+  "sent": [
+    {
+      "block": 231,
+      "declared_fee": "5528888",
+      "hash": "fc85d370db0b1044aac8ce34306e40d01a22753e2506d0d4e2ba5b04894fdc1b"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "319443518",
+      "at": "2026-11-24T17:02:00.636Z",
+      "at_ms": 1795539720636,
+      "beneficiary": "3YeKybsi4RexQQ8xAh87SxcYXkjySk8JeaGjEbEtoDPY",
+      "claimed_after": "319443518",
+      "destination": {
+        "account": "FZHw3uhx234Sx5NgFLtrR56qAsP2V1R7ygoBiAvFj67G",
+        "fresh": true,
+        "kind": "private",
+        "one_time_address": "DWWX1n8P33HSh7BHJsc1dxcxzEMVHXKDCdRBx7Q61tnS",
+        "saved_in_wallet": true
+      },
+      "dev_mode": false,
+      "estimate": {
+        "cycles": 57284,
+        "headroom_blocks": 12,
+        "headroom_reserve": "16586664",
+        "network_fee": "5528888",
+        "payer": "FZHw3uhx234Sx5NgFLtrR56qAsP2V1R7ygoBiAvFj67G",
+        "private": true,
+        "reserve": "5528888"
+      },
+      "fee_payer": "FZHw3uhx234Sx5NgFLtrR56qAsP2V1R7ygoBiAvFj67G",
+      "fee_payer_choice": "destination",
+      "fee_payer_holds": "319443518",
+      "fee_payer_reason": "the destination, out of the claim: no other private account of this wallet holds the reserve for 12 blocks of base-fee rise (16586664)",
+      "headroom_blocks": 12,
+      "headroom_covered": false,
+      "headroom_reserve": "16586664",
+      "operation": "claim",
+      "privacy_disclosure": "Privacy of this claim (claim to a private account)\n  Visible on-chain, to everyone:\n    - the claim amount\n    - the beneficiary address\n    - the vesting schedule address\n    - the time of the claim\n  Not recorded in public on-chain state:\n    - the destination private account\n    - later movements of the claimed tokens\n  Limitation: the beneficiary address is publicly linked to this schedule from its creation, and every claim\n  from it is linked to that address. Privacy covers where the claimed tokens go, not who claimed them.",
+      "reserve": "5528888",
+      "schedule": "zAj1iZMFyP6ps8je6BotCBX9nHXvqtjsRFVb8HwbTtQ",
+      "still_to_come": "9680556482"
+    }
+  ]
+}

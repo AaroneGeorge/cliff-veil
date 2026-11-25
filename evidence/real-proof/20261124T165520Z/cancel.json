@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 233,
+      "declared_fee": "2921520",
+      "hash": "67cbad886951e91e78cdfc5f684891541ae8d2b71d124f197b01cd3aa403e96c"
+    }
+  ],
+  "transactions": [
+    {
+      "at": "2026-11-24T17:28:15.694Z",
+      "at_ms": 1795541295694,
+      "estimate": {
+        "cycles": 96834,
+        "headroom_blocks": 12,
+        "headroom_reserve": "2921520",
+        "network_fee": "780168",
+        "payer": "9iFUKtusydJEVmNKmb2yA4kDoDrpq72xPS7XbP3dk88c",
+        "private": false,
+        "reserve": "973840"
+      },
+      "operation": "cancel",
+      "refund_to": "9iFUKtusydJEVmNKmb2yA4kDoDrpq72xPS7XbP3dk88c",
+      "refunded": "8222169445",
+      "still_claimable": "13887963",
+      "vested_at_cancel": "1777830555"
+    }
+  ]
+}

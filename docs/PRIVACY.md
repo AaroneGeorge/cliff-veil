@@ -5,10 +5,10 @@ real transaction, and what the check does not show. The binding statement is [SP
 
 **Dev-mode caveat.** The private claims of the lifecycle log and the end-to-end suite were made with
 `RISC0_DEV_MODE=1`: the privacy-preserving transaction is built and accepted but carries no real proof. The CLI says so
-on every such claim (`dev mode: RISC0_DEV_MODE=1, ...`). One native private claim was also made with a real proof, with
-`RISC0_DEV_MODE` unset everywhere, and included by a standalone sequencer that verifies proofs; its scan is
-[below](#the-scan-of-a-private-claim-with-a-real-proof). A token private claim has so far run in dev mode on a sequencer
-only; its real-proof run is pending.
+on every such claim (`dev mode: RISC0_DEV_MODE=1, ...`). A native private claim and a token private claim were also made with real
+proofs, with `RISC0_DEV_MODE` unset everywhere, and included by a standalone sequencer that verifies proofs; their scans
+are [below](#the-scan-of-a-private-claim-with-a-real-proof). The native claim was proved in two runs, the token claim
+in the second run only.
 
 ## What is visible, and what is not
 
@@ -114,18 +114,48 @@ sent the same claim once with a dev-mode receipt; the sequencer refused it with 
 circuit proof` (`sequencer.log` of the record), so the sequencer was checking proofs, and the claim in the table is one
 it verified.
 
+### Second real-proof run: a native claim and a token claim
+
+A second run, on a GitHub-hosted runner as the first (GitHub run 45437451120), is recorded in
+[evidence/real-proof/20261124T165520Z/](../evidence/real-proof/20261124T165520Z/) (`summary.json`, `scan.txt`,
+`token-scan.txt`, `token-summary.json`, `token-steps.json`, the transaction and block answers, and
+`control-sequencer-log.txt`). It repeats the native claim and adds the token claim.
+
+The control claim made with a dev-mode receipt was refused again; the sequencer's log line, kept in
+`control-sequencer-log.txt`, reads `Invalid privacy preserving execution circuit proof`.
+
+| What | Native claim | Token claim |
+|---|---|---|
+| Transaction hash | `fc85d370db0b1044aac8ce34306e40d01a22753e2506d0d4e2ba5b04894fdc1b` | `51efe1b6c5741087a65aa0ac3c7c34e9289b474c42686a1bf52f8e0b9f7e8bb9` |
+| Block | 231 | 728 |
+| Amount claimed | 319,443,518 | 1,000,000 |
+| Private destination (canonical id) | `FZHw3uhx234Sx5NgFLtrR56qAsP2V1R7ygoBiAvFj67G` | `51ApLWXTH2WPmcw4F1ZENDfCZyjcEWafLChnMTN4iuCo` |
+| Private fee payer | the destination itself | `7duxzpSAcvYTYELv5ut858TdEqMcKJGJYUpBKGSSvj13` |
+| One-time address named in the transaction | `DWWX1n8P33HSh7BHJsc1dxcxzEMVHXKDCdRBx7Q61tnS` | `BwZQ9vVs1XniBiNXUzCNkEiFhswa5zCeg2uoeCh5Cex4` |
+| Scan total, destination | 0 | 0 |
+| Scan total, fee payer | (the destination) | 0 |
+| Scan total, one-time address | 8 | 8 |
+| Size of the claim transaction | 251,270 bytes | 255,200 bytes |
+
+The token claim goes to a private holding of the token that the beneficiary initialised before, and pays its fee from a
+separate private fee payer, since a token claim brings no native balance. Three steps were proved, one after the other:
+funding the private fee payer, initialising the private holding, and the claim. Each took 25 to 50 minutes on 4 CPUs
+(`token-steps.json` has the seconds of each). The private holding held 1,000,000 afterwards, and the fee payer paid
+22,272,688 across the initialisation and the claim. The scan found neither the destination nor the fee payer in the
+block or the transaction of the claim, and the one-time address 8 times, as for the native claim.
+
 ## What the scan does not show
 
 - It looks for identifiers. It says nothing about linking a claim to a destination by **amount or timing**: the claim's
   amount and time are public, and a later private movement of the same amount shortly afterwards is a pattern an
   observer could look for. The property is that the destination is not recorded, not that it cannot be guessed.
-- Each scan covers one transaction on a local chain (the first in dev mode, the second with proofs verified by the
-  sequencer), not a population of transactions on a live network. The real-proof sequencer was ephemeral and is gone;
-  the record keeps the RPC answers that were scanned.
-- Both scans cover a native claim into a fresh private account. A token private claim (a private holding of the
-  definition and a separate private fee payer) has run in dev mode on a sequencer
-  ([evidence/e2e/local-dev/20261124T160153Z.json](../evidence/e2e/local-dev/20261124T160153Z.json)); a scan of one with
-  real proofs is pending.
+- Each scan covers one transaction on a local chain (the first in dev mode, the others with proofs verified by the
+  sequencer), not a population of transactions on a live network. The real-proof sequencers were ephemeral and are gone;
+  the records keep the RPC answers that were scanned.
+- The real-proof scans cover two native claims into a fresh private account and one token claim into a private holding
+  with a separate private fee payer (the token claim also ran in dev mode on a sequencer:
+  [evidence/e2e/local-dev/20261124T160153Z.json](../evidence/e2e/local-dev/20261124T160153Z.json)). The token claim
+  was made once.
 
 ## What a user is shown
 
@@ -157,4 +187,5 @@ the private accounts and syncs private state. These are dev-mode figures from on
 
 The claimant also proves the transaction locally. For the real-proof claim above that took 1,229 s for the whole CLI
 command on a 4-core hosted runner, with a peak of 9,612,576 KiB (9.17 GiB) of memory; the fee estimate of that claim was
-5,528,784. This is one run on one machine; the figures and how they were taken are in [COSTS.md](COSTS.md).
+5,528,784. The native claim of the second run took 1,562 s with the same peak, and each of the three proved steps of the
+token claim 25 to 50 minutes. This is one run on one machine; the figures and how they were taken are in [COSTS.md](COSTS.md).

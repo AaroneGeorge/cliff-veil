@@ -1,0 +1,23 @@
+	Command being timed: "<build>/build/target/debug/cliff-veil --ids <build>/cliff-veil/deploy/ids-local-pub.toml --json claim zAj1iZMFyP6ps8je6BotCBX9nHXvqtjsRFVb8HwbTtQ --as rp-20261124T165520-beneficiary --private --yes"
+	User time (seconds): 5779.31
+	System time (seconds): 17.14
+	Percent of CPU this job got: 371%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 26:01.85
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 9614700
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 115896
+	Minor (reclaiming a frame) page faults: 8975145
+	Voluntary context switches: 122655
+	Involuntary context switches: 926875
+	Swaps: 0
+	File system inputs: 1537536
+	File system outputs: 59232
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

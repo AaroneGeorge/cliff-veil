@@ -1,0 +1,1 @@
+[2026-11-24T16:57:15Z WARN  sequencer_core] Transaction with hash cbfe56b70b2ab8d424e04ecf1f43c49c3c00d91891e6ba61dd47695f44224ebc failed settlement: State transition failed at transaction 0: Invalid privacy preserving execution circuit proof, skipping it
