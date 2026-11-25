@@ -1,0 +1,20 @@
+{
+  "what": "private claim built and proved against the public read-only endpoint; the signed, proven transaction kept, not sent",
+  "endpoint": "https://cliff-veil-seq.tailcdec7a.ts.net/",
+  "beneficiary": "GCV55jN2GcFN9wL1A1aFhuXdY5yZWUyoaMJjtJr8AB3Q",
+  "schedule": "8CC8XEVEKWhPuhJS8z285bBmJcXfTGamR1yzRy49Rt7X",
+  "risc0_dev_mode": false,
+  "cli_dev_mode": false,
+  "amount": "69442592",
+  "as_of": "2026-11-25T11:03:23.928Z",
+  "canonical_private_account": "6oymXyoWkLVcdq7hCTvA6RZXQfGEH9JxW2gs6B1LNsTT",
+  "one_time_address": "J6FPodSLZFjaieMaYUBTWiNgKxcP8HKpoYeVGfHUMZnS",
+  "network_fee_estimate": "5528680",
+  "started": "2026-11-25T11:03:22Z",
+  "wall_seconds": 1572,
+  "max_rss_kib_gnu_time": 9615800,
+  "r0vm_peak_rss_kib": 9616388,
+  "exported_tx_sha256": "56c5a992bc14c92e2a2b8a5b2899719579e76cc60978670706463226603a7705",
+  "exported_request_bytes": 335094,
+  "methods_refused_upstream": []
+}

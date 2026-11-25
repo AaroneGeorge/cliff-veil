@@ -1,0 +1,59 @@
+{
+  "what": "a private claim with a real proof, made on a GitHub-hosted runner against the public read-only endpoint and submitted by the sequencer host",
+  "run": "20261125T113302Z-private-real-proof",
+  "network": "local-pub",
+  "lez": "v0.4.0-rc3",
+  "dev_mode": false,
+  "prover_run": "https://github.com/AaroneGeorge/cliff-veil/actions/runs/45598084620",
+  "programs": {
+    "token": "G47ivGM8zSMH8GbLiBBkaVRGwJJMCdGuGGyfFzuw1GX6",
+    "vesting_fees": "2BME3Tvbh3M9ehzjV5oUiTBq7sC87CZePwSRcibP1oZP",
+    "vesting": "J6cQ2c3C7q2mdR8nVwb93oWPEJKdyvAycXSP7SYgB3cV",
+    "ata": "fxPsJympi87tLPh43MAwZ8Tr7zbiRryqXbbHaWyuYt1"
+  },
+  "accounts": {
+    "fees_config": "8ghb6rYjRAU1rd1vjQqz4ZzqWdEfmjPnKip72Z1F6RTC"
+  },
+  "transactions": [
+    {
+      "step": 1,
+      "what": "native transfer to the schedule's creator (from the local genesis test account)",
+      "hash": "27f9356b8d1881a8a4458198386566155444e25ba4a805772e00ce99e6d1d886",
+      "block": 251
+    },
+    {
+      "step": 2,
+      "what": "native transfer to the beneficiary (from the local genesis test account)",
+      "hash": "e10cc28a0607b17d49034c49330c9706ad112422a4e72d74d129d1d476066bf2",
+      "block": 373
+    },
+    {
+      "step": 3,
+      "what": "vesting: create a native linear schedule (cliff 60 s, end 3 h) for the beneficiary",
+      "hash": "a38a2355154de6bdda35516bb16ff7af76a732ce8f61aa94cb0f544c09f0957e",
+      "block": 375
+    },
+    {
+      "step": 4,
+      "what": "vesting: private claim (ClaimAsOf) to a fresh private account, real proof made on a GitHub-hosted runner, submitted here",
+      "hash": "660a13a03d5533d571a0d680beb56fcce043ca28de0146c403183b7a3477490a",
+      "block": 498
+    }
+  ],
+  "schedules": [
+    {
+      "name": "public-real-proof",
+      "account": "8CC8XEVEKWhPuhJS8z285bBmJcXfTGamR1yzRy49Rt7X",
+      "expect": {
+        "creator": "5HGtDg58vu8CPgjQhnVwrBu1rPs8bBYzkqmtQ9reYxZM",
+        "beneficiary": "GCV55jN2GcFN9wL1A1aFhuXdY5yZWUyoaMJjtJr8AB3Q",
+        "asset": "native",
+        "total": 10000000000,
+        "claimed": 69442592
+      },
+      "expect_from": "the schedule as created, and the amount of the private claim (its only claim)"
+    }
+  ],
+  "refusals": [],
+  "queries": []
+}
