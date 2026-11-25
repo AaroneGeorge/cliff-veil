@@ -1,0 +1,2109 @@
+# cliff-veil public lifecycle on local-pub (LEZ v0.4.0-rc3 standalone sequencer, RISC0_DEV_MODE unset)
+# 2026-11-25T10:03:06Z  run pub-20261125T100306Z  rpc http://127.0.0.1:3051
+# cliff-veil 0.1.0, repository commit 91db156d7d25
+[programs]
+token = "G47ivGM8zSMH8GbLiBBkaVRGwJJMCdGuGGyfFzuw1GX6"   # sha256 7b0178907ac0cfc61542d7d5585481dbbbfa88f594df37cdb3ebb2b88c9db1b5, 292988 bytes, release build, 20261125T094510Z
+vesting_fees = "2BME3Tvbh3M9ehzjV5oUiTBq7sC87CZePwSRcibP1oZP"   # sha256 797931e66ee47da3dde0bd712442ee53028595f87c617ab8b163b6293c416f69, 301608 bytes, release build, 20261125T094510Z
+ata = "fxPsJympi87tLPh43MAwZ8Tr7zbiRryqXbbHaWyuYt1"   # sha256 97188dfddd46b7b0f75308c54c3b518f887cb4ce32b5758cc8d8b1196e23ec73, 266772 bytes, release build, 20261125T094510Z
+vesting = "J6cQ2c3C7q2mdR8nVwb93oWPEJKdyvAycXSP7SYgB3cV"   # sha256 6623cd6d68f26046c80f515ce4fe1efad377a6ab2c4a0775e2a25e221902e10a, 356208 bytes, release build, 20261125T094510Z
+
+[accounts]
+fees_config = "8ghb6rYjRAU1rd1vjQqz4ZzqWdEfmjPnKip72Z1F6RTC"   # vesting_fees config (PDA), Init by the deployer
+
+# RISC Zero image ids of the deployed binaries (scripts/check_image_ids.sh <release dir> <this file>).
+[image_ids]
+token = "aca474ef0530f0c4946ae69e0a2ec581740c5b5dce68e4db5ae2bbc6c71dec9c"
+vesting_fees = "7e5b5539f82c19d8e4dd502852d5a35673fac4ccefba438bc101099f341cc147"
+ata = "339a777b9507f5c2faf65730c0e0fba8f6d563da964cc13b651b0a20d07f7110"
+vesting = "3352b62ab842eabc4cac8e9d5959639880f6c0b70800f3074d685468704cf981"
+
+[build]
+builder = "risczero/risc0-guest-builder:r0.1.91.1@sha256:fafb377a44e1cfca415577c48d2f7012bda99ed36f2fae27f9a663b9fe6048f0"
+commit = "91db156d7d258726b005a12d9702a4048e116a61"
+tree = "9d5b7f865d613ee7250a40294d829c17cf98174a"
+vesting_inputs = "CV_TOKEN_PROGRAM_ID=G47ivGM8zSMH8GbLiBBkaVRGwJJMCdGuGGyfFzuw1GX6 CV_FEES_PROGRAM_ID=2BME3Tvbh3M9ehzjV5oUiTBq7sC87CZePwSRcibP1oZP CV_ATA_PROGRAM_ID=fxPsJympi87tLPh43MAwZ8Tr7zbiRryqXbbHaWyuYt1"
+
+== accounts (fresh public accounts, funded from the deployer's account)
+creator Public/DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE
+alice Public/EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP
+bob Public/oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT
+mallory Public/8muNnw8npBvRgeyNi66rDERJvDYVrAs1ZS2eFSQFg1Wy (holds no role in any schedule)
+fund Public/DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE with 60000000000: tx b2fa0035ea869a04b2799d74870e4545c4e0f225ccdae2d5c41b2043f57ce94f in block 138
+fund Public/EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP with 2000000000: tx 45f17777c2811cd1869026cdb672c16b2ab5b4b958d5d667b65ec42124c6128a in block 140
+fund Public/oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT with 2000000000: tx a834f2e7871b37779f14cb303fb9686e33fdc6bddc00faf05f16247b304f2e34 in block 142
+fund Public/8muNnw8npBvRgeyNi66rDERJvDYVrAs1ZS2eFSQFg1Wy with 2000000000: tx 8b1307cc4b9d288cf88a1a4f5ae18adfe5c8f08d28923bf264fd3b09b360bf24 in block 144
+fund Public/DYW3TGtP3e7TWaxVztjH1DM9tLbCVZceuijTWnU36Wdk with 500000000: tx 8349766486ef9d1b782c21da9c7a5e32221136f160ab85eb7953eb71b768b326 in block 146
+fund Public/2ckDWmUFLMSTGF6Zrj8v5cxPwVBY5CnxpKAbPbQENemi with 500000000: tx a1a61bf8fabb763d7dba5ea26943c7a19e3e0e454f32f4db3f46e771f4cb9810 in block 148
+
+== creation
+
+[1] fee configuration (vesting_fees Init by the deployer)
+$ cliff-veil fee-show
+{
+  "fees": {
+    "config_account": "8ghb6rYjRAU1rd1vjQqz4ZzqWdEfmjPnKip72Z1F6RTC",
+    "deployed": true,
+    "max_fee_bps": 100,
+    "program": "2BME3Tvbh3M9ehzjV5oUiTBq7sC87CZePwSRcibP1oZP",
+    "rate_bps": 0,
+    "treasury": "not set"
+  },
+  "ok": true
+}
+[exit 0]
+
+[2] create: linear with a cliff (cliff +120 s, end +900 s), transferable, cancelable
+$ cliff-veil create --from pub-20261125T100306Z-creator --beneficiary pub-20261125T100306Z-alice --total 1000000000 --start now --cliff +120s --end +900s --transferable --label pub-20261125T100306Z-cliff
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 150,
+      "declared_fee": "2848104",
+      "hash": "744e844f876505c225dd68f32370d6cd39623975f08aa44632ccc3a7eb1e3a72"
+    }
+  ],
+  "transactions": [
+    {
+      "creation_fee": "0",
+      "estimate": {
+        "cycles": 94208,
+        "headroom_blocks": 12,
+        "headroom_reserve": "2848104",
+        "network_fee": "760952",
+        "payer": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+        "private": false,
+        "reserve": "949368"
+      },
+      "operation": "create",
+      "schedule_id": "8e98a1e6ab4ab3f64e0041dd7dd43a9d377a94eceea1d64d584be3059e439286",
+      "schedules": [
+        "9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB"
+      ],
+      "total": "1000000000",
+      "treasury": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE"
+    }
+  ]
+}
+[exit 0]
+
+[3] claimable now and next unlock (cliff schedule, before the cliff)
+$ cliff-veil claimable 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB
+{
+  "claimable": {
+    "claimable_now": "0",
+    "clock": "2026-11-25T10:06:08.930Z",
+    "next_unlock": "2026-11-25T10:07:53.929Z",
+    "schedule": "9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB"
+  },
+  "ok": true
+}
+[exit 0]
+
+[4] claim before the cliff (nothing claimable yet)
+$ cliff-veil claim 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB --as pub-20261125T100306Z-alice
+{"error":{"action":"wait until the next unlock and claim again; nothing was consumed","code":14,"message":"cliff-veil error 14: nothing claimable yet; next unlock at 2026-11-25T10:07:53.929Z (1795601273929 ms)","name":"NothingClaimable"},"ok":false}
+[exit 1]
+
+[5] create: fully linear (no cliff, end +180 s)
+$ cliff-veil create --from pub-20261125T100306Z-creator --beneficiary pub-20261125T100306Z-alice --total 600000000 --start now --end +180s --label pub-20261125T100306Z-linear
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 151,
+      "declared_fee": "2847960",
+      "hash": "d72fa5b32ec06c6eaf35daa08f5740cfdf83baaacb61e2b83f52c73b83cc7b8e"
+    }
+  ],
+  "transactions": [
+    {
+      "creation_fee": "0",
+      "estimate": {
+        "cycles": 94203,
+        "headroom_blocks": 12,
+        "headroom_reserve": "2847960",
+        "network_fee": "760912",
+        "payer": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+        "private": false,
+        "reserve": "949320"
+      },
+      "operation": "create",
+      "schedule_id": "2c99df9606f47878da265c40edbbe0785b64ce549ef3cd728a2616278dca8f66",
+      "schedules": [
+        "2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU"
+      ],
+      "total": "600000000",
+      "treasury": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE"
+    }
+  ]
+}
+[exit 0]
+
+[6] create: milestones 300000000 + 700000000, milestone authority the creator
+$ cliff-veil create --from pub-20261125T100306Z-creator --beneficiary pub-20261125T100306Z-alice --milestones 300000000,700000000 --label pub-20261125T100306Z-milestones
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 152,
+      "declared_fee": "2913312",
+      "hash": "5003af4d1bad698e2f2f64f9ace7e6c5298d6f04fdf11a5d1ef0e7616665112b"
+    }
+  ],
+  "transactions": [
+    {
+      "creation_fee": "0",
+      "estimate": {
+        "cycles": 96365,
+        "headroom_blocks": 12,
+        "headroom_reserve": "2913312",
+        "network_fee": "778368",
+        "payer": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+        "private": false,
+        "reserve": "971104"
+      },
+      "operation": "create",
+      "schedule_id": "3d647e6d2fd9f986dbf79739f85f9bf7e987a3c02dec42ed0a3034343fd3dcd1",
+      "schedules": [
+        "3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh"
+      ],
+      "total": "1000000000",
+      "treasury": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE"
+    }
+  ]
+}
+[exit 0]
+
+[7] create: linear schedule for the cancel with refund (end +600 s), refund to bob
+$ cliff-veil create --from pub-20261125T100306Z-creator --beneficiary pub-20261125T100306Z-alice --total 900000000 --start now --end +600s --refund-to pub-20261125T100306Z-bob --label pub-20261125T100306Z-cancel
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 153,
+      "declared_fee": "2870808",
+      "hash": "b623f4f26dafd8ce4a93973cb8d55144e469c23883dc5469b80dbe0637c22591"
+    }
+  ],
+  "transactions": [
+    {
+      "creation_fee": "0",
+      "estimate": {
+        "cycles": 94939,
+        "headroom_blocks": 12,
+        "headroom_reserve": "2870808",
+        "network_fee": "767056",
+        "payer": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+        "private": false,
+        "reserve": "956936"
+      },
+      "operation": "create",
+      "schedule_id": "3f9044fba320bb346e6fd2c9c5fb18d7af6c72889fc5bafdc99ee2bf06ca2128",
+      "schedules": [
+        "CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB"
+      ],
+      "total": "900000000",
+      "treasury": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE"
+    }
+  ]
+}
+[exit 0]
+
+[8] create-batch: 20 linear schedules with a cliff (cliff +60 s, end +900 s)
+$ cliff-veil create-batch --from pub-20261125T100306Z-creator --file evidence/public-chain/20261125T100306Z/batch.csv --start now --cliff +60s --end +900s
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 154,
+      "declared_fee": "32562984",
+      "hash": "81fd7290f42af9a2eb53e6918fb31b345152350a5399e0aecb7e434c5ec5a334"
+    }
+  ],
+  "transactions": [
+    {
+      "creation_fee": "0",
+      "estimate": {
+        "cycles": 1080551,
+        "headroom_blocks": 12,
+        "headroom_reserve": "32562984",
+        "network_fee": "8693224",
+        "payer": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+        "private": false,
+        "reserve": "10854328"
+      },
+      "operation": "create-batch",
+      "schedules": [
+        "FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR",
+        "5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b",
+        "71LAmXFsuKds1WZMA1APsyuxaX82NdvhEvTjQvFHxCEC",
+        "6q9783wdfpSS6Qcda9Sfbz9NbaFwxudxUCGBbfQe38Q3",
+        "8JK9Utv6ZFyozuUZXid3MhB4iaPptg9hMLPWAUJpdQYP",
+        "Czc5aqB2Tzrtx8EBjtXYejtBiMRKQsbrJmXA1iNdAqcr",
+        "CSPAE6m4VSNxt5WnVjrF1jGAouLvDP6YoAgW6piEafTG",
+        "BYvDR7VsnU2EwUwTCeoJKaipK3wUX26V6hQdazoAieoj",
+        "Fqy5fFUDZNbw8nRNNW8tFeX73SWVuDMPL46DKSuGkKRe",
+        "8EX7Y5HfioEuEtX5sNhqR6eGuQPe3kMXtiy69dUdyv6x",
+        "FNdbn5XzHMq9FaXbTGM2tuQYLDLWJS478uMZtSeEsb82",
+        "7idKdvzsRTJHVDk4RxWfxMoahRV6yz8y7cd6HmMro4Gj",
+        "ETwsXYcLre92ewVAZmtwkRAQnjQmFmSMEqjJJonXBKnf",
+        "6PY1qyX19cLYWaBdLBo7LitVBQdHQyF61dBWqk25942Y",
+        "Et8EVcaeRqnYEMgCwR6rr2yr5pxMPTLn5yPv4bVpBxAu",
+        "54tiZYp3n3THjguzHvbLbpR6SvH3B2r6JK4sKiMkugZq",
+        "EfQkGxpgYjWbtykWLDrgxcQkUZWGxLJeJGmQ9x7ykvUB",
+        "6eDhTNwR7wqG5XqQnhKvHonqyYB4RZGZRE6JQFvQx44r",
+        "4MEoRs1v66eppnqVnueV82h9iy2VyTUvMzg8eAeW7S25",
+        "BUWe77qZxFeSPVvLHZxhKnAi6QS8Le8ffwcJUJNswBX7"
+      ],
+      "total": "2210000000",
+      "treasury": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE"
+    }
+  ]
+}
+[exit 0]
+schedules: cliff 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB, linear 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU, milestones 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh, cancel CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB, batch #1 FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR, #2 5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b
+
+== queries and refusals before the cliff
+
+[9] show the cliff schedule
+$ cliff-veil show 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB
+{
+  "ok": true,
+  "schedule": {
+    "account": "9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB",
+    "asset": "native",
+    "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+    "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "cancelable": true,
+    "cancelled": null,
+    "claimable_now": "0",
+    "claimed": "0",
+    "clock": "2026-11-25T10:07:08.929Z",
+    "clock_ms": 1795601228929,
+    "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "escrow": "1000000000",
+    "kind": "linear: start 2026-11-25T10:05:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:20:53.929Z",
+    "kind_detail": {
+      "linear": {
+        "cliff": 1795601273929,
+        "end": 1795602053929,
+        "start": 1795601153929
+      }
+    },
+    "last_time_ms": 0,
+    "locked": "1000000000",
+    "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "next_unlock": "2026-11-25T10:07:53.929Z",
+    "next_unlock_kind": "at",
+    "next_unlock_ms": 1795601273929,
+    "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "schedule_id": "8e98a1e6ab4ab3f64e0041dd7dd43a9d377a94eceea1d64d584be3059e439286",
+    "standing": "active",
+    "token_definition": null,
+    "total": "1000000000",
+    "transferable": true,
+    "vested": "0"
+  }
+}
+[exit 0]
+
+[10] claim by an account that is not the beneficiary
+$ cliff-veil claim 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --as pub-20261125T100306Z-mallory
+{"error":{"action":"send from the schedule's current beneficiary (see `show`)","code":3,"message":"cliff-veil error 3: only the beneficiary may do this","name":"NotBeneficiary"},"ok":false}
+[exit 1]
+
+[11] transfer of a schedule created non-transferable
+$ cliff-veil transfer 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --to pub-20261125T100306Z-bob --as pub-20261125T100306Z-alice
+{"error":{"action":"this schedule was created non-transferable","code":19,"message":"cliff-veil error 19: this schedule is not transferable","name":"NotTransferable"},"ok":false}
+[exit 1]
+
+[12] milestone signal by an account that is not the milestone authority
+$ cliff-veil signal 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh --index 0 --as pub-20261125T100306Z-mallory
+{"error":{"action":"send from the schedule's milestone authority (see `show`)","code":6,"message":"cliff-veil error 6: only the milestone authority may signal a milestone","name":"NotMilestoneAuthority"},"ok":false}
+[exit 1]
+
+[13] cancel by an account that is not the cancel authority
+$ cliff-veil cancel CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB --as pub-20261125T100306Z-mallory
+{"error":{"action":"send from the schedule's cancel authority (see `show`)","code":5,"message":"cliff-veil error 5: only the cancel authority may cancel","name":"NotCancelAuthority"},"ok":false}
+[exit 1]
+
+[14] make-non-cancelable by an account that is not the creator
+$ cliff-veil make-non-cancelable 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --as pub-20261125T100306Z-mallory
+{"error":{"action":"send from the schedule's creator or its cancel authority (see `show`)","code":4,"message":"cliff-veil error 4: only the creator or the cancel authority may do this","name":"NotCreator"},"ok":false}
+[exit 1]
+
+[15] list the schedules the creator made (block scan)
+$ cliff-veil list --creator pub-20261125T100306Z-creator --no-cache
+{
+  "ok": true,
+  "scanned_to_block": 154,
+  "schedules": [
+    {
+      "account": "2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU",
+      "asset": "native",
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "199996666",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "600000000",
+      "kind": "linear: start 2026-11-25T10:06:08.930Z, cliff 2026-11-25T10:06:08.930Z, end 2026-11-25T10:09:08.930Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601168930,
+          "end": 1795601348930,
+          "start": 1795601168930
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "400003334",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:08.930Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601228930,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "2c99df9606f47878da265c40edbbe0785b64ce549ef3cd728a2616278dca8f66",
+      "standing": "active",
+      "token_definition": null,
+      "total": "600000000",
+      "transferable": false,
+      "vested": "199996666"
+    },
+    {
+      "account": "3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh",
+      "asset": "native",
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "1000000000",
+      "kind": "milestones: #0 300000000, #1 700000000",
+      "kind_detail": {
+        "milestones": {
+          "amounts": [
+            "300000000",
+            "700000000"
+          ],
+          "signalled": 0
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "1000000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "when the milestone authority signals a milestone",
+      "next_unlock_kind": "milestone",
+      "next_unlock_ms": null,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "3d647e6d2fd9f986dbf79739f85f9bf7e987a3c02dec42ed0a3034343fd3dcd1",
+      "standing": "active",
+      "token_definition": null,
+      "total": "1000000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "4MEoRs1v66eppnqVnueV82h9iy2VyTUvMzg8eAeW7S25",
+      "asset": "native",
+      "beneficiary": "H9SbHH1qvZJDK88TujJy9dgCATcxrhyk8ZNGzUHCp3tZ",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "119000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "119000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "219dc06c117f9c971e04066401f19c2108b6208128eca200be7942331ca5d6b3",
+      "standing": "active",
+      "token_definition": null,
+      "total": "119000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "54tiZYp3n3THjguzHvbLbpR6SvH3B2r6JK4sKiMkugZq",
+      "asset": "native",
+      "beneficiary": "8Xf7NyyCuhdwpncBBrEAKSHtYXGY1XqBDFPKnmNVQEiV",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "116000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "116000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "cbd7e45a5046fce6db17caaa2383d491be3fc5d0b8fb4baae2369c8e3d9ce979",
+      "standing": "active",
+      "token_definition": null,
+      "total": "116000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b",
+      "asset": "native",
+      "beneficiary": "2ckDWmUFLMSTGF6Zrj8v5cxPwVBY5CnxpKAbPbQENemi",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "102000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "102000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "bc72a25c78c44d4fde56110dd5f74f721e3c43fd0bb2c8112c9881d9aca1991e",
+      "standing": "active",
+      "token_definition": null,
+      "total": "102000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "6PY1qyX19cLYWaBdLBo7LitVBQdHQyF61dBWqk25942Y",
+      "asset": "native",
+      "beneficiary": "X7X4gUXhxQ2CESp7joeevPdtN2X97bYkUenTQTm8FwD",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "114000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "114000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "d4430af29d9f8abc532f8f78fee202d8733f5af41fcf5ac59a29e2d15bc1b313",
+      "standing": "active",
+      "token_definition": null,
+      "total": "114000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "6eDhTNwR7wqG5XqQnhKvHonqyYB4RZGZRE6JQFvQx44r",
+      "asset": "native",
+      "beneficiary": "7BMFMXu4AC4j53tTSLMKXxka9mSTjaFMWwaunFyPvE6K",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "118000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "118000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "570f9103dfc5e5a48cd11bdc8aa8c4cdec37aed4707eb062160d50b80f173995",
+      "standing": "active",
+      "token_definition": null,
+      "total": "118000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "6q9783wdfpSS6Qcda9Sfbz9NbaFwxudxUCGBbfQe38Q3",
+      "asset": "native",
+      "beneficiary": "Dwp9Agin6t6VL51jbqrTTXzCkYu4HkDXuioWp9K86A7X",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "104000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "104000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "9c39392f18511c44b8dd629312ab5f5a20fe4d76fa97a3cc0cdb15533bb315df",
+      "standing": "active",
+      "token_definition": null,
+      "total": "104000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "71LAmXFsuKds1WZMA1APsyuxaX82NdvhEvTjQvFHxCEC",
+      "asset": "native",
+      "beneficiary": "EfpGZ84nWLWtYrekhUCCriYmmsumcZR2acSc25PScDNW",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "103000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "103000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "6b90b7ef29f97db0ba2b361b28f4021e6570ef331afb3c1287e8623a6312b70c",
+      "standing": "active",
+      "token_definition": null,
+      "total": "103000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "7idKdvzsRTJHVDk4RxWfxMoahRV6yz8y7cd6HmMro4Gj",
+      "asset": "native",
+      "beneficiary": "BXxqDMGmoPzom4MPXtyVxzLb98ds2aSs42QB5LG4ehK4",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "112000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "112000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "441cf7c668ecb661d1300c1dfe70905c34f783e2606e0626cd20ae453812c787",
+      "standing": "active",
+      "token_definition": null,
+      "total": "112000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "8EX7Y5HfioEuEtX5sNhqR6eGuQPe3kMXtiy69dUdyv6x",
+      "asset": "native",
+      "beneficiary": "zfj4MfwNuv1UHWTQzSandaM2EwspRKSoMAUhRsjhmaD",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "110000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "110000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "506abb05ea77779a2cdde29d84a02e45774ec3158e1530596e918694331836e3",
+      "standing": "active",
+      "token_definition": null,
+      "total": "110000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "8JK9Utv6ZFyozuUZXid3MhB4iaPptg9hMLPWAUJpdQYP",
+      "asset": "native",
+      "beneficiary": "DJJXMXATN7qbVy9QUN6APiHWuZi3SgTT9JhXYCtyGTKY",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "105000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "105000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "b58969cd6ae9d784b90a4e8efd3fe6f0f8e725e395a184d097ed61bf52734e37",
+      "standing": "active",
+      "token_definition": null,
+      "total": "105000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB",
+      "asset": "native",
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "1000000000",
+      "kind": "linear: start 2026-11-25T10:05:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:20:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602053929,
+          "start": 1795601153929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "1000000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "8e98a1e6ab4ab3f64e0041dd7dd43a9d377a94eceea1d64d584be3059e439286",
+      "standing": "active",
+      "token_definition": null,
+      "total": "1000000000",
+      "transferable": true,
+      "vested": "0"
+    },
+    {
+      "account": "BUWe77qZxFeSPVvLHZxhKnAi6QS8Le8ffwcJUJNswBX7",
+      "asset": "native",
+      "beneficiary": "5AKvmDaGjZS7h9vC5RGJg6w7JXtiB9Tu374G7sm8ecyX",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "120000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "120000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "ca991a37833c8180640ba439fc1e2ab2a38bd6975169fe10f0733742574524f5",
+      "standing": "active",
+      "token_definition": null,
+      "total": "120000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "BYvDR7VsnU2EwUwTCeoJKaipK3wUX26V6hQdazoAieoj",
+      "asset": "native",
+      "beneficiary": "EDSAfwtqMCu6vrXmNgzqkbfwHZ98HfdoazJc7XvHqTrg",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "108000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "108000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "386b41a5ea4671d631fce1be48fa647c8f6dd8fb974b90ad03fd1ff6e6027126",
+      "standing": "active",
+      "token_definition": null,
+      "total": "108000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB",
+      "asset": "native",
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "45000000",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "900000000",
+      "kind": "linear: start 2026-11-25T10:06:38.929Z, cliff 2026-11-25T10:06:38.929Z, end 2026-11-25T10:16:38.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601198929,
+          "end": 1795601798929,
+          "start": 1795601198929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "855000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:08.930Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601228930,
+      "refund_to": "oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT",
+      "schedule_id": "3f9044fba320bb346e6fd2c9c5fb18d7af6c72889fc5bafdc99ee2bf06ca2128",
+      "standing": "active",
+      "token_definition": null,
+      "total": "900000000",
+      "transferable": false,
+      "vested": "45000000"
+    },
+    {
+      "account": "CSPAE6m4VSNxt5WnVjrF1jGAouLvDP6YoAgW6piEafTG",
+      "asset": "native",
+      "beneficiary": "EAwwcoPks1oCRef6B7SL2WSk5JaNVSpUZVjAshDSAVCX",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "107000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "107000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "f664ceeec881d83fd0ad3e73f5609efd59f527542321326c71cc85a91d29398a",
+      "standing": "active",
+      "token_definition": null,
+      "total": "107000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "Czc5aqB2Tzrtx8EBjtXYejtBiMRKQsbrJmXA1iNdAqcr",
+      "asset": "native",
+      "beneficiary": "63RfCzdrr6PfkpNvHVr6Pk9XADiehCGp3gS1LG4ctp2i",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "106000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "106000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "36f182d9e7a780bbc7266bfc2b55d807053e12a01cfd58ed627008043c960259",
+      "standing": "active",
+      "token_definition": null,
+      "total": "106000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "ETwsXYcLre92ewVAZmtwkRAQnjQmFmSMEqjJJonXBKnf",
+      "asset": "native",
+      "beneficiary": "FRQuk4umoFAG4UxN3CBZFQ2Kevs2CgbNdxV8TtarWRQQ",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "113000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "113000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "a603442a47de6cef1bf65d9069766c794a5033f17b7f1597f06a06218b9dcd90",
+      "standing": "active",
+      "token_definition": null,
+      "total": "113000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "EfQkGxpgYjWbtykWLDrgxcQkUZWGxLJeJGmQ9x7ykvUB",
+      "asset": "native",
+      "beneficiary": "9i6QaBQGoCVTmeGhpRjhYvkts8KXQMxBwJ39CmTvxR7L",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "117000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "117000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "9a01529e5c01e43eca4aef5bdae7babefd91229d6ae450ac215f097217f0cdf1",
+      "standing": "active",
+      "token_definition": null,
+      "total": "117000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "Et8EVcaeRqnYEMgCwR6rr2yr5pxMPTLn5yPv4bVpBxAu",
+      "asset": "native",
+      "beneficiary": "AckKKQe9xwjgHYoHwuGoD7cMP6VLsF4mGraazdYMZMQ6",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "115000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "115000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "893ca40683c81892d16bdaa73534f64e723b608d34df0a72f70f0fc06d9fc213",
+      "standing": "active",
+      "token_definition": null,
+      "total": "115000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "FNdbn5XzHMq9FaXbTGM2tuQYLDLWJS478uMZtSeEsb82",
+      "asset": "native",
+      "beneficiary": "CY1VrY6MvYJEyvdT2Jrpi1PK4zMQ3YvdpsFpawaYFgAs",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "111000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "111000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "61fdec679ced60259d4d946abd243b19e3215e4e34ad3b047a979d125af515cd",
+      "standing": "active",
+      "token_definition": null,
+      "total": "111000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR",
+      "asset": "native",
+      "beneficiary": "DYW3TGtP3e7TWaxVztjH1DM9tLbCVZceuijTWnU36Wdk",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "101000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "101000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "e90eb39afa662314ba4823db10d9af4fd5e3da6b57b69a4abe7a235a7edbbc45",
+      "standing": "active",
+      "token_definition": null,
+      "total": "101000000",
+      "transferable": false,
+      "vested": "0"
+    },
+    {
+      "account": "Fqy5fFUDZNbw8nRNNW8tFeX73SWVuDMPL46DKSuGkKRe",
+      "asset": "native",
+      "beneficiary": "F62fJxSEygtLSYPwLH7uGvbwtCe1MvKHcH5MBKXBjXEA",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "0",
+      "clock": "2026-11-25T10:07:08.929Z",
+      "clock_ms": 1795601228929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "109000000",
+      "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601273929,
+          "end": 1795602113929,
+          "start": 1795601213929
+        }
+      },
+      "last_time_ms": 0,
+      "locked": "109000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "2026-11-25T10:07:53.929Z",
+      "next_unlock_kind": "at",
+      "next_unlock_ms": 1795601273929,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "15198b13d6cc7685c0b8606ff6061340d5b3e6ff4317c949310668f71fbec9b2",
+      "standing": "active",
+      "token_definition": null,
+      "total": "109000000",
+      "transferable": false,
+      "vested": "0"
+    }
+  ]
+}
+[exit 0]
+
+== milestones
+
+[16] signal milestone #0
+$ cliff-veil signal 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh --index 0 --as pub-20261125T100306Z-creator
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 155,
+      "declared_fee": "1486032",
+      "hash": "c93e02f39b70b897f155ba467f32f8d43b4b6ddce926e7041acaa87462d9804f"
+    }
+  ],
+  "transactions": [
+    {
+      "estimate": {
+        "cycles": 49137,
+        "headroom_blocks": 12,
+        "headroom_reserve": "1486032",
+        "network_fee": "397064",
+        "payer": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+        "private": false,
+        "reserve": "495344"
+      },
+      "index": 0,
+      "operation": "signal",
+      "unlocks": "300000000"
+    }
+  ]
+}
+[exit 0]
+
+[17] signal milestone #0 again
+$ cliff-veil signal 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh --index 0 --as pub-20261125T100306Z-creator
+{"error":{"action":"this milestone is already unlocked; signal another one","code":18,"message":"cliff-veil error 18: this milestone was already signalled","name":"MilestoneAlreadySignalled"},"ok":false}
+[exit 1]
+
+[18] public claim of the signalled milestone
+$ cliff-veil claim 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh --as pub-20261125T100306Z-alice
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 156,
+      "declared_fee": "3031128",
+      "hash": "7e349f8322f41ee4c51df3f3b111bbcb9ce14b9afd8ff9d896e6655cb7c4b804"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "300000000",
+      "at": "2026-11-25T10:07:23.929Z",
+      "at_ms": 1795601243929,
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "claimed_after": "300000000",
+      "destination": {
+        "account": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+        "kind": "public"
+      },
+      "estimate": {
+        "cycles": 100462,
+        "headroom_blocks": 12,
+        "headroom_reserve": "3031128",
+        "network_fee": "809448",
+        "payer": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+        "private": false,
+        "reserve": "1010376"
+      },
+      "fee_payer": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "fee_payer_choice": "signer",
+      "fee_payer_holds": "2000000000",
+      "fee_payer_reason": "the beneficiary, which signs the public claim",
+      "headroom_blocks": 12,
+      "headroom_covered": false,
+      "headroom_reserve": "3031128",
+      "operation": "claim",
+      "reserve": "1010376",
+      "schedule": "3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh",
+      "still_to_come": "700000000"
+    }
+  ]
+}
+[exit 0]
+
+[19] show the milestone schedule
+$ cliff-veil show 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh
+{
+  "ok": true,
+  "schedule": {
+    "account": "3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh",
+    "asset": "native",
+    "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+    "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "cancelable": true,
+    "cancelled": null,
+    "claimable_now": "0",
+    "claimed": "300000000",
+    "clock": "2026-11-25T10:07:38.929Z",
+    "clock_ms": 1795601258929,
+    "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "escrow": "700000000",
+    "kind": "milestones: #0 300000000 (signalled), #1 700000000",
+    "kind_detail": {
+      "milestones": {
+        "amounts": [
+          "300000000",
+          "700000000"
+        ],
+        "signalled": 1
+      }
+    },
+    "last_time_ms": 1795601243929,
+    "locked": "700000000",
+    "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "next_unlock": "when the milestone authority signals a milestone",
+    "next_unlock_kind": "milestone",
+    "next_unlock_ms": null,
+    "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "schedule_id": "3d647e6d2fd9f986dbf79739f85f9bf7e987a3c02dec42ed0a3034343fd3dcd1",
+    "standing": "active",
+    "token_definition": null,
+    "total": "1000000000",
+    "transferable": false,
+    "vested": "300000000"
+  }
+}
+[exit 0]
+
+== linear claims
+
+[20] public claim, fully linear schedule
+$ cliff-veil claim 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --as pub-20261125T100306Z-alice
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 157,
+      "declared_fee": "3007968",
+      "hash": "d6c96c36315998f072cfa9c61480a2aa682f33b49353fdfc9411d1949288251b"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "299996666",
+      "at": "2026-11-25T10:07:38.929Z",
+      "at_ms": 1795601258929,
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "claimed_after": "299996666",
+      "destination": {
+        "account": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+        "kind": "public"
+      },
+      "estimate": {
+        "cycles": 99690,
+        "headroom_blocks": 12,
+        "headroom_reserve": "3007968",
+        "network_fee": "803272",
+        "payer": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+        "private": false,
+        "reserve": "1002656"
+      },
+      "fee_payer": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "fee_payer_choice": "signer",
+      "fee_payer_holds": "2299190552",
+      "fee_payer_reason": "the beneficiary, which signs the public claim",
+      "headroom_blocks": 12,
+      "headroom_covered": false,
+      "headroom_reserve": "3007968",
+      "operation": "claim",
+      "reserve": "1002656",
+      "schedule": "2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU",
+      "still_to_come": "300003334"
+    }
+  ]
+}
+[exit 0]
+
+[21] make the linear schedule non-cancelable
+$ cliff-veil make-non-cancelable 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --as pub-20261125T100306Z-creator
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 158,
+      "declared_fee": "1457352",
+      "hash": "3c0798dcfa5c7f7c9c27c020e373985dc4210c14f30c9fcd45de4989fa5b24c1"
+    }
+  ],
+  "transactions": [
+    {
+      "estimate": {
+        "cycles": 48182,
+        "headroom_blocks": 12,
+        "headroom_reserve": "1457352",
+        "network_fee": "389416",
+        "payer": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+        "private": false,
+        "reserve": "485784"
+      },
+      "operation": "make-non-cancelable"
+    }
+  ]
+}
+[exit 0]
+
+[22] cancel a non-cancelable schedule
+$ cliff-veil cancel 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --as pub-20261125T100306Z-creator
+{"error":{"action":"this schedule cannot be cancelled (it was created non-cancelable or made non-cancelable)","code":15,"message":"cliff-veil error 15: the schedule is not cancelable","name":"NotCancelable"},"ok":false}
+[exit 1]
+
+== waiting for the cliff
+
+[23] claimable now and next unlock (cliff schedule, after the cliff)
+$ cliff-veil claimable 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB
+{
+  "claimable": {
+    "claimable_now": "150001111",
+    "clock": "2026-11-25T10:08:08.930Z",
+    "next_unlock": "2026-11-25T10:08:08.931Z",
+    "schedule": "9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB"
+  },
+  "ok": true
+}
+[exit 0]
+
+[24] public claim after the cliff
+$ cliff-veil claim 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB --as pub-20261125T100306Z-alice
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 159,
+      "declared_fee": "3008568",
+      "hash": "7b0bd90c42a0e760212864bf628b2ad4b6bc1afa295da5fbad212e4db8e967bf"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "150001111",
+      "at": "2026-11-25T10:08:08.930Z",
+      "at_ms": 1795601288930,
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "claimed_after": "150001111",
+      "destination": {
+        "account": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+        "kind": "public"
+      },
+      "estimate": {
+        "cycles": 99710,
+        "headroom_blocks": 12,
+        "headroom_reserve": "3008568",
+        "network_fee": "803432",
+        "payer": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+        "private": false,
+        "reserve": "1002856"
+      },
+      "fee_payer": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "fee_payer_choice": "signer",
+      "fee_payer_holds": "2598383946",
+      "fee_payer_reason": "the beneficiary, which signs the public claim",
+      "headroom_blocks": 12,
+      "headroom_covered": false,
+      "headroom_reserve": "3008568",
+      "operation": "claim",
+      "reserve": "1002856",
+      "schedule": "9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB",
+      "still_to_come": "849998889"
+    }
+  ]
+}
+[exit 0]
+
+[25] public claim from batch schedule #1 by its recipient
+$ cliff-veil claim FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR --as Public/DYW3TGtP3e7TWaxVztjH1DM9tLbCVZceuijTWnU36Wdk
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 160,
+      "declared_fee": "3007128",
+      "hash": "b5ece9465387238f8fc93563641d8d4b179261c61bb6175027fbbe2d1f5249b6"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "10099887",
+      "at": "2026-11-25T10:08:23.928Z",
+      "at_ms": 1795601303928,
+      "beneficiary": "DYW3TGtP3e7TWaxVztjH1DM9tLbCVZceuijTWnU36Wdk",
+      "claimed_after": "10099887",
+      "destination": {
+        "account": "DYW3TGtP3e7TWaxVztjH1DM9tLbCVZceuijTWnU36Wdk",
+        "kind": "public"
+      },
+      "estimate": {
+        "cycles": 99662,
+        "headroom_blocks": 12,
+        "headroom_reserve": "3007128",
+        "network_fee": "803048",
+        "payer": "DYW3TGtP3e7TWaxVztjH1DM9tLbCVZceuijTWnU36Wdk",
+        "private": false,
+        "reserve": "1002376"
+      },
+      "fee_payer": "DYW3TGtP3e7TWaxVztjH1DM9tLbCVZceuijTWnU36Wdk",
+      "fee_payer_choice": "signer",
+      "fee_payer_holds": "500000000",
+      "fee_payer_reason": "the beneficiary, which signs the public claim",
+      "headroom_blocks": 12,
+      "headroom_covered": false,
+      "headroom_reserve": "3007128",
+      "operation": "claim",
+      "reserve": "1002376",
+      "schedule": "FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR",
+      "still_to_come": "90900113"
+    }
+  ]
+}
+[exit 0]
+
+[26] public claim from batch schedule #2 by its recipient
+$ cliff-veil claim 5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b --as Public/2ckDWmUFLMSTGF6Zrj8v5cxPwVBY5CnxpKAbPbQENemi
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 161,
+      "declared_fee": "3007416",
+      "hash": "51d1acb6da70cead4b712c6562b5f8a309082356544a876f55abf292de24bfc6"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "11900000",
+      "at": "2026-11-25T10:08:38.929Z",
+      "at_ms": 1795601318929,
+      "beneficiary": "2ckDWmUFLMSTGF6Zrj8v5cxPwVBY5CnxpKAbPbQENemi",
+      "claimed_after": "11900000",
+      "destination": {
+        "account": "2ckDWmUFLMSTGF6Zrj8v5cxPwVBY5CnxpKAbPbQENemi",
+        "kind": "public"
+      },
+      "estimate": {
+        "cycles": 99672,
+        "headroom_blocks": 12,
+        "headroom_reserve": "3007416",
+        "network_fee": "803128",
+        "payer": "2ckDWmUFLMSTGF6Zrj8v5cxPwVBY5CnxpKAbPbQENemi",
+        "private": false,
+        "reserve": "1002472"
+      },
+      "fee_payer": "2ckDWmUFLMSTGF6Zrj8v5cxPwVBY5CnxpKAbPbQENemi",
+      "fee_payer_choice": "signer",
+      "fee_payer_holds": "500000000",
+      "fee_payer_reason": "the beneficiary, which signs the public claim",
+      "headroom_blocks": 12,
+      "headroom_covered": false,
+      "headroom_reserve": "3007416",
+      "operation": "claim",
+      "reserve": "1002472",
+      "schedule": "5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b",
+      "still_to_come": "90100000"
+    }
+  ]
+}
+[exit 0]
+
+== beneficiary transfer
+
+[27] transfer the cliff schedule from alice to bob
+$ cliff-veil transfer 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB --to pub-20261125T100306Z-bob --as pub-20261125T100306Z-alice
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 162,
+      "declared_fee": "1533024",
+      "hash": "7f60841cbc0d4f562abb2e4c446d7b62b664ae9686021898431b709f9136aa5c"
+    }
+  ],
+  "transactions": [
+    {
+      "estimate": {
+        "cycles": 50679,
+        "headroom_blocks": 12,
+        "headroom_reserve": "1533024",
+        "network_fee": "409648",
+        "payer": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+        "private": false,
+        "reserve": "511008"
+      },
+      "from": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "operation": "transfer",
+      "to": "oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT"
+    }
+  ]
+}
+[exit 0]
+
+[28] claim by the previous beneficiary after the transfer
+$ cliff-veil claim 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB --as pub-20261125T100306Z-alice
+{"error":{"action":"send from the schedule's current beneficiary (see `show`)","code":3,"message":"cliff-veil error 3: only the beneficiary may do this","name":"NotBeneficiary"},"ok":false}
+[exit 1]
+
+[29] public claim by the new beneficiary
+$ cliff-veil claim 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB --as pub-20261125T100306Z-bob
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 163,
+      "declared_fee": "3007032",
+      "hash": "a3fbb4ca68680b7c843441f5da96b14c104ddb4e833c7adbd58b23593c130c7f"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "66665555",
+      "at": "2026-11-25T10:09:08.929Z",
+      "at_ms": 1795601348929,
+      "beneficiary": "oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT",
+      "claimed_after": "216666666",
+      "destination": {
+        "account": "oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT",
+        "kind": "public"
+      },
+      "estimate": {
+        "cycles": 99659,
+        "headroom_blocks": 12,
+        "headroom_reserve": "3007032",
+        "network_fee": "803024",
+        "payer": "oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT",
+        "private": false,
+        "reserve": "1002344"
+      },
+      "fee_payer": "oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT",
+      "fee_payer_choice": "signer",
+      "fee_payer_holds": "2000000000",
+      "fee_payer_reason": "the beneficiary, which signs the public claim",
+      "headroom_blocks": 12,
+      "headroom_covered": false,
+      "headroom_reserve": "3007032",
+      "operation": "claim",
+      "reserve": "1002344",
+      "schedule": "9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB",
+      "still_to_come": "783333334"
+    }
+  ]
+}
+[exit 0]
+
+== cancel with refund
+
+[30] cancel: the unvested part goes to the refund account (bob), the vested part stays claimable
+$ cliff-veil cancel CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB --as pub-20261125T100306Z-creator
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 164,
+      "declared_fee": "2917896",
+      "hash": "c2d1c9823f21ea58d6243db94b09a70999f0f0a99724e13d44eb8b6345f88b93"
+    }
+  ],
+  "transactions": [
+    {
+      "at": "2026-11-25T10:09:23.929Z",
+      "at_ms": 1795601363929,
+      "estimate": {
+        "cycles": 96713,
+        "headroom_blocks": 12,
+        "headroom_reserve": "2917896",
+        "network_fee": "779200",
+        "payer": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+        "private": false,
+        "reserve": "972632"
+      },
+      "operation": "cancel",
+      "refund_to": "oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT",
+      "refunded": "652500000",
+      "still_claimable": "247500000",
+      "vested_at_cancel": "247500000"
+    }
+  ]
+}
+[exit 0]
+
+[31] cancel the same schedule again
+$ cliff-veil cancel CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB --as pub-20261125T100306Z-creator
+{"error":{"action":"the schedule is cancelled: nothing more vests; the vested remainder stays claimable","code":16,"message":"cliff-veil error 16: the schedule is cancelled","name":"AlreadyCancelled"},"ok":false}
+[exit 1]
+
+[32] public claim of the vested part after the cancel
+$ cliff-veil claim CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB --as pub-20261125T100306Z-alice
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 165,
+      "declared_fee": "3056688",
+      "hash": "14f37a9a5cfbacf00499b1020af39f2f81a6bca67b895b18f4216423b381aa24"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "247500000",
+      "at": "2026-11-25T10:09:38.929Z",
+      "at_ms": 1795601378929,
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "claimed_after": "247500000",
+      "destination": {
+        "account": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+        "kind": "public"
+      },
+      "estimate": {
+        "cycles": 101314,
+        "headroom_blocks": 12,
+        "headroom_reserve": "3056688",
+        "network_fee": "816264",
+        "payer": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+        "private": false,
+        "reserve": "1018896"
+      },
+      "fee_payer": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "fee_payer_choice": "signer",
+      "fee_payer_holds": "2747171977",
+      "fee_payer_reason": "the beneficiary, which signs the public claim",
+      "headroom_blocks": 12,
+      "headroom_covered": false,
+      "headroom_reserve": "3056688",
+      "operation": "claim",
+      "reserve": "1018896",
+      "schedule": "CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB",
+      "still_to_come": "0"
+    }
+  ]
+}
+[exit 0]
+
+== final state
+
+[33] show 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB
+$ cliff-veil show 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB
+{
+  "ok": true,
+  "schedule": {
+    "account": "9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB",
+    "asset": "native",
+    "beneficiary": "oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT",
+    "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "cancelable": true,
+    "cancelled": null,
+    "claimable_now": "50000000",
+    "claimed": "216666666",
+    "clock": "2026-11-25T10:09:53.929Z",
+    "clock_ms": 1795601393929,
+    "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "escrow": "783333334",
+    "kind": "linear: start 2026-11-25T10:05:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:20:53.929Z",
+    "kind_detail": {
+      "linear": {
+        "cliff": 1795601273929,
+        "end": 1795602053929,
+        "start": 1795601153929
+      }
+    },
+    "last_time_ms": 1795601348929,
+    "locked": "733333334",
+    "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "next_unlock": "2026-11-25T10:09:53.930Z",
+    "next_unlock_kind": "at",
+    "next_unlock_ms": 1795601393930,
+    "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "schedule_id": "8e98a1e6ab4ab3f64e0041dd7dd43a9d377a94eceea1d64d584be3059e439286",
+    "standing": "active",
+    "token_definition": null,
+    "total": "1000000000",
+    "transferable": true,
+    "vested": "266666666"
+  }
+}
+[exit 0]
+
+[34] show 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU
+$ cliff-veil show 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU
+{
+  "ok": true,
+  "schedule": {
+    "account": "2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU",
+    "asset": "native",
+    "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+    "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "cancelable": false,
+    "cancelled": null,
+    "claimable_now": "300003334",
+    "claimed": "299996666",
+    "clock": "2026-11-25T10:09:53.929Z",
+    "clock_ms": 1795601393929,
+    "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "escrow": "300003334",
+    "kind": "linear: start 2026-11-25T10:06:08.930Z, cliff 2026-11-25T10:06:08.930Z, end 2026-11-25T10:09:08.930Z",
+    "kind_detail": {
+      "linear": {
+        "cliff": 1795601168930,
+        "end": 1795601348930,
+        "start": 1795601168930
+      }
+    },
+    "last_time_ms": 1795601258929,
+    "locked": "0",
+    "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "next_unlock": "none (nothing more vests)",
+    "next_unlock_kind": "never",
+    "next_unlock_ms": null,
+    "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "schedule_id": "2c99df9606f47878da265c40edbbe0785b64ce549ef3cd728a2616278dca8f66",
+    "standing": "active",
+    "token_definition": null,
+    "total": "600000000",
+    "transferable": false,
+    "vested": "600000000"
+  }
+}
+[exit 0]
+
+[35] show 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh
+$ cliff-veil show 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh
+{
+  "ok": true,
+  "schedule": {
+    "account": "3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh",
+    "asset": "native",
+    "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+    "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "cancelable": true,
+    "cancelled": null,
+    "claimable_now": "0",
+    "claimed": "300000000",
+    "clock": "2026-11-25T10:09:53.929Z",
+    "clock_ms": 1795601393929,
+    "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "escrow": "700000000",
+    "kind": "milestones: #0 300000000 (signalled), #1 700000000",
+    "kind_detail": {
+      "milestones": {
+        "amounts": [
+          "300000000",
+          "700000000"
+        ],
+        "signalled": 1
+      }
+    },
+    "last_time_ms": 1795601243929,
+    "locked": "700000000",
+    "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "next_unlock": "when the milestone authority signals a milestone",
+    "next_unlock_kind": "milestone",
+    "next_unlock_ms": null,
+    "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "schedule_id": "3d647e6d2fd9f986dbf79739f85f9bf7e987a3c02dec42ed0a3034343fd3dcd1",
+    "standing": "active",
+    "token_definition": null,
+    "total": "1000000000",
+    "transferable": false,
+    "vested": "300000000"
+  }
+}
+[exit 0]
+
+[36] show CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB
+$ cliff-veil show CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB
+{
+  "ok": true,
+  "schedule": {
+    "account": "CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB",
+    "asset": "native",
+    "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+    "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "cancelable": true,
+    "cancelled": {
+      "at": "2026-11-25T10:09:23.929Z",
+      "at_ms": 1795601363929,
+      "refunded": "652500000",
+      "vested_at_cancel": "247500000"
+    },
+    "claimable_now": "0",
+    "claimed": "247500000",
+    "clock": "2026-11-25T10:09:53.929Z",
+    "clock_ms": 1795601393929,
+    "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "escrow": "0",
+    "kind": "linear: start 2026-11-25T10:06:38.929Z, cliff 2026-11-25T10:06:38.929Z, end 2026-11-25T10:16:38.929Z",
+    "kind_detail": {
+      "linear": {
+        "cliff": 1795601198929,
+        "end": 1795601798929,
+        "start": 1795601198929
+      }
+    },
+    "last_time_ms": 1795601378929,
+    "locked": "0",
+    "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "next_unlock": "none (nothing more vests)",
+    "next_unlock_kind": "never",
+    "next_unlock_ms": null,
+    "refund_to": "oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT",
+    "schedule_id": "3f9044fba320bb346e6fd2c9c5fb18d7af6c72889fc5bafdc99ee2bf06ca2128",
+    "standing": "settled",
+    "token_definition": null,
+    "total": "900000000",
+    "transferable": false,
+    "vested": "247500000"
+  }
+}
+[exit 0]
+
+[37] show FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR
+$ cliff-veil show FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR
+{
+  "ok": true,
+  "schedule": {
+    "account": "FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR",
+    "asset": "native",
+    "beneficiary": "DYW3TGtP3e7TWaxVztjH1DM9tLbCVZceuijTWnU36Wdk",
+    "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "cancelable": true,
+    "cancelled": null,
+    "claimable_now": "10100113",
+    "claimed": "10099887",
+    "clock": "2026-11-25T10:09:53.929Z",
+    "clock_ms": 1795601393929,
+    "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "escrow": "90900113",
+    "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+    "kind_detail": {
+      "linear": {
+        "cliff": 1795601273929,
+        "end": 1795602113929,
+        "start": 1795601213929
+      }
+    },
+    "last_time_ms": 1795601303928,
+    "locked": "80800000",
+    "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "next_unlock": "2026-11-25T10:09:53.930Z",
+    "next_unlock_kind": "at",
+    "next_unlock_ms": 1795601393930,
+    "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "schedule_id": "e90eb39afa662314ba4823db10d9af4fd5e3da6b57b69a4abe7a235a7edbbc45",
+    "standing": "active",
+    "token_definition": null,
+    "total": "101000000",
+    "transferable": false,
+    "vested": "20200000"
+  }
+}
+[exit 0]
+
+[38] show 5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b
+$ cliff-veil show 5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b
+{
+  "ok": true,
+  "schedule": {
+    "account": "5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b",
+    "asset": "native",
+    "beneficiary": "2ckDWmUFLMSTGF6Zrj8v5cxPwVBY5CnxpKAbPbQENemi",
+    "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "cancelable": true,
+    "cancelled": null,
+    "claimable_now": "8500000",
+    "claimed": "11900000",
+    "clock": "2026-11-25T10:09:53.929Z",
+    "clock_ms": 1795601393929,
+    "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "escrow": "90100000",
+    "kind": "linear: start 2026-11-25T10:06:53.929Z, cliff 2026-11-25T10:07:53.929Z, end 2026-11-25T10:21:53.929Z",
+    "kind_detail": {
+      "linear": {
+        "cliff": 1795601273929,
+        "end": 1795602113929,
+        "start": 1795601213929
+      }
+    },
+    "last_time_ms": 1795601318929,
+    "locked": "81600000",
+    "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "next_unlock": "2026-11-25T10:09:53.930Z",
+    "next_unlock_kind": "at",
+    "next_unlock_ms": 1795601393930,
+    "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "schedule_id": "bc72a25c78c44d4fde56110dd5f74f721e3c43fd0bb2c8112c9881d9aca1991e",
+    "standing": "active",
+    "token_definition": null,
+    "total": "102000000",
+    "transferable": false,
+    "vested": "20400000"
+  }
+}
+[exit 0]
+
+[39] list what alice can claim now (block scan)
+$ cliff-veil list --beneficiary pub-20261125T100306Z-alice --no-cache
+{
+  "ok": true,
+  "scanned_to_block": 165,
+  "schedules": [
+    {
+      "account": "2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU",
+      "asset": "native",
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": false,
+      "cancelled": null,
+      "claimable_now": "300003334",
+      "claimed": "299996666",
+      "clock": "2026-11-25T10:09:53.929Z",
+      "clock_ms": 1795601393929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "300003334",
+      "kind": "linear: start 2026-11-25T10:06:08.930Z, cliff 2026-11-25T10:06:08.930Z, end 2026-11-25T10:09:08.930Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601168930,
+          "end": 1795601348930,
+          "start": 1795601168930
+        }
+      },
+      "last_time_ms": 1795601258929,
+      "locked": "0",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "none (nothing more vests)",
+      "next_unlock_kind": "never",
+      "next_unlock_ms": null,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "2c99df9606f47878da265c40edbbe0785b64ce549ef3cd728a2616278dca8f66",
+      "standing": "active",
+      "token_definition": null,
+      "total": "600000000",
+      "transferable": false,
+      "vested": "600000000"
+    },
+    {
+      "account": "3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh",
+      "asset": "native",
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": null,
+      "claimable_now": "0",
+      "claimed": "300000000",
+      "clock": "2026-11-25T10:09:53.929Z",
+      "clock_ms": 1795601393929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "700000000",
+      "kind": "milestones: #0 300000000 (signalled), #1 700000000",
+      "kind_detail": {
+        "milestones": {
+          "amounts": [
+            "300000000",
+            "700000000"
+          ],
+          "signalled": 1
+        }
+      },
+      "last_time_ms": 1795601243929,
+      "locked": "700000000",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "when the milestone authority signals a milestone",
+      "next_unlock_kind": "milestone",
+      "next_unlock_ms": null,
+      "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "schedule_id": "3d647e6d2fd9f986dbf79739f85f9bf7e987a3c02dec42ed0a3034343fd3dcd1",
+      "standing": "active",
+      "token_definition": null,
+      "total": "1000000000",
+      "transferable": false,
+      "vested": "300000000"
+    },
+    {
+      "account": "CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB",
+      "asset": "native",
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "cancelable": true,
+      "cancelled": {
+        "at": "2026-11-25T10:09:23.929Z",
+        "at_ms": 1795601363929,
+        "refunded": "652500000",
+        "vested_at_cancel": "247500000"
+      },
+      "claimable_now": "0",
+      "claimed": "247500000",
+      "clock": "2026-11-25T10:09:53.929Z",
+      "clock_ms": 1795601393929,
+      "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "escrow": "0",
+      "kind": "linear: start 2026-11-25T10:06:38.929Z, cliff 2026-11-25T10:06:38.929Z, end 2026-11-25T10:16:38.929Z",
+      "kind_detail": {
+        "linear": {
+          "cliff": 1795601198929,
+          "end": 1795601798929,
+          "start": 1795601198929
+        }
+      },
+      "last_time_ms": 1795601378929,
+      "locked": "0",
+      "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+      "next_unlock": "none (nothing more vests)",
+      "next_unlock_kind": "never",
+      "next_unlock_ms": null,
+      "refund_to": "oWihHdesYFP3tJwdrmyv79mwMoCr3JnzkbXtKQbv4AT",
+      "schedule_id": "3f9044fba320bb346e6fd2c9c5fb18d7af6c72889fc5bafdc99ee2bf06ca2128",
+      "standing": "settled",
+      "token_definition": null,
+      "total": "900000000",
+      "transferable": false,
+      "vested": "247500000"
+    }
+  ]
+}
+[exit 0]
+
+wrote evidence/public-chain/20261125T100306Z/run.json

@@ -1,0 +1,9 @@
+# token schedules on local-pub (LEZ v0.4.0-rc3 standalone, RISC0_DEV_MODE unset), 2026-11-25T10:06:31Z
+# repository commit 91db156d7d25; tests run one at a time: f2_token_claim_public_pays_the_destination_holding f3_token_cancel_refunds_the_unvested_part_to_the_refund_holding
+
+running 2 tests
+test f2_token_claim_public_pays_the_destination_holding ... ok
+test f3_token_cancel_refunds_the_unvested_part_to_the_refund_holding ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 32 filtered out; finished in 293.04s
+

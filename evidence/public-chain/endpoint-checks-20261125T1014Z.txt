@@ -1,0 +1,26 @@
+# read-only endpoint checks, 2026-11-25T10:14:51Z, https://cliff-veil-seq.tailcdec7a.ts.net via the address public DNS gives (103.84.155.217)
+GET /health
+  -> HTTP 200 {"ok": true, "dialer": true}
+read: getLastBlockId
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"result":184}
+read: getTransaction (vesting create, block 150)
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"result":["AAUAAAByLVpcrAD1ANo2Vp3QjQ/Y+Oq6rul3AI5e5BDA751ddxGCXQSSu1kMhLPG78XDOIl/f8nMtOb1EScUYdivaOwufJ6ZsuIK4mN9O8p5tB6tn2TAUVFTf/boo
+write: sendTransaction
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"not available on this read-only endpoint"}}
+not allow-listed: getPublications
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"not available on this read-only endpoint"}}
+not allow-listed: rpc.discover
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"not available on this read-only endpoint"}}
+batch (read + write)
+  -> HTTP 200 {"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"batches are not accepted on this endpoint"}}
+duplicate method key
+  -> HTTP 200 {"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"parse error"}}
+getBlockRange of 17 blocks
+  -> HTTP 200 {"jsonrpc":"2.0","id":1,"error":{"code":-32602,"message":"getBlockRange spans at most 16 blocks on this endpoint"}}
+3 KiB body
+  -> HTTP 413 {"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"request over 2048 bytes"}}
+PUT /
+  -> HTTP 405 {"error":"method not allowed"}
+
+# host dialer counters after these checks (stats.json): only allow-listed reads reached the sequencer; refused = {}
+{"errors": {}, "forwarded": {"getAccount": 72, "getLastBlockId": 5, "getTransaction": 121}, "refused": {}, "started": "2026-11-25T09:45:05Z", "written": "2026-11-25T10:14:55Z"}

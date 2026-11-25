@@ -1,0 +1,1 @@
+{"error":{"action":"send from the schedule's creator or its cancel authority (see `show`)","code":4,"message":"cliff-veil error 4: only the creator or the cancel authority may do this","name":"NotCreator"},"ok":false}

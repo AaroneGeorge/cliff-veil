@@ -1,0 +1,43 @@
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 165,
+      "declared_fee": "3056688",
+      "hash": "14f37a9a5cfbacf00499b1020af39f2f81a6bca67b895b18f4216423b381aa24"
+    }
+  ],
+  "transactions": [
+    {
+      "amount": "247500000",
+      "at": "2026-11-25T10:09:38.929Z",
+      "at_ms": 1795601378929,
+      "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "claimed_after": "247500000",
+      "destination": {
+        "account": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+        "kind": "public"
+      },
+      "estimate": {
+        "cycles": 101314,
+        "headroom_blocks": 12,
+        "headroom_reserve": "3056688",
+        "network_fee": "816264",
+        "payer": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+        "private": false,
+        "reserve": "1018896"
+      },
+      "fee_payer": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+      "fee_payer_choice": "signer",
+      "fee_payer_holds": "2747171977",
+      "fee_payer_reason": "the beneficiary, which signs the public claim",
+      "headroom_blocks": 12,
+      "headroom_covered": false,
+      "headroom_reserve": "3056688",
+      "operation": "claim",
+      "reserve": "1018896",
+      "schedule": "CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB",
+      "still_to_come": "0"
+    }
+  ]
+}

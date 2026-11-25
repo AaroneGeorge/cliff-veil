@@ -1,0 +1,158 @@
+{
+  "what": "token schedules on local-pub: the token end-to-end tests, recorded through a loopback relay",
+  "run": "20261125T100631Z-token",
+  "network": "local-pub",
+  "lez": "v0.4.0-rc3",
+  "dev_mode": false,
+  "programs": {
+    "token": "G47ivGM8zSMH8GbLiBBkaVRGwJJMCdGuGGyfFzuw1GX6",
+    "vesting_fees": "2BME3Tvbh3M9ehzjV5oUiTBq7sC87CZePwSRcibP1oZP",
+    "ata": "fxPsJympi87tLPh43MAwZ8Tr7zbiRryqXbbHaWyuYt1",
+    "vesting": "J6cQ2c3C7q2mdR8nVwb93oWPEJKdyvAycXSP7SYgB3cV"
+  },
+  "accounts": {
+    "fees_config": "8ghb6rYjRAU1rd1vjQqz4ZzqWdEfmjPnKip72Z1F6RTC"
+  },
+  "transactions": [
+    {
+      "step": 1,
+      "what": "native transfer (test account funding, test f2)",
+      "hash": "0e1ec6a464909fcfe4ac6ca4fdeef46aa9017502f1c9ecf0796b49eae0563b33",
+      "block": 152
+    },
+    {
+      "step": 2,
+      "what": "native transfer (test account funding, test f2)",
+      "hash": "30873997a10c0d6d255bdc4cfb8856106d0d1b8040c97e1e591be6e07e0bd54d",
+      "block": 152
+    },
+    {
+      "step": 3,
+      "what": "native transfer (test account funding, test f2)",
+      "hash": "a4b880613faaf7b9966249db5dfa99e76fa19452c339a19c56df714cc3ba1899",
+      "block": 152
+    },
+    {
+      "step": 4,
+      "what": "native transfer (test account funding, test f2)",
+      "hash": "a0b724215076df1e607084f81be742269e3b01d9ef0bf6196876b572dbea718b",
+      "block": 152
+    },
+    {
+      "step": 5,
+      "what": "token: new definition, whole supply to the creator",
+      "hash": "257a317533c17fa153383f8322f422cef2d844067cd8937be0bfe3b4c51d5ea2",
+      "block": 153
+    },
+    {
+      "step": 6,
+      "what": "token: initialise the destination holding",
+      "hash": "fe14ce8dea56f78cd539b6fd0bc2898234a4d54ae0dd1888e4fb424e365b7261",
+      "block": 154
+    },
+    {
+      "step": 7,
+      "what": "vesting: create a linear token schedule (no cliff)",
+      "hash": "111081778f7eb4eb970378f8d48e830aeddc617c54efa4553e9984baa7e4f939",
+      "block": 155
+    },
+    {
+      "step": 8,
+      "what": "vesting: public claim (part, mid-vesting)",
+      "hash": "9a2ccffd595e99eb1269bd8ce3996c65376e5fe04b668f80879440b8c4d39fc8",
+      "block": 157
+    },
+    {
+      "step": 9,
+      "what": "vesting: public claim (the rest, after the end)",
+      "hash": "0ab0d5d4a764f63d09eec1879903f7ec6f24e515bd6a25c46fd49cbd0978ee28",
+      "block": 163
+    },
+    {
+      "step": 10,
+      "what": "native transfer (test account funding, test f3)",
+      "hash": "886d3cdc8f0018763271af49f361c63a95b2a1f7f359a8843e720ecabadbe263",
+      "block": 164
+    },
+    {
+      "step": 11,
+      "what": "native transfer (test account funding, test f3)",
+      "hash": "74fb688c236bbaeff6bcb604a52d5e8dde62d7aa6181b7976ac0a93305d71108",
+      "block": 164
+    },
+    {
+      "step": 12,
+      "what": "native transfer (test account funding, test f3)",
+      "hash": "59b01e53bfe355571a0707173d3d3dfe7cb32fd11f47c56e109623d2ba984aaa",
+      "block": 164
+    },
+    {
+      "step": 13,
+      "what": "native transfer (test account funding, test f3)",
+      "hash": "ffd59b2ddeb8638e162f7aeb9fe90e475fc559fd98342de9cc2cab89739ddddf",
+      "block": 164
+    },
+    {
+      "step": 14,
+      "what": "native transfer (test account funding, test f3)",
+      "hash": "04fb71a1f6b8d2ae1f1ccf1acd299eed0cea924b31589e387d34acf25316708c",
+      "block": 164
+    },
+    {
+      "step": 15,
+      "what": "token: new definition, whole supply to the creator",
+      "hash": "f2685a9e8eafd21364f79184a0a4713bb89b94e1869fdd5ddadc52ab6d232602",
+      "block": 165
+    },
+    {
+      "step": 16,
+      "what": "token: initialise the refund holding",
+      "hash": "99308753bfb169bd8f696da920ccb1d0e4d140b8cc49149f828b307d4df1ac0f",
+      "block": 166
+    },
+    {
+      "step": 17,
+      "what": "token: initialise the beneficiary holding",
+      "hash": "aa52b2365ed56923dd04317c8ae57042c0d5dfd14f7827d2c0d040ea3055980c",
+      "block": 167
+    },
+    {
+      "step": 18,
+      "what": "vesting: create a linear token schedule, cancel authority and refund holding set",
+      "hash": "53b5126590d49f60b699497aa9e6121da949865cece1fa8d5ebc4fd516c89b11",
+      "block": 168
+    },
+    {
+      "step": 19,
+      "what": "vesting: cancel (unvested part refunded to the refund holding)",
+      "hash": "519000602ba6c8f1aa4018efaa8ae765ef22daf93c16496172f2684fadc861b6",
+      "block": 170
+    },
+    {
+      "step": 20,
+      "what": "vesting: public claim of the vested part after the cancel",
+      "hash": "143221d6acd7c79bf1fa078f73aeea8d0e7fd2ca10f36738cf2bc12194d8418f",
+      "block": 171
+    }
+  ],
+  "refusals": [],
+  "queries": [],
+  "schedules": [
+    {
+      "name": "token-1",
+      "account": "FTfZsVvZZuhTbeDhtnC9VKGLMCzCUwijWVoaaKM8q8sK",
+      "expect": {
+        "asset": "token"
+      },
+      "expect_from": "read from the chain at the end of the run (decoded by scripts/verify_public.sh)"
+    },
+    {
+      "name": "token-2",
+      "account": "C3crfTGynmRZQiYU3wYcmczZw3dwhrrjTFpVf2ydup7d",
+      "expect": {
+        "asset": "token"
+      },
+      "expect_from": "read from the chain at the end of the run (decoded by scripts/verify_public.sh)"
+    }
+  ]
+}

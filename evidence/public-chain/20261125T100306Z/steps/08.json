@@ -1,0 +1,49 @@
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 154,
+      "declared_fee": "32562984",
+      "hash": "81fd7290f42af9a2eb53e6918fb31b345152350a5399e0aecb7e434c5ec5a334"
+    }
+  ],
+  "transactions": [
+    {
+      "creation_fee": "0",
+      "estimate": {
+        "cycles": 1080551,
+        "headroom_blocks": 12,
+        "headroom_reserve": "32562984",
+        "network_fee": "8693224",
+        "payer": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+        "private": false,
+        "reserve": "10854328"
+      },
+      "operation": "create-batch",
+      "schedules": [
+        "FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR",
+        "5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b",
+        "71LAmXFsuKds1WZMA1APsyuxaX82NdvhEvTjQvFHxCEC",
+        "6q9783wdfpSS6Qcda9Sfbz9NbaFwxudxUCGBbfQe38Q3",
+        "8JK9Utv6ZFyozuUZXid3MhB4iaPptg9hMLPWAUJpdQYP",
+        "Czc5aqB2Tzrtx8EBjtXYejtBiMRKQsbrJmXA1iNdAqcr",
+        "CSPAE6m4VSNxt5WnVjrF1jGAouLvDP6YoAgW6piEafTG",
+        "BYvDR7VsnU2EwUwTCeoJKaipK3wUX26V6hQdazoAieoj",
+        "Fqy5fFUDZNbw8nRNNW8tFeX73SWVuDMPL46DKSuGkKRe",
+        "8EX7Y5HfioEuEtX5sNhqR6eGuQPe3kMXtiy69dUdyv6x",
+        "FNdbn5XzHMq9FaXbTGM2tuQYLDLWJS478uMZtSeEsb82",
+        "7idKdvzsRTJHVDk4RxWfxMoahRV6yz8y7cd6HmMro4Gj",
+        "ETwsXYcLre92ewVAZmtwkRAQnjQmFmSMEqjJJonXBKnf",
+        "6PY1qyX19cLYWaBdLBo7LitVBQdHQyF61dBWqk25942Y",
+        "Et8EVcaeRqnYEMgCwR6rr2yr5pxMPTLn5yPv4bVpBxAu",
+        "54tiZYp3n3THjguzHvbLbpR6SvH3B2r6JK4sKiMkugZq",
+        "EfQkGxpgYjWbtykWLDrgxcQkUZWGxLJeJGmQ9x7ykvUB",
+        "6eDhTNwR7wqG5XqQnhKvHonqyYB4RZGZRE6JQFvQx44r",
+        "4MEoRs1v66eppnqVnueV82h9iy2VyTUvMzg8eAeW7S25",
+        "BUWe77qZxFeSPVvLHZxhKnAi6QS8Le8ffwcJUJNswBX7"
+      ],
+      "total": "2210000000",
+      "treasury": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE"
+    }
+  ]
+}

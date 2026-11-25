@@ -1,0 +1,11 @@
+{
+  "fees": {
+    "config_account": "8ghb6rYjRAU1rd1vjQqz4ZzqWdEfmjPnKip72Z1F6RTC",
+    "deployed": true,
+    "max_fee_bps": 100,
+    "program": "2BME3Tvbh3M9ehzjV5oUiTBq7sC87CZePwSRcibP1oZP",
+    "rate_bps": 0,
+    "treasury": "not set"
+  },
+  "ok": true
+}

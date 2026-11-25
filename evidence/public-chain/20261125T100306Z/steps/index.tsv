@@ -1,0 +1,39 @@
+01	ok	0	fee configuration (vesting_fees Init by the deployer)	fee-show
+02	ok	0	create: linear with a cliff (cliff +120 s, end +900 s), transferable, cancelable	create --from pub-20261125T100306Z-creator --beneficiary pub-20261125T100306Z-alice --total 1000000000 --start now --cliff +120s --end +900s --transferable --label pub-20261125T100306Z-cliff
+03	ok	0	claimable now and next unlock (cliff schedule, before the cliff)	claimable 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB
+04	refused	1	claim before the cliff (nothing claimable yet)	claim 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB --as pub-20261125T100306Z-alice
+05	ok	0	create: fully linear (no cliff, end +180 s)	create --from pub-20261125T100306Z-creator --beneficiary pub-20261125T100306Z-alice --total 600000000 --start now --end +180s --label pub-20261125T100306Z-linear
+06	ok	0	create: milestones 300000000 + 700000000, milestone authority the creator	create --from pub-20261125T100306Z-creator --beneficiary pub-20261125T100306Z-alice --milestones 300000000,700000000 --label pub-20261125T100306Z-milestones
+07	ok	0	create: linear schedule for the cancel with refund (end +600 s), refund to bob	create --from pub-20261125T100306Z-creator --beneficiary pub-20261125T100306Z-alice --total 900000000 --start now --end +600s --refund-to pub-20261125T100306Z-bob --label pub-20261125T100306Z-cancel
+08	ok	0	create-batch: 20 linear schedules with a cliff (cliff +60 s, end +900 s)	create-batch --from pub-20261125T100306Z-creator --file evidence/public-chain/20261125T100306Z/batch.csv --start now --cliff +60s --end +900s
+09	ok	0	show the cliff schedule	show 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB
+10	refused	1	claim by an account that is not the beneficiary	claim 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --as pub-20261125T100306Z-mallory
+11	refused	1	transfer of a schedule created non-transferable	transfer 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --to pub-20261125T100306Z-bob --as pub-20261125T100306Z-alice
+12	refused	1	milestone signal by an account that is not the milestone authority	signal 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh --index 0 --as pub-20261125T100306Z-mallory
+13	refused	1	cancel by an account that is not the cancel authority	cancel CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB --as pub-20261125T100306Z-mallory
+14	refused	1	make-non-cancelable by an account that is not the creator	make-non-cancelable 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --as pub-20261125T100306Z-mallory
+15	ok	0	list the schedules the creator made (block scan)	list --creator pub-20261125T100306Z-creator --no-cache
+16	ok	0	signal milestone #0	signal 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh --index 0 --as pub-20261125T100306Z-creator
+17	refused	1	signal milestone #0 again	signal 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh --index 0 --as pub-20261125T100306Z-creator
+18	ok	0	public claim of the signalled milestone	claim 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh --as pub-20261125T100306Z-alice
+19	ok	0	show the milestone schedule	show 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh
+20	ok	0	public claim, fully linear schedule	claim 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --as pub-20261125T100306Z-alice
+21	ok	0	make the linear schedule non-cancelable	make-non-cancelable 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --as pub-20261125T100306Z-creator
+22	refused	1	cancel a non-cancelable schedule	cancel 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU --as pub-20261125T100306Z-creator
+23	ok	0	claimable now and next unlock (cliff schedule, after the cliff)	claimable 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB
+24	ok	0	public claim after the cliff	claim 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB --as pub-20261125T100306Z-alice
+25	ok	0	public claim from batch schedule #1 by its recipient	claim FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR --as Public/DYW3TGtP3e7TWaxVztjH1DM9tLbCVZceuijTWnU36Wdk
+26	ok	0	public claim from batch schedule #2 by its recipient	claim 5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b --as Public/2ckDWmUFLMSTGF6Zrj8v5cxPwVBY5CnxpKAbPbQENemi
+27	ok	0	transfer the cliff schedule from alice to bob	transfer 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB --to pub-20261125T100306Z-bob --as pub-20261125T100306Z-alice
+28	refused	1	claim by the previous beneficiary after the transfer	claim 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB --as pub-20261125T100306Z-alice
+29	ok	0	public claim by the new beneficiary	claim 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB --as pub-20261125T100306Z-bob
+30	ok	0	cancel: the unvested part goes to the refund account (bob), the vested part stays claimable	cancel CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB --as pub-20261125T100306Z-creator
+31	refused	1	cancel the same schedule again	cancel CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB --as pub-20261125T100306Z-creator
+32	ok	0	public claim of the vested part after the cancel	claim CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB --as pub-20261125T100306Z-alice
+33	ok	0	show 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB	show 9PTpeYzNJFBaryaAGniQt2QCKEhx6rTAZvc5446T3AaB
+34	ok	0	show 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU	show 2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU
+35	ok	0	show 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh	show 3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh
+36	ok	0	show CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB	show CCkKcr2kgBGmyUVVGQcRq7aWzqL8zRnCrkfhDsV8GBfB
+37	ok	0	show FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR	show FSGNq8W7PukKEPS4Tdwdq1cXBu4b9gqtksxVHLbLpfgR
+38	ok	0	show 5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b	show 5yfHP995tbq33AoSAycXoyc4usWsCAHdkjgyTq1frh2b
+39	ok	0	list what alice can claim now (block scan)	list --beneficiary pub-20261125T100306Z-alice --no-cache

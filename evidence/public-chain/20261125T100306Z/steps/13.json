@@ -1,0 +1,1 @@
+{"error":{"action":"send from the schedule's cancel authority (see `show`)","code":5,"message":"cliff-veil error 5: only the cancel authority may cancel","name":"NotCancelAuthority"},"ok":false}

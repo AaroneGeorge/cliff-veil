@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "schedule": {
+    "account": "3z6hQDa81LeDL9kHjAfpGsEDoub5gSTTq486XWTxYSvh",
+    "asset": "native",
+    "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+    "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "cancelable": true,
+    "cancelled": null,
+    "claimable_now": "0",
+    "claimed": "300000000",
+    "clock": "2026-11-25T10:07:38.929Z",
+    "clock_ms": 1795601258929,
+    "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "escrow": "700000000",
+    "kind": "milestones: #0 300000000 (signalled), #1 700000000",
+    "kind_detail": {
+      "milestones": {
+        "amounts": [
+          "300000000",
+          "700000000"
+        ],
+        "signalled": 1
+      }
+    },
+    "last_time_ms": 1795601243929,
+    "locked": "700000000",
+    "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "next_unlock": "when the milestone authority signals a milestone",
+    "next_unlock_kind": "milestone",
+    "next_unlock_ms": null,
+    "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "schedule_id": "3d647e6d2fd9f986dbf79739f85f9bf7e987a3c02dec42ed0a3034343fd3dcd1",
+    "standing": "active",
+    "token_definition": null,
+    "total": "1000000000",
+    "transferable": false,
+    "vested": "300000000"
+  }
+}

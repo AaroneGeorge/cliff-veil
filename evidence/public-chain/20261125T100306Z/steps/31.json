@@ -1,0 +1,1 @@
+{"error":{"action":"the schedule is cancelled: nothing more vests; the vested remainder stays claimable","code":16,"message":"cliff-veil error 16: the schedule is cancelled","name":"AlreadyCancelled"},"ok":false}

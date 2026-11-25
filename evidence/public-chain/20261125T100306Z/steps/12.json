@@ -1,0 +1,1 @@
+{"error":{"action":"send from the schedule's milestone authority (see `show`)","code":6,"message":"cliff-veil error 6: only the milestone authority may signal a milestone","name":"NotMilestoneAuthority"},"ok":false}

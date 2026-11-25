@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "sent": [
+    {
+      "block": 155,
+      "declared_fee": "1486032",
+      "hash": "c93e02f39b70b897f155ba467f32f8d43b4b6ddce926e7041acaa87462d9804f"
+    }
+  ],
+  "transactions": [
+    {
+      "estimate": {
+        "cycles": 49137,
+        "headroom_blocks": 12,
+        "headroom_reserve": "1486032",
+        "network_fee": "397064",
+        "payer": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+        "private": false,
+        "reserve": "495344"
+      },
+      "index": 0,
+      "operation": "signal",
+      "unlocks": "300000000"
+    }
+  ]
+}

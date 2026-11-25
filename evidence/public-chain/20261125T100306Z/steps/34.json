@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "schedule": {
+    "account": "2gDNd9UvjmWd62VQZmyGKTbsCqJyfEtTNx1WWWq9FZKU",
+    "asset": "native",
+    "beneficiary": "EobGZfjrMYxeKUaxPm6ztCcVCS9aRJZJGGEQ8Sd5STAP",
+    "cancel_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "cancelable": false,
+    "cancelled": null,
+    "claimable_now": "300003334",
+    "claimed": "299996666",
+    "clock": "2026-11-25T10:09:53.929Z",
+    "clock_ms": 1795601393929,
+    "creator": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "escrow": "300003334",
+    "kind": "linear: start 2026-11-25T10:06:08.930Z, cliff 2026-11-25T10:06:08.930Z, end 2026-11-25T10:09:08.930Z",
+    "kind_detail": {
+      "linear": {
+        "cliff": 1795601168930,
+        "end": 1795601348930,
+        "start": 1795601168930
+      }
+    },
+    "last_time_ms": 1795601258929,
+    "locked": "0",
+    "milestone_authority": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "next_unlock": "none (nothing more vests)",
+    "next_unlock_kind": "never",
+    "next_unlock_ms": null,
+    "refund_to": "DgMzZX3euqWGoQQQPyfMwwvTVkY7k7DmzuF7LCqR4ZgE",
+    "schedule_id": "2c99df9606f47878da265c40edbbe0785b64ce549ef3cd728a2616278dca8f66",
+    "standing": "active",
+    "token_definition": null,
+    "total": "600000000",
+    "transferable": false,
+    "vested": "600000000"
+  }
+}

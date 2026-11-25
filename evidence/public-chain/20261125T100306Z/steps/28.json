@@ -1,0 +1,1 @@
+{"error":{"action":"send from the schedule's current beneficiary (see `show`)","code":3,"message":"cliff-veil error 3: only the beneficiary may do this","name":"NotBeneficiary"},"ok":false}
