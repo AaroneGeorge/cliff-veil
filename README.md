@@ -14,6 +14,8 @@ Logos mini-app, the end-to-end tests, and the evidence files the numbers in thes
 
 ## Status
 
+**Use and value.** No schedule should hold real value until the external audit is closed (milestone M5). cliff-veil is open-source software; the team builds and maintains it and does not operate it, hold users' funds, or offer it as a service. The public chain below is a test chain the team runs for review; it holds no value. See [SECURITY.md](SECURITY.md) and [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md).
+
 | Item | State |
 |---|---|
 | Create (cliff + linear, fully linear, milestones, batch), claim to a public account, cancel, make non-cancelable, signal a milestone, transfer the beneficiary, creation-fee switch | Runs on a LEZ v0.4.0-rc3 standalone sequencer in dev mode. The end-to-end suite has 43 tests (34 + 4 + 3 + 2 in `e2e/tests/`, counted with `cargo test -p vesting_e2e -- --list --ignored`). The recorded local run of 2026-11-24 passed 41 of 41, before the two composition tests were added ([evidence/e2e/local-dev/20261124T160153Z.json](evidence/e2e/local-dev/20261124T160153Z.json)); those two passed 2 of 2 in their own run ([evidence/e2e/compose/20261124T163557Z.json](evidence/e2e/compose/20261124T163557Z.json)). |
@@ -492,7 +494,7 @@ A creation with a zero fee passes whatever the state of the fee configuration. D
 | `scripts/` | Bootstrap, local sequencers, deployment, reproducible guest build and image-id check, the public-chain runs and `verify_public.sh`. |
 | `deploy/` | Program ids and image ids per network. |
 | `evidence/` | Logs and measurement files that the documents quote. |
-| `docs/` | [SDK](docs/SDK.md), [REQUIREMENTS](docs/REQUIREMENTS.md), [COSTS](docs/COSTS.md), [IDL](docs/IDL.md), [PLATFORM-FINDINGS](docs/PLATFORM-FINDINGS.md), [DECISIONS](docs/DECISIONS.md), [PRIVACY](docs/PRIVACY.md), [EVENTS](docs/EVENTS.md), [REUSE](docs/REUSE.md), [COMPOSITION](docs/COMPOSITION.md). |
+| `docs/` | [SDK](docs/SDK.md), [REQUIREMENTS](docs/REQUIREMENTS.md), [COSTS](docs/COSTS.md), [IDL](docs/IDL.md), [PLATFORM-FINDINGS](docs/PLATFORM-FINDINGS.md), [DECISIONS](docs/DECISIONS.md), [PRIVACY](docs/PRIVACY.md), [EVENTS](docs/EVENTS.md), [REUSE](docs/REUSE.md), [COMPOSITION](docs/COMPOSITION.md), [THREAT-MODEL](docs/THREAT-MODEL.md); security policy and how to report a vulnerability: [SECURITY.md](SECURITY.md). |
 
 ## Licence
 
