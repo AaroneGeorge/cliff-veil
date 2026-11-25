@@ -84,8 +84,7 @@ id = "U2"
 group = "Usability"
 kind = "hard"
 text = "Provide a Logos mini-app GUI with local build instructions, downloadable assets, and loadable in Logos app (Basecamp) via git repo. The mini-app must cover at minimum: Recipient view: current vesting position, total locked, amount claimable now, next unlock event, claim action. Creator view: create a new schedule (all parameters), list active schedules, cancel a schedule, signal a milestone."
-gap = "recipient and creator views installed, loaded and used in the Basecamp 0.3.2 GUI (list, create with every parameter, cancel, signal, public and private claims) from packages built from this repository with Nix; building straight from the GitHub URL is not yet run"
-files = ["evidence/miniapp/README.md", "evidence/miniapp/build.log", "evidence/miniapp/load-logosctl.log", "evidence/miniapp/live-local-dev/20261124T183901Z.log", "evidence/miniapp/basecamp/20261125T104537Z/README.md"]
+files = ["evidence/miniapp/README.md", "evidence/miniapp/build.log", "evidence/miniapp/load-logosctl.log", "evidence/miniapp/live-local-dev/20261124T183901Z.log", "evidence/miniapp/basecamp/20261125T104537Z/README.md", "evidence/miniapp/from-git/README.md"]
 
 [[requirement]]
 id = "U3"

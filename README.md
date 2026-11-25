@@ -386,9 +386,7 @@ sequencer at the pinned LEZ commit, runs the three deployments above, runs `e2e/
 ## Requirement coverage and costs
 
 [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) maps every hard requirement of RFP-017 to the tests that exercise it:
-of its 29 rows, 25 are tested and 4 are partial. A partial row states its gap: the mini-app row U2 is installed, loaded
-and used in the Basecamp 0.3.2 GUI from packages built from this repository, but a build straight from the GitHub URL
-is not yet run; the cost row (P2) and the deployment row (S1) are met on a local LEZ v0.4.0-rc3 sequencer, and testnet
+of its 29 rows, 26 are tested and 3 are partial. A partial row states its gap: the cost row (P2) and the deployment row (S1) are met on a local LEZ v0.4.0-rc3 sequencer, and testnet
 0.4 is not live yet; the README row (S4) gives local program addresses only, since testnet 0.4 has none yet. Tests marked (executor) run the built guests through LEZ's public execution
 without a sequencer. [docs/COSTS.md](docs/COSTS.md) holds the cost of each operation, generated from `evidence/cost/*.json`, `evidence/batch/max.txt` and the real-proof records in `evidence/real-proof/`. Executor cycles on LEZ v0.4.0-rc3:
 
